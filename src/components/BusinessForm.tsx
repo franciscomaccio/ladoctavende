@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Business } from '../types/database';
+import type { Business } from '../types/database';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -73,7 +73,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
             if (imageFile) {
                 const fileExt = imageFile.name.split('.').pop();
                 const fileName = `${userId}/${Math.random()}.${fileExt}`;
-                const { error: uploadError, data } = await supabase.storage
+                const { error: uploadError } = await supabase.storage
                     .from('flyers')
                     .upload(fileName, imageFile);
 
@@ -113,7 +113,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
     };
 
     return (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 2000, display: 'flex', justifyContent: 'center', p: '1rem', overflowY: 'auto' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 2000, display: 'flex', justifyContent: 'center', padding: '1rem', overflowY: 'auto' }}>
             <div className="glass-card" style={{ maxWidth: '800px', width: '100%', padding: '2rem', height: 'fit-content', margin: 'auto' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem' }}>
                     <h2>{business ? 'Editar Negocio' : 'Nuevo Negocio'}</h2>

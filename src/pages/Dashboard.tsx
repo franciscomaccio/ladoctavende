@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
-import { Business } from '../types/database';
+import type { Business } from '../types/database';
 import { Plus, Edit2, Trash2, LayoutDashboard } from 'lucide-react';
 import BusinessForm from '../components/BusinessForm';
 

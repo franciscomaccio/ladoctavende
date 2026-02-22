@@ -1,10 +1,9 @@
-import React from 'react';
 import { HashRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Home from './pages/Home';
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import { useAuth } from './hooks/useAuth';
-import { LogOut, User, PlusCircle } from 'lucide-react';
+import { LogOut, User } from 'lucide-react';
 
 function App() {
   const { user, signOut } = useAuth();

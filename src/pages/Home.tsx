@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Business } from '../types/database';
-import { Search, MapPin, Phone, X, ExternalLink } from 'lucide-react';
+import type { Business } from '../types/database';
+import { Search, MapPin, Phone, X } from 'lucide-react';
 
 const CATEGORIES = ['Gastronomía', 'Moda', 'Salud', 'Para el hogar', 'Vehículo', 'Servicios', 'Otros'];
 
@@ -140,7 +140,7 @@ export default function Home() {
                     <div className="glass-card" style={{ maxWidth: '600px', width: '100%', position: 'relative', overflow: 'hidden' }}>
                         <button
                             onClick={() => setSelectedBusiness(null)}
-                            style={{ position: 'absolute', right: '1rem', top: '1rem', background: 'rgba(0,0,0,0.5)', border: 'none', color: 'white', borderRadius: '50%', p: '5px', cursor: 'pointer', zIndex: 10 }}
+                            style={{ position: 'absolute', right: '1rem', top: '1rem', background: 'rgba(0,0,0,0.5)', border: 'none', color: 'white', borderRadius: '50%', padding: '5px', cursor: 'pointer', zIndex: 10 }}
                         >
                             <X size={24} />
                         </button>
