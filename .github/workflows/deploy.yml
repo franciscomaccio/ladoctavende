@@ -23,12 +23,15 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: List files (Debug)
         run: ls -R src
 
       - name: Build
+        env:
+          VITE_SUPABASE_URL: https://bsxqttgbxjzkuiwhypsd.supabase.co
+          VITE_SUPABASE_ANON_KEY: sb_publishable_lb5TAt0AQtjSgFvJQUnMRQ_1nADMddD
         run: npm run build
 
       - name: Setup Pages
