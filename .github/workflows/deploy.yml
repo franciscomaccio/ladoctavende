@@ -23,7 +23,10 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
+
+      - name: List files (Debug)
+        run: ls -R src
 
       - name: Build
         run: npm run build
