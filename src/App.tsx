@@ -12,7 +12,7 @@ function App() {
     <Router>
       <header className="navbar glass-card" style={{ margin: '1rem 2rem', borderRadius: '15px' }}>
         <Link to="/" className="logo">
-          <img src={`${import.meta.env.BASE_URL}logo.png`} alt="La Docta Vende" className="logo-img" onError={(e) => (e.currentTarget.style.display = 'none')} />
+          <img src="logo.png" alt="La Docta Vende" className="logo-img" onError={(e) => (e.currentTarget.style.display = 'none')} />
           <span className="logo-text">laDoctavende</span>
         </Link>
         <nav style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>

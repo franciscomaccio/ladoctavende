@@ -27,7 +27,6 @@ jobs:
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://bsxqttgbxjzkuiwhypsd.supabase.co' }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'sb_publishable_lb5TAt0AQtjSgFvJQUnMRQ_1nADMddD' }}
-          VITE_BASE_PATH: ${{ github.ref == 'refs/heads/test' && '/ladoctavende/test/' || '/ladoctavende/' }}
         run: npm run build
 
       - name: Deploy
@@ -37,3 +36,5 @@ jobs:
           publish_dir: ./dist
           destination_dir: ${{ github.ref == 'refs/heads/test' && 'test' || '.' }}
           keep_files: true
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
