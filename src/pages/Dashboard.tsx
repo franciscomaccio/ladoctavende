@@ -56,7 +56,7 @@ export default function Dashboard() {
     return (
         <div className="container">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: 'var(--accent)' }}>
                     <LayoutDashboard size={32} />
                     <h1>Mis Negocios</h1>
                 </div>
@@ -76,7 +76,7 @@ export default function Dashboard() {
                                     <img src={business.image_url} alt={business.name} style={{ width: '80px', height: '80px', borderRadius: '10px', objectFit: 'cover' }} />
                                 )}
                                 <div style={{ flex: 1 }}>
-                                    <span style={{ fontSize: '0.7rem', color: 'var(--primary)' }}>{business.category}</span>
+                                    <span style={{ fontSize: '0.7rem', color: 'var(--accent)', fontWeight: 'bold' }}>{business.category}</span>
                                     <h3 style={{ margin: '0.2rem 0' }}>{business.name}</h3>
                                     <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{business.phone || 'Sin teléfono'}</p>
                                 </div>

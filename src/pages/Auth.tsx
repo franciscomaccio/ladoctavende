@@ -39,7 +39,7 @@ export default function Auth() {
     return (
         <div className="container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
             <div className="glass-card" style={{ padding: '3rem', maxWidth: '450px', width: '100%' }}>
-                <h1 style={{ marginBottom: '2rem', textAlign: 'center' }}>
+                <h1 style={{ marginBottom: '2rem', textAlign: 'center', color: 'var(--accent)' }}>
                     {isSignUp ? 'Crea tu cuenta' : 'Iniciar Sesión'}
                 </h1>
 
@@ -80,8 +80,8 @@ export default function Auth() {
                         <div style={{
                             padding: '1rem',
                             borderRadius: '10px',
-                            background: message.type === 'success' ? 'rgba(0, 245, 212, 0.1)' : 'rgba(255, 92, 138, 0.1)',
-                            color: message.type === 'success' ? 'var(--success)' : 'var(--error)',
+                            background: message.type === 'success' ? 'rgba(254, 223, 0, 0.1)' : 'rgba(255, 92, 138, 0.1)',
+                            color: message.type === 'success' ? 'var(--accent)' : 'var(--error)',
                             display: 'flex',
                             alignItems: 'center',
                             gap: '0.5rem',
@@ -108,7 +108,7 @@ export default function Auth() {
                         style={{
                             background: 'none',
                             border: 'none',
-                            color: 'var(--primary)',
+                            color: 'var(--accent)',
                             marginLeft: '0.5rem',
                             cursor: 'pointer',
                             fontWeight: '600'

@@ -11,7 +11,10 @@ function App() {
   return (
     <Router>
       <header className="navbar glass-card" style={{ margin: '1rem 2rem', borderRadius: '15px' }}>
-        <Link to="/" className="logo" style={{ textDecoration: 'none' }}>ladoctavende</Link>
+        <Link to="/" className="logo">
+          <img src="/logo.png" alt="La Docta Vende" className="logo-img" onError={(e) => (e.currentTarget.style.display = 'none')} />
+          <span className="logo-text">laDoctavende</span>
+        </Link>
         <nav style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
           <Link to="/" style={{ color: 'white', textDecoration: 'none' }}>Inicio</Link>
           {user ? (

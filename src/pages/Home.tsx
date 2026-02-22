@@ -67,8 +67,8 @@ export default function Home() {
     return (
         <div className="container">
             <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-                <h1 style={{ fontSize: '3rem', marginBottom: '1rem' }}>Descubrí Ladoctavende</h1>
-                <p style={{ color: 'var(--text-muted)' }}>Encontrá los mejores emprendimientos y comercios en un solo lugar.</p>
+                <h1 style={{ fontSize: '3.5rem', marginBottom: '1rem', background: 'linear-gradient(to right, var(--accent), #fff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Descubrí Ladoctavende</h1>
+                <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem' }}>Encontrá los mejores emprendimientos y comercios en un solo lugar.</p>
             </div>
 
             {/* Search & Filters */}
