@@ -76,6 +76,16 @@ export default function Dashboard() {
                                     <img src={business.image_url} alt={business.name} style={{ width: '80px', height: '80px', borderRadius: '10px', objectFit: 'cover' }} />
                                 )}
                                 <div style={{ flex: 1 }}>
+                                    <span style={{
+                                        fontSize: '0.7rem',
+                                        padding: '2px 8px',
+                                        borderRadius: '10px',
+                                        background: business.active ? 'rgba(0, 155, 58, 0.2)' : 'rgba(255, 92, 138, 0.2)',
+                                        color: business.active ? '#4ade80' : 'var(--error)',
+                                        fontWeight: 'bold'
+                                    }}>
+                                        {business.active ? 'Visible' : 'Oculto'}
+                                    </span>
                                     <span style={{ fontSize: '0.7rem', color: 'var(--accent)', fontWeight: 'bold' }}>{business.category}</span>
                                     <h3 style={{ margin: '0.2rem 0' }}>{business.name}</h3>
                                     <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{business.phone || 'Sin teléfono'}</p>

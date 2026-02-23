@@ -2,11 +2,12 @@ import { HashRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Home from './pages/Home';
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
+import AdminDashboard from './pages/AdminDashboard';
 import { useAuth } from './hooks/useAuth';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, User, ShieldCheck } from 'lucide-react';
 
 function App() {
-  const { user, signOut } = useAuth();
+  const { user, isAdmin, signOut } = useAuth();
 
   return (
     <Router>
@@ -21,6 +22,11 @@ function App() {
         </Link>
         <nav style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
           <Link to="/" style={{ color: 'white', textDecoration: 'none' }}>Inicio</Link>
+          {isAdmin && (
+            <Link to="/admin" style={{ color: 'var(--accent)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <ShieldCheck size={18} /> Admin
+            </Link>
+          )}
           {user ? (
             <>
               <Link to="/dashboard" style={{ color: 'white', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '5px' }}>
@@ -46,6 +52,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/admin" element={<AdminDashboard />} />
         </Routes>
       </main>
 

@@ -63,10 +63,25 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
     ]);
     const [imageFile, setImageFile] = useState<File | null>(null);
 
+    const [price, setPrice] = useState<number>(0);
+
+    useEffect(() => {
+        const fetchPrice = async () => {
+            const { data } = await supabase.from('config').select('value').eq('key', 'subscription_price').single();
+            if (data) setPrice(data.value);
+        };
+        fetchPrice();
+    }, []);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
 
+        if (!business) {
+            alert('Por favor, realiza el pago para activar tu negocio.');
+            return;
+        }
+
+        setLoading(true);
         try {
             let finalImageUrl = formData.image_url;
 
@@ -91,22 +106,58 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                 owner_id: userId,
             };
 
-            if (business) {
-                const { error } = await supabase
-                    .from('businesses')
-                    .update(businessData)
-                    .eq('id', business.id);
-                if (error) throw error;
-            } else {
-                const { error } = await supabase
-                    .from('businesses')
-                    .insert([businessData]);
-                if (error) throw error;
-            }
+            const { error } = await supabase
+                .from('businesses')
+                .update(businessData)
+                .eq('id', business.id);
+            if (error) throw error;
 
             onSave();
         } catch (error: any) {
             alert(error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handlePayment = async () => {
+        setLoading(true);
+        try {
+            // Simulator: In a real app, this would redirect to MercadoPago/Stripe
+            // On success, we create the business as active with 30 days expiry
+
+            const expiryDate = new Date();
+            expiryDate.setDate(expiryDate.getDate() + 30);
+
+            let finalImageUrl = formData.image_url;
+            if (imageFile) {
+                const fileExt = imageFile.name.split('.').pop();
+                const fileName = `${userId}/${Math.random()}.${fileExt}`;
+                await supabase.storage.from('flyers').upload(fileName, imageFile);
+                const { data: { publicUrl } } = supabase.storage.from('flyers').getPublicUrl(fileName);
+                finalImageUrl = publicUrl;
+            }
+
+            const businessData = {
+                ...formData,
+                image_url: finalImageUrl,
+                location_lat: position[0],
+                location_lng: position[1],
+                owner_id: userId,
+                active: true,
+                subscription_expires_at: expiryDate.toISOString(),
+            };
+
+            const { error } = await supabase
+                .from('businesses')
+                .insert([businessData]);
+
+            if (error) throw error;
+
+            alert('¡Pago exitoso! Tu negocio ya está activo por 30 días.');
+            onSave();
+        } catch (error: any) {
+            alert('Error en el pago: ' + error.message);
         } finally {
             setLoading(false);
         }
@@ -187,9 +238,32 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                             <MapPin size={12} /> {position[0].toFixed(6)}, {position[1].toFixed(6)}
                         </p>
 
-                        <button type="submit" className="btn-primary" style={{ marginTop: 'auto', width: '100%' }} disabled={loading}>
-                            <Save size={20} /> {loading ? 'Guardando...' : 'Guardar Negocio'}
-                        </button>
+                        {!business && (
+                            <div className="glass-card" style={{ padding: '1.5rem', marginTop: 'auto', border: '1px solid var(--accent)' }}>
+                                <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+                                    <p style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}>Membresía Mensual</p>
+                                    <h3 style={{ color: 'var(--accent)', fontSize: '1.5rem' }}>${price.toLocaleString()}</h3>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={handlePayment}
+                                    className="btn-primary"
+                                    style={{ width: '100%', background: 'linear-gradient(45deg, var(--accent), #eab308)', color: 'black' }}
+                                    disabled={loading || !formData.name}
+                                >
+                                    Pagar y Activar Negocio
+                                </button>
+                                <p style={{ fontSize: '0.7rem', marginTop: '0.5rem', textAlign: 'center', opacity: 0.7 }}>
+                                    Incluye 30 días de visibilidad en el sitio.
+                                </p>
+                            </div>
+                        )}
+
+                        {business && (
+                            <button type="submit" className="btn-primary" style={{ marginTop: 'auto', width: '100%' }} disabled={loading}>
+                                <Save size={20} /> {loading ? 'Guardando...' : 'Guardar Cambios'}
+                            </button>
+                        )}
                     </div>
                 </form>
             </div>
