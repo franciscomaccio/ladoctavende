@@ -261,13 +261,25 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                             />
                         </div>
                         <div>
-                            <label>Imagen / Flyer</label>
-                            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginTop: '0.5rem' }}>
-                                <label className="btn-primary" style={{ fontSize: '0.8rem', cursor: 'pointer' }}>
-                                    <Upload size={16} /> Seleccionar Imagen
-                                    <input type="file" hidden accept="image/*" onChange={handleFileChange} />
-                                </label>
-                                {imageFile && <span style={{ fontSize: '0.8rem' }}><Scissors size={12} /> Imagen lista</span>}
+                            <label>Imagen / Flyer (Formato Vertical 4:5)</label>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '0.5rem' }}>
+                                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                                    <label className="btn-primary" style={{ fontSize: '0.8rem', cursor: 'pointer' }}>
+                                        <Upload size={16} /> Seleccionar Imagen
+                                        <input type="file" hidden accept="image/*" onChange={handleFileChange} />
+                                    </label>
+                                    {imageFile && <span style={{ fontSize: '0.8rem' }}><Scissors size={12} /> Imagen lista</span>}
+                                </div>
+
+                                {(imageFile || formData.image_url) && (
+                                    <div style={{ width: '120px', aspectRatio: '4/5', borderRadius: '10px', overflow: 'hidden', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--accent)' }}>
+                                        <img
+                                            src={imageFile ? URL.createObjectURL(imageFile) : formData.image_url}
+                                            alt="Preview"
+                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </div>
 

@@ -103,7 +103,7 @@ export default function Dashboard() {
                         <div key={business.id} className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             <div style={{ display: 'flex', gap: '1rem' }}>
                                 {business.image_url && (
-                                    <img src={business.image_url} alt={business.name} style={{ width: '80px', height: '80px', borderRadius: '10px', objectFit: 'cover' }} />
+                                    <img src={business.image_url} alt={business.name} style={{ width: '80px', aspectRatio: '4/5', borderRadius: '10px', objectFit: 'cover' }} />
                                 )}
                                 <div style={{ flex: 1 }}>
                                     <span style={{
