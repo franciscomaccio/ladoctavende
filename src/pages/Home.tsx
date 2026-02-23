@@ -189,9 +189,9 @@ export default function Home() {
                                 onClick={() => setSelectedBusiness(business)}
                             >
                                 {business.image_url ? (
-                                    <img src={business.image_url} alt={business.name} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
+                                    <img src={business.image_url} alt={business.name} style={{ width: '100%', aspectRatio: '4/5', objectFit: 'cover' }} />
                                 ) : (
-                                    <div style={{ width: '100%', height: '200px', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <div style={{ width: '100%', aspectRatio: '4/5', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                         <span style={{ color: 'var(--text-muted)' }}>Sin Imagen</span>
                                     </div>
                                 )}
@@ -217,9 +217,9 @@ export default function Home() {
                                 onClick={() => setSelectedBusiness(promo.businesses)}
                             >
                                 {promo.image_url ? (
-                                    <img src={promo.image_url} alt={promo.title} style={{ width: '100%', height: '180px', objectFit: 'cover' }} />
+                                    <img src={promo.image_url} alt={promo.title} style={{ width: '100%', aspectRatio: '4/5', objectFit: 'cover' }} />
                                 ) : (
-                                    <div style={{ width: '100%', height: '180px', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <div style={{ width: '100%', aspectRatio: '4/5', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                         <Tag size={40} style={{ color: 'var(--accent)', opacity: 0.3 }} />
                                     </div>
                                 )}
@@ -264,7 +264,7 @@ export default function Home() {
                         </button>
 
                         {selectedBusiness.image_url && (
-                            <img src={selectedBusiness.image_url} alt={selectedBusiness.name} style={{ width: '100%', maxHeight: '350px', objectFit: 'cover' }} />
+                            <img src={selectedBusiness.image_url} alt={selectedBusiness.name} style={{ width: '100%', aspectRatio: '4/5', objectFit: 'cover', maxHeight: '60vh' }} />
                         )}
 
                         <div style={{ padding: '2rem' }}>
