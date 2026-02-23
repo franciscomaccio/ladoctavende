@@ -13,7 +13,11 @@ function App() {
       <header className="navbar glass-card" style={{ margin: '1rem 2rem', borderRadius: '15px' }}>
         <Link to="/" className="logo">
           <img src="logo.png" alt="La Docta Vende" className="logo-img" onError={(e) => (e.currentTarget.style.display = 'none')} />
-          <span className="logo-text">TEST</span>
+          {import.meta.env.VITE_APP_ENV === 'test' && (
+            <span className="logo-text" style={{ marginLeft: '10px' }}>
+              TEST v{import.meta.env.VITE_APP_VERSION || '0'}
+            </span>
+          )}
         </Link>
         <nav style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
           <Link to="/" style={{ color: 'white', textDecoration: 'none' }}>Inicio</Link>
@@ -45,8 +49,9 @@ function App() {
         </Routes>
       </main>
 
-      <footer style={{ textAlign: 'center', padding: '4rem 2rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-        © 2026 ladoctavende - Todos los derechos reservados.
+      <footer style={{ textAlign: 'center', padding: '4rem 2rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+        <p>© 2026 La Docta Vende - Todos los derechos reservados.</p>
+        <p style={{ marginTop: '0.5rem', opacity: 0.7 }}>v{import.meta.env.VITE_APP_VERSION || '0.0.1'}</p>
       </footer>
     </Router>
   );
