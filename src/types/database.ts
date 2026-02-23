@@ -1,6 +1,7 @@
 export type Profile = {
     id: string;
     email: string;
+    is_admin: boolean;
     created_at: string;
     updated_at: string;
 };
@@ -15,6 +16,8 @@ export type Business = {
     location_lat: number | null;
     location_lng: number | null;
     image_url: string | null;
+    active: boolean;
+    subscription_expires_at: string | null;
     created_at: string;
     updated_at: string;
 };

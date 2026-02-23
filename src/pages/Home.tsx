@@ -26,6 +26,7 @@ export default function Home() {
             const { data, error } = await supabase
                 .from('businesses')
                 .select('*')
+                .eq('active', true)
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
