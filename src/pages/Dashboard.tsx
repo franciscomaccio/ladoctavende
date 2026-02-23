@@ -8,11 +8,22 @@ import BusinessForm from '../components/BusinessForm';
 export default function Dashboard() {
     const { user } = useAuth();
     const [businesses, setBusinesses] = useState<Business[]>([]);
+    const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
 
     useEffect(() => {
+        const hash = window.location.hash;
+        if (hash.includes('?')) {
+            const params = new URLSearchParams(hash.split('?')[1]);
+            const status = params.get('status');
+            if (status) {
+                setPaymentStatus(status);
+                // Clear params from URL
+                window.history.replaceState(null, '', hash.split('?')[0]);
+            }
+        }
         if (user) fetchUserBusinesses();
     }, [user]);
 
@@ -64,6 +75,22 @@ export default function Dashboard() {
                     <Plus size={20} /> Crear Nuevo
                 </button>
             </div>
+
+            {paymentStatus === 'success' && (
+                <div className="glass-card" style={{ padding: '1rem', background: 'rgba(0, 155, 58, 0.2)', color: '#4ade80', marginBottom: '2rem', textAlign: 'center' }}>
+                    ¡Tu pago fue procesado con éxito! Tu negocio estará visible en breve.
+                </div>
+            )}
+            {paymentStatus === 'pending' && (
+                <div className="glass-card" style={{ padding: '1rem', background: 'rgba(254, 223, 0, 0.1)', color: 'var(--accent)', marginBottom: '2rem', textAlign: 'center' }}>
+                    Tu pago está pendiente de aprobación. Se activará automáticamente al confirmarse.
+                </div>
+            )}
+            {paymentStatus === 'failure' && (
+                <div className="glass-card" style={{ padding: '1rem', background: 'rgba(255, 92, 138, 0.1)', color: 'var(--error)', marginBottom: '2rem', textAlign: 'center' }}>
+                    Hubo un problema con tu pago. Por favor, intenta nuevamente.
+                </div>
+            )}
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2rem' }}>
                 {loading ? (
