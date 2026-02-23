@@ -22,6 +22,17 @@ export type Business = {
     updated_at: string;
 };
 
+export type Promotion = {
+    id: string;
+    business_id: string;
+    title: string;
+    description: string | null;
+    days_of_week: number[];
+    image_url: string | null;
+    created_at: string;
+    updated_at: string;
+};
+
 export type Database = {
     public: {
         Tables: {
@@ -34,6 +45,11 @@ export type Database = {
                 Row: Business;
                 Insert: Omit<Business, 'id' | 'created_at' | 'updated_at'>;
                 Update: Partial<Omit<Business, 'id' | 'owner_id' | 'created_at' | 'updated_at'>>;
+            };
+            promotions: {
+                Row: Promotion;
+                Insert: Omit<Promotion, 'id' | 'created_at' | 'updated_at'>;
+                Update: Partial<Omit<Promotion, 'id' | 'business_id' | 'created_at' | 'updated_at'>>;
             };
         };
     };
