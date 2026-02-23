@@ -121,14 +121,9 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
     };
 
     const handlePayment = async () => {
+        if (!formData.name) return;
         setLoading(true);
         try {
-            // Simulator: In a real app, this would redirect to MercadoPago/Stripe
-            // On success, we create the business as active with 30 days expiry
-
-            const expiryDate = new Date();
-            expiryDate.setDate(expiryDate.getDate() + 30);
-
             let finalImageUrl = formData.image_url;
             if (imageFile) {
                 const fileExt = imageFile.name.split('.').pop();
@@ -138,26 +133,45 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                 finalImageUrl = publicUrl;
             }
 
+            // 1. Create the business as inactive first to get an ID
             const businessData = {
                 ...formData,
                 image_url: finalImageUrl,
                 location_lat: position[0],
                 location_lng: position[1],
                 owner_id: userId,
-                active: true,
-                subscription_expires_at: expiryDate.toISOString(),
+                active: false,
             };
 
-            const { error } = await supabase
+            const { data: newBusiness, error: createError } = await supabase
                 .from('businesses')
-                .insert([businessData]);
+                .insert([businessData])
+                .select()
+                .single();
 
-            if (error) throw error;
+            if (createError) throw createError;
 
-            alert('¡Pago exitoso! Tu negocio ya está activo por 30 días.');
-            onSave();
+            // 2. Call our Edge Function to get the Mercado Pago checkout URL
+            const { data, error: funcError } = await supabase.functions.invoke('mercadopago-payment', {
+                body: {
+                    businessId: newBusiness.id,
+                    businessName: formData.name,
+                    amount: price,
+                    email: (await supabase.auth.getUser()).data.user?.email,
+                }
+            });
+
+            if (funcError) throw funcError;
+
+            // 3. Redirect to Mercado Pago
+            if (data?.url) {
+                window.location.href = data.url;
+            } else {
+                throw new Error('No se pudo generar el enlace de pago.');
+            }
+
         } catch (error: any) {
-            alert('Error en el pago: ' + error.message);
+            alert('Error al iniciar el pago: ' + error.message);
         } finally {
             setLoading(false);
         }
