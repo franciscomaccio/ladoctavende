@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Mail, Lock, UserPlus, LogIn, CheckCircle } from 'lucide-react';
 
 export default function Auth() {
+    const navigate = useNavigate();
     const [isSignUp, setIsSignUp] = useState(false);
     const [loading, setLoading] = useState(false);
     const [email, setEmail] = useState('');
@@ -28,6 +30,7 @@ export default function Auth() {
                     password,
                 });
                 if (error) throw error;
+                navigate('/dashboard');
             }
         } catch (error: any) {
             setMessage({ type: 'error', text: error.message });
