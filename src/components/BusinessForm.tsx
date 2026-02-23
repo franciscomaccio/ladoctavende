@@ -4,7 +4,9 @@ import type { Business } from '../types/database';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { Save, X, MapPin, Upload } from 'lucide-react';
+import { Save, X, MapPin, Upload, Scissors } from 'lucide-react';
+import Cropper from 'react-easy-crop';
+import { getCroppedImg } from '../utils/imageUtils';
 
 // Fix for default marker icon in Leaflet
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -62,8 +64,42 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
         business?.location_lng || 0
     ]);
     const [imageFile, setImageFile] = useState<File | null>(null);
+    const [imageSrc, setImageSrc] = useState<string | null>(null);
+    const [crop, setCrop] = useState({ x: 0, y: 0 });
+    const [zoom, setZoom] = useState(1);
+    const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+    const [isCropping, setIsCropping] = useState(false);
 
     const [price, setPrice] = useState<number>(0);
+
+    const onCropComplete = (_croppedArea: any, croppedAreaPixels: any) => {
+        setCroppedAreaPixels(croppedAreaPixels);
+    };
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.addEventListener('load', () => {
+                setImageSrc(reader.result as string);
+                setIsCropping(true);
+            });
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const applyCrop = async () => {
+        try {
+            if (imageSrc && croppedAreaPixels) {
+                const croppedImageBlob = await getCroppedImg(imageSrc, croppedAreaPixels);
+                const file = new File([croppedImageBlob], 'cropped-flyer.jpg', { type: 'image/jpeg' });
+                setImageFile(file);
+                setIsCropping(false);
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    };
 
     useEffect(() => {
         const fetchPrice = async () => {
@@ -229,11 +265,31 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginTop: '0.5rem' }}>
                                 <label className="btn-primary" style={{ fontSize: '0.8rem', cursor: 'pointer' }}>
                                     <Upload size={16} /> Seleccionar Imagen
-                                    <input type="file" hidden accept="image/*" onChange={e => setImageFile(e.target.files?.[0] || null)} />
+                                    <input type="file" hidden accept="image/*" onChange={handleFileChange} />
                                 </label>
-                                {imageFile && <span style={{ fontSize: '0.8rem' }}>{imageFile.name}</span>}
+                                {imageFile && <span style={{ fontSize: '0.8rem' }}><Scissors size={12} /> Imagen lista</span>}
                             </div>
                         </div>
+
+                        {isCropping && imageSrc && (
+                            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.9)', zIndex: 3000, display: 'flex', flexDirection: 'column', padding: '1rem' }}>
+                                <div style={{ position: 'relative', flex: 1, width: '100%', background: '#333' }}>
+                                    <Cropper
+                                        image={imageSrc}
+                                        crop={crop}
+                                        zoom={zoom}
+                                        aspect={4 / 5}
+                                        onCropChange={setCrop}
+                                        onCropComplete={onCropComplete}
+                                        onZoomChange={setZoom}
+                                    />
+                                </div>
+                                <div style={{ padding: '2rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
+                                    <button type="button" className="btn-primary" style={{ background: 'var(--error)' }} onClick={() => setIsCropping(false)}>Cancelar</button>
+                                    <button type="button" className="btn-primary" onClick={applyCrop}>Confirmar Recorte</button>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
