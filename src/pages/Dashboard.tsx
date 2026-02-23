@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import type { Business } from '../types/database';
-import { Plus, Edit2, Trash2, LayoutDashboard } from 'lucide-react';
+import { Plus, Edit2, Trash2, LayoutDashboard, Tag } from 'lucide-react';
 import BusinessForm from '../components/BusinessForm';
+import PromotionForm from '../components/PromotionForm';
 
 export default function Dashboard() {
     const { user } = useAuth();
@@ -12,6 +13,8 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
+    const [isPromoFormOpen, setIsPromoFormOpen] = useState(false);
+    const [activeBusinessId, setActiveBusinessId] = useState<string | null>(null);
 
     useEffect(() => {
         const hash = window.location.hash;
@@ -119,7 +122,14 @@ export default function Dashboard() {
                                 </div>
                             </div>
 
-                            <div style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto' }}>
+                            <div style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto', flexWrap: 'wrap' }}>
+                                <button
+                                    className="btn-primary"
+                                    style={{ flex: '1 1 100%', padding: '8px', fontSize: '0.8rem', background: 'rgba(52, 211, 153, 0.1)', color: '#34d399', border: '1px solid #34d399' }}
+                                    onClick={() => { setActiveBusinessId(business.id); setIsPromoFormOpen(true); }}
+                                >
+                                    <Tag size={16} /> Administrar Promos
+                                </button>
                                 <button
                                     className="btn-primary"
                                     style={{ flex: 1, padding: '8px', fontSize: '0.8rem' }}
@@ -148,6 +158,14 @@ export default function Dashboard() {
                     business={editingBusiness}
                     onClose={() => setIsFormOpen(false)}
                     onSave={() => { fetchUserBusinesses(); setIsFormOpen(false); }}
+                />
+            )}
+
+            {isPromoFormOpen && activeBusinessId && (
+                <PromotionForm
+                    businessId={activeBusinessId}
+                    onClose={() => { setIsPromoFormOpen(false); setActiveBusinessId(null); }}
+                    onSave={() => { setIsPromoFormOpen(false); setActiveBusinessId(null); }}
                 />
             )}
         </div>
