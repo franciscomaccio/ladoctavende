@@ -13,6 +13,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Needed for git rev-list
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -27,7 +29,11 @@ jobs:
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://bsxqttgbxjzkuiwhypsd.supabase.co' }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'sb_publishable_lb5TAt0AQtjSgFvJQUnMRQ_1nADMddD' }}
-        run: npm run build
+          VITE_APP_ENV: ${{ github.ref_name }}
+        run: |
+          VERSION=$(git rev-list --count HEAD)
+          echo "VITE_APP_VERSION=$VERSION" >> $GITHUB_ENV
+          VITE_APP_VERSION=$VERSION npm run build
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
