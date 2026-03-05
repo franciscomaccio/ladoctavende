@@ -156,6 +156,9 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
         }
     };
 
+    const isExpired = business?.subscription_expires_at ? new Date(business.subscription_expires_at) < new Date() : false;
+    const needsPayment = !business || !business.active || isExpired;
+
     const handlePayment = async () => {
         if (!formData.name) return;
         setLoading(true);
@@ -169,28 +172,46 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                 finalImageUrl = publicUrl;
             }
 
-            // 1. Create the business as inactive first to get an ID
-            const businessData = {
-                ...formData,
-                image_url: finalImageUrl,
-                location_lat: position[0],
-                location_lng: position[1],
-                owner_id: userId,
-                active: false,
-            };
+            let businessId = business?.id;
 
-            const { data: newBusiness, error: createError } = await supabase
-                .from('businesses')
-                .insert([businessData])
-                .select()
-                .single();
+            // 1. Create the business as inactive first to get an ID IF it doesn't exist
+            if (!businessId) {
+                const businessData = {
+                    ...formData,
+                    image_url: finalImageUrl,
+                    location_lat: position[0],
+                    location_lng: position[1],
+                    owner_id: userId,
+                    active: false,
+                };
 
-            if (createError) throw createError;
+                const { data: newBusiness, error: createError } = await supabase
+                    .from('businesses')
+                    .insert([businessData])
+                    .select()
+                    .single();
+
+                if (createError) throw createError;
+                businessId = newBusiness.id;
+            } else {
+                // Update existing business data before payment
+                const { error: updateError } = await supabase
+                    .from('businesses')
+                    .update({
+                        ...formData,
+                        image_url: finalImageUrl,
+                        location_lat: position[0],
+                        location_lng: position[1],
+                    })
+                    .eq('id', businessId);
+
+                if (updateError) throw updateError;
+            }
 
             // 2. Call our Edge Function to get the Mercado Pago checkout URL
             const { data, error: funcError } = await supabase.functions.invoke('mercadopago-payment', {
                 body: {
-                    businessId: newBusiness.id,
+                    businessId: businessId,
                     businessName: formData.name,
                     amount: price,
                     email: (await supabase.auth.getUser()).data.user?.email,
@@ -323,11 +344,12 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                             <MapPin size={12} /> {position[0].toFixed(6)}, {position[1].toFixed(6)}
                         </p>
 
-                        {!business && (
+                        {needsPayment && (
                             <div className="glass-card" style={{ padding: '1.5rem', marginTop: 'auto', border: '1px solid var(--accent)' }}>
                                 <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
                                     <p style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}>Membresía Mensual</p>
                                     <h3 style={{ color: 'var(--accent)', fontSize: '1.5rem' }}>${price.toLocaleString()}</h3>
+                                    {isExpired && <p style={{ fontSize: '0.7rem', color: 'var(--error)', marginTop: '0.3rem' }}>Suscripción vencida</p>}
                                 </div>
                                 <button
                                     type="button"
@@ -336,7 +358,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                                     style={{ width: '100%', background: 'linear-gradient(45deg, var(--accent), #eab308)', color: 'black' }}
                                     disabled={loading || !formData.name}
                                 >
-                                    Pagar y Activar Negocio
+                                    {business ? 'Renovar Suscripción' : 'Pagar y Activar Negocio'}
                                 </button>
                                 <p style={{ fontSize: '0.7rem', marginTop: '0.5rem', textAlign: 'center', opacity: 0.7 }}>
                                     Incluye 30 días de visibilidad en el sitio.
@@ -344,7 +366,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                             </div>
                         )}
 
-                        {business && (
+                        {business && !needsPayment && (
                             <button type="submit" className="btn-primary" style={{ marginTop: 'auto', width: '100%' }} disabled={loading}>
                                 <Save size={20} /> {loading ? 'Guardando...' : 'Guardar Cambios'}
                             </button>
