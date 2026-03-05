@@ -106,18 +106,35 @@ export default function Dashboard() {
                                     <img src={business.image_url} alt={business.name} style={{ width: '80px', aspectRatio: '4/5', borderRadius: '10px', objectFit: 'cover' }} />
                                 )}
                                 <div style={{ flex: 1 }}>
-                                    <span style={{
-                                        fontSize: '0.7rem',
-                                        padding: '2px 8px',
-                                        borderRadius: '10px',
-                                        background: business.active ? 'rgba(0, 155, 58, 0.2)' : 'rgba(255, 92, 138, 0.2)',
-                                        color: business.active ? '#4ade80' : 'var(--error)',
-                                        fontWeight: 'bold'
-                                    }}>
-                                        {business.active ? 'Visible' : 'Oculto'}
-                                    </span>
-                                    <span style={{ fontSize: '0.7rem', color: 'var(--accent)', fontWeight: 'bold' }}>{business.category}</span>
+                                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+                                        {(() => {
+                                            const isExpired = business.subscription_expires_at ? new Date(business.subscription_expires_at) < new Date() : false;
+                                            const status = !business.active ? 'Oculto' : isExpired ? 'Vencido' : 'Visible';
+                                            const color = status === 'Visible' ? '#4ade80' : 'var(--error)';
+                                            const bg = status === 'Visible' ? 'rgba(0, 155, 58, 0.2)' : 'rgba(255, 92, 138, 0.2)';
+
+                                            return (
+                                                <span style={{
+                                                    fontSize: '0.6rem',
+                                                    padding: '2px 8px',
+                                                    borderRadius: '10px',
+                                                    background: bg,
+                                                    color: color,
+                                                    fontWeight: 'bold',
+                                                    textTransform: 'uppercase'
+                                                }}>
+                                                    {status}
+                                                </span>
+                                            );
+                                        })()}
+                                        <span style={{ fontSize: '0.7rem', color: 'var(--accent)', fontWeight: 'bold' }}>{business.category}</span>
+                                    </div>
                                     <h3 style={{ margin: '0.2rem 0' }}>{business.name}</h3>
+                                    {business.subscription_expires_at && (
+                                        <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>
+                                            Expira: {new Date(business.subscription_expires_at).toLocaleDateString()}
+                                        </p>
+                                    )}
                                     <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{business.phone || 'Sin teléfono'}</p>
                                 </div>
                             </div>
