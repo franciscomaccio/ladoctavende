@@ -197,7 +197,10 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                 }
             });
 
-            if (funcError) throw funcError;
+            if (funcError) {
+                console.error('Mercado Pago Invocation Error:', funcError);
+                throw funcError;
+            }
 
             // 3. Redirect to Mercado Pago
             if (data?.url) {
