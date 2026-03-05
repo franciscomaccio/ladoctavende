@@ -25,6 +25,13 @@ Deno.serve(async (req) => {
         return new Response("ok", { headers: corsHeaders });
     }
 
+    if (method === "GET") {
+        return new Response(JSON.stringify({ status: "active", message: "Ladoctavende MP Function" }), {
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" }
+        });
+    }
+
     try {
         const body = await req.json();
         console.log("Request Body:", JSON.stringify(body));
