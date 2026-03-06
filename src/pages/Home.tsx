@@ -151,13 +151,6 @@ export default function Home() {
                                 <div className="business-info">
                                     <h3 style={{ fontSize: '1.1rem', marginBottom: '2px' }}>{business.name}</h3>
                                     <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '4px' }}>{business.category}</span>
-                                    <div
-                                        style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer' }}
-                                        onClick={(e) => openMaps(e, business.location_lat || 0, business.location_lng || 0)}
-                                    >
-                                        <MapPin size={14} />
-                                        <span>Ubicación</span>
-                                    </div>
                                     <div style={{ marginTop: 'auto', display: 'flex', gap: '8px' }}>
                                         <button
                                             className="btn-whatsapp"
