@@ -104,6 +104,7 @@ export default function Home() {
             <div style={{ position: 'relative', margin: '1rem 0 1.5rem' }}>
                 <Search size={20} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                 <input
+                    id="search-input"
                     type="text"
                     className="input-field"
                     style={{ paddingLeft: '50px', background: '#f3f4f6', border: 'none' }}

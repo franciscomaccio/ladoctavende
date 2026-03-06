@@ -4,7 +4,7 @@ import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import { useAuth } from './hooks/useAuth';
-import { ShieldCheck, Menu, Home as HomeIcon, Search, Tag, UserCircle } from 'lucide-react';
+import { ShieldCheck, Menu, Home as HomeIcon, Search, UserCircle } from 'lucide-react';
 
 function Navigation() {
   const { user, isAdmin } = useAuth();
@@ -42,13 +42,21 @@ function Navigation() {
           <HomeIcon size={24} />
           <span>Inicio</span>
         </Link>
-        <Link to="/" className="nav-item">
+        <Link
+          to="/"
+          className="nav-item"
+          onClick={(e) => {
+            if (location.pathname === '/') {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+              setTimeout(() => {
+                document.getElementById('search-input')?.focus();
+              }, 100);
+            }
+          }}
+        >
           <Search size={24} />
           <span>Buscar</span>
-        </Link>
-        <Link to="/" className="nav-item">
-          <Tag size={24} />
-          <span>Promos</span>
         </Link>
         {user ? (
           <Link to="/dashboard" className={`nav-item ${location.pathname === '/dashboard' ? 'active' : ''}`}>
