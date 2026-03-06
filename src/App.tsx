@@ -14,8 +14,7 @@ function Navigation() {
     <>
       <header className="navbar">
         <Link to="/" className="logo">
-          <img src="logo.png" alt="La Docta Vende" style={{ height: '35px' }} onError={(e) => (e.currentTarget.style.display = 'none')} />
-          <span style={{ fontWeight: '800', fontSize: '1.2rem', color: 'var(--primary)' }}>laDocta<span style={{ color: 'var(--accent)' }}>Vende</span></span>
+          <img src="logo.png" alt="La Docta Vende" style={{ height: '40px' }} />
         </Link>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           {isAdmin && (
