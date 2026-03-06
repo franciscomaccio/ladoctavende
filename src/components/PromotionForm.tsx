@@ -127,51 +127,54 @@ export default function PromotionForm({ businessId, promotion, onClose, onSave }
     };
 
     return (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 3000, display: 'flex', justifyContent: 'center', padding: '1rem', overflowY: 'auto' }}>
-            <div className="glass-card" style={{ maxWidth: '500px', width: '100%', padding: '2rem', height: 'fit-content', margin: 'auto' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-                    <h3>{promotion ? 'Editar Promoción' : 'Nueva Promoción'}</h3>
-                    <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}><X /></button>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', zIndex: 3000, display: 'flex', justifyContent: 'center', padding: '1rem', overflowY: 'auto' }}>
+            <div className="card" style={{ maxWidth: '450px', width: '100%', padding: '1.5rem', height: 'fit-content', margin: 'auto' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', alignItems: 'center' }}>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: '800' }}>{promotion ? 'Editar Promoción' : 'Nueva Promoción'}</h3>
+                    <button onClick={onClose} style={{ background: '#f3f4f6', border: 'none', borderRadius: '50%', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><X size={20} /></button>
                 </div>
 
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                     <div>
-                        <label>Título de la Promo (ej: 2x1 en Pizzas)</label>
+                        <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>Título de la Promo</label>
                         <input
                             className="input-field"
                             value={formData.title}
                             onChange={e => setFormData({ ...formData, title: e.target.value })}
                             required
+                            placeholder="Ej: 2x1 en Pizzas"
                         />
                     </div>
 
                     <div>
-                        <label>Descripción / Condiciones</label>
+                        <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>Descripción</label>
                         <textarea
                             className="input-field"
-                            style={{ height: '80px' }}
+                            style={{ height: '80px', resize: 'none' }}
                             value={formData.description}
                             onChange={e => setFormData({ ...formData, description: e.target.value })}
+                            placeholder="Condiciones o detalles..."
                         />
                     </div>
 
                     <div>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '0.5rem' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '600' }}>
                             <Calendar size={16} /> Días que aplica:
                         </label>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                             {DAYS.map(day => (
                                 <button
                                     key={day.id}
                                     type="button"
                                     onClick={() => toggleDay(day.id)}
                                     style={{
-                                        padding: '5px 10px',
-                                        borderRadius: '15px',
-                                        border: '1px solid var(--accent)',
-                                        background: formData.days_of_week.includes(day.id) ? 'var(--accent)' : 'transparent',
-                                        color: formData.days_of_week.includes(day.id) ? 'black' : 'white',
+                                        padding: '6px 12px',
+                                        borderRadius: '20px',
+                                        border: '1px solid ' + (formData.days_of_week.includes(day.id) ? 'var(--primary)' : 'var(--border-light)'),
+                                        background: formData.days_of_week.includes(day.id) ? 'var(--primary)' : 'white',
+                                        color: formData.days_of_week.includes(day.id) ? 'white' : 'var(--text-muted)',
                                         fontSize: '0.8rem',
+                                        fontWeight: '600',
                                         cursor: 'pointer',
                                         transition: 'all 0.2s'
                                     }}
@@ -183,18 +186,14 @@ export default function PromotionForm({ businessId, promotion, onClose, onSave }
                     </div>
 
                     <div>
-                        <label>Imagen de la promo (Formato Vertical 4:5)</label>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '0.5rem' }}>
-                            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                                <label className="btn-primary" style={{ fontSize: '0.8rem', cursor: 'pointer' }}>
-                                    <Upload size={16} /> Seleccionar Imagen
-                                    <input type="file" hidden accept="image/*" onChange={handleFileChange} />
-                                </label>
-                                {imageFile && <span style={{ fontSize: '0.7rem' }}><Scissors size={12} /> Imagen recortada</span>}
-                            </div>
-
+                        <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>Imagen (Vertical 4:5)</label>
+                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                            <label className="btn-primary" style={{ fontSize: '0.8rem', cursor: 'pointer', background: '#f3f4f6', color: 'var(--text-main)', border: '1px solid var(--border-light)' }}>
+                                <Upload size={16} /> Subir Imagen
+                                <input type="file" hidden accept="image/*" onChange={handleFileChange} />
+                            </label>
                             {(imageFile || formData.image_url) && (
-                                <div style={{ width: '120px', aspectRatio: '4/5', borderRadius: '10px', overflow: 'hidden', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--accent)' }}>
+                                <div style={{ width: '60px', height: '75px', borderRadius: '6px', overflow: 'hidden', border: '1px solid var(--border-light)' }}>
                                     <img
                                         src={imageFile ? URL.createObjectURL(imageFile) : formData.image_url}
                                         alt="Preview"
@@ -205,8 +204,8 @@ export default function PromotionForm({ businessId, promotion, onClose, onSave }
                         </div>
 
                         {isCropping && imageSrc && (
-                            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.9)', zIndex: 4000, display: 'flex', flexDirection: 'column', padding: '1rem' }}>
-                                <div style={{ position: 'relative', flex: 1, width: '100%', background: '#333' }}>
+                            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'white', zIdex: 4000, display: 'flex', flexDirection: 'column' }}>
+                                <div style={{ position: 'relative', flex: 1, width: '100%' }}>
                                     <Cropper
                                         image={imageSrc}
                                         crop={crop}
@@ -218,15 +217,15 @@ export default function PromotionForm({ businessId, promotion, onClose, onSave }
                                     />
                                 </div>
                                 <div style={{ padding: '2rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
-                                    <button type="button" className="btn-primary" style={{ background: 'var(--error)' }} onClick={() => setIsCropping(false)}>Cancelar</button>
-                                    <button type="button" className="btn-primary" onClick={applyCrop}>Confirmar Recorte</button>
+                                    <button type="button" className="btn-primary" style={{ background: '#f3f4f6', color: 'black' }} onClick={() => setIsCropping(false)}>Cancelar</button>
+                                    <button type="button" className="btn-primary" onClick={applyCrop}>Confirmar</button>
                                 </div>
                             </div>
                         )}
                     </div>
 
-                    <button type="submit" className="btn-primary" style={{ marginTop: '1rem', width: '100%' }} disabled={loading}>
-                        <Save size={20} /> {loading ? 'Enviando...' : 'Guardar Promoción'}
+                    <button type="submit" className="btn-primary" style={{ marginTop: '0.5rem', width: '100%' }} disabled={loading}>
+                        <Save size={20} /> {loading ? 'Guardando...' : 'Guardar Promoción'}
                     </button>
                 </form>
             </div>

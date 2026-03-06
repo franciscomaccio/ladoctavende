@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import type { Business } from '../types/database';
-import { Plus, Edit2, Trash2, LayoutDashboard, Tag } from 'lucide-react';
+import { Plus, Edit2, Trash2, Tag } from 'lucide-react';
 import BusinessForm from '../components/BusinessForm';
 import PromotionForm from '../components/PromotionForm';
 
@@ -23,7 +23,6 @@ export default function Dashboard() {
             const status = params.get('status');
             if (status) {
                 setPaymentStatus(status);
-                // Clear params from URL
                 window.history.replaceState(null, '', hash.split('?')[0]);
             }
         }
@@ -61,111 +60,92 @@ export default function Dashboard() {
 
     if (!user) {
         return (
-            <div className="container" style={{ textAlign: 'center' }}>
+            <div className="container" style={{ textAlign: 'center', marginTop: '2rem' }}>
                 <p>Debes iniciar sesión para ver tu panel.</p>
             </div>
         );
     }
 
     return (
-        <div className="container">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: 'var(--accent)' }}>
-                    <LayoutDashboard size={32} />
-                    <h1>Mis Negocios</h1>
-                </div>
-                <button className="btn-primary" onClick={() => { setEditingBusiness(null); setIsFormOpen(true); }}>
-                    <Plus size={20} /> Crear Nuevo
+        <div className="container" style={{ paddingBottom: '100px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '1.5rem 0' }}>
+                <h1 style={{ fontSize: '1.5rem', fontWeight: '800' }}>Panel de Control</h1>
+                <button
+                    style={{ background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                    onClick={() => { setEditingBusiness(null); setIsFormOpen(true); }}
+                >
+                    <Plus size={24} />
                 </button>
             </div>
 
             {paymentStatus === 'success' && (
-                <div className="glass-card" style={{ padding: '1rem', background: 'rgba(0, 155, 58, 0.2)', color: '#4ade80', marginBottom: '2rem', textAlign: 'center' }}>
-                    ¡Tu pago fue procesado con éxito! Tu negocio estará visible en breve.
-                </div>
-            )}
-            {paymentStatus === 'pending' && (
-                <div className="glass-card" style={{ padding: '1rem', background: 'rgba(254, 223, 0, 0.1)', color: 'var(--accent)', marginBottom: '2rem', textAlign: 'center' }}>
-                    Tu pago está pendiente de aprobación. Se activará automáticamente al confirmarse.
-                </div>
-            )}
-            {paymentStatus === 'failure' && (
-                <div className="glass-card" style={{ padding: '1rem', background: 'rgba(255, 92, 138, 0.1)', color: 'var(--error)', marginBottom: '2rem', textAlign: 'center' }}>
-                    Hubo un problema con tu pago. Por favor, intenta nuevamente.
+                <div style={{ padding: '1rem', background: '#dcfce7', color: '#166534', borderRadius: '12px', marginBottom: '1.5rem', textAlign: 'center', fontSize: '0.9rem' }}>
+                    ¡Tu pago fue procesado con éxito!
                 </div>
             )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {loading ? (
-                    <p>Cargando tus negocios...</p>
+                    <p style={{ textAlign: 'center' }}>Cargando tus negocios...</p>
                 ) : businesses.length > 0 ? (
                     businesses.map(business => (
-                        <div key={business.id} className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <div style={{ display: 'flex', gap: '1rem' }}>
-                                {business.image_url && (
-                                    <img src={business.image_url} alt={business.name} style={{ width: '80px', aspectRatio: '4/5', borderRadius: '10px', objectFit: 'cover' }} />
-                                )}
-                                <div style={{ flex: 1 }}>
-                                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
-                                        {(() => {
-                                            const isExpired = business.subscription_expires_at ? new Date(business.subscription_expires_at) < new Date() : false;
-                                            const status = !business.active ? 'Oculto' : isExpired ? 'Vencido' : 'Visible';
-                                            const color = status === 'Visible' ? '#4ade80' : 'var(--error)';
-                                            const bg = status === 'Visible' ? 'rgba(0, 155, 58, 0.2)' : 'rgba(255, 92, 138, 0.2)';
-
-                                            return (
-                                                <span style={{
-                                                    fontSize: '0.6rem',
-                                                    padding: '2px 8px',
-                                                    borderRadius: '10px',
-                                                    background: bg,
-                                                    color: color,
-                                                    fontWeight: 'bold',
-                                                    textTransform: 'uppercase'
-                                                }}>
-                                                    {status}
-                                                </span>
-                                            );
-                                        })()}
-                                        <span style={{ fontSize: '0.7rem', color: 'var(--accent)', fontWeight: 'bold' }}>{business.category}</span>
-                                    </div>
-                                    <h3 style={{ margin: '0.2rem 0' }}>{business.name}</h3>
-                                    {business.subscription_expires_at && (
-                                        <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>
-                                            Expira: {new Date(business.subscription_expires_at).toLocaleDateString()}
-                                        </p>
-                                    )}
-                                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{business.phone || 'Sin teléfono'}</p>
+                        <div key={business.id} className="card" style={{ padding: '12px', display: 'flex', gap: '12px' }}>
+                            {business.image_url ? (
+                                <img src={business.image_url} alt={business.name} style={{ width: '80px', height: '100px', borderRadius: '8px', objectFit: 'cover' }} />
+                            ) : (
+                                <div style={{ width: '80px', height: '100px', background: '#f3f4f6', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <Tag size={24} color="#ccc" />
                                 </div>
-                            </div>
+                            )}
+                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                    <div>
+                                        <h3 style={{ fontSize: '1rem', marginBottom: '2px' }}>{business.name}</h3>
+                                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{business.category}</span>
+                                    </div>
+                                    {(() => {
+                                        const isExpired = business.subscription_expires_at ? new Date(business.subscription_expires_at) < new Date() : false;
+                                        const status = !business.active ? 'Oculto' : isExpired ? 'Vencido' : 'Visible';
+                                        const color = status === 'Visible' ? 'var(--success)' : 'var(--error)';
+                                        return (
+                                            <span style={{ fontSize: '0.7rem', fontWeight: '800', color: color, textTransform: 'uppercase' }}>
+                                                {status}
+                                            </span>
+                                        );
+                                    })()}
+                                </div>
 
-                            <div style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto', flexWrap: 'wrap' }}>
-                                <button
-                                    className="btn-primary"
-                                    style={{ flex: '1 1 100%', padding: '8px', fontSize: '0.8rem', background: 'rgba(52, 211, 153, 0.1)', color: '#34d399', border: '1px solid #34d399' }}
-                                    onClick={() => { setActiveBusinessId(business.id); setIsPromoFormOpen(true); }}
-                                >
-                                    <Tag size={16} /> Administrar Promos
-                                </button>
-                                <button
-                                    className="btn-primary"
-                                    style={{ flex: 1, padding: '8px', fontSize: '0.8rem' }}
-                                    onClick={() => { setEditingBusiness(business); setIsFormOpen(true); }}
-                                >
-                                    <Edit2 size={16} /> Editar
-                                </button>
-                                <button
-                                    className="btn-primary"
-                                    style={{ background: 'rgba(255, 92, 138, 0.2)', color: 'var(--error)', flex: 1, padding: '8px', fontSize: '0.8rem' }}
-                                    onClick={() => deleteBusiness(business.id)}
-                                >
-                                    <Trash2 size={16} /> Borrar
-                                </button>
+                                <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                        {business.subscription_expires_at && (
+                                            <div>Expira: {new Date(business.subscription_expires_at).toLocaleDateString()}</div>
+                                        )}
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                        <button
+                                            onClick={() => { setEditingBusiness(business); setIsFormOpen(true); }}
+                                            style={{ background: '#f3f4f6', border: 'none', borderRadius: '6px', padding: '6px', cursor: 'pointer' }}
+                                        >
+                                            <Edit2 size={18} />
+                                        </button>
+                                        <button
+                                            onClick={() => deleteBusiness(business.id)}
+                                            style={{ background: '#fef2f2', border: 'none', borderRadius: '6px', padding: '6px', color: 'var(--error)', cursor: 'pointer' }}
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     ))
                 ) : (
-                    <p style={{ gridColumn: '1/-1', textAlign: 'center', color: 'var(--text-muted)' }}>Todavía no has registrado ningún negocio.</p>
+                    <div style={{ textAlign: 'center', padding: '3rem 1rem', background: 'white', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
+                        <p style={{ color: 'var(--text-muted)' }}>Todavía no has registrado ningún negocio.</p>
+                        <button className="btn-primary" style={{ margin: '1rem auto' }} onClick={() => setIsFormOpen(true)}>
+                            Registrar mi primer negocio
+                        </button>
+                    </div>
                 )}
             </div>
 

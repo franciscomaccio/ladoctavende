@@ -4,11 +4,10 @@ import type { Business } from '../types/database';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { Save, X, MapPin, Upload, Scissors } from 'lucide-react';
+import { Save, X, MapPin, Upload, Scissors, MessageCircle } from 'lucide-react';
 import Cropper from 'react-easy-crop';
 import { getCroppedImg } from '../utils/imageUtils';
 
-// Fix for default marker icon in Leaflet
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 
@@ -111,11 +110,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
-        if (!business) {
-            alert('Por favor, realiza el pago para activar tu negocio.');
-            return;
-        }
+        if (!business) return;
 
         setLoading(true);
         try {
@@ -174,7 +169,6 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
 
             let businessId = business?.id;
 
-            // 1. Create the business as inactive first to get an ID IF it doesn't exist
             if (!businessId) {
                 const businessData = {
                     ...formData,
@@ -194,7 +188,6 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                 if (createError) throw createError;
                 businessId = newBusiness.id;
             } else {
-                // Update existing business data before payment
                 const { error: updateError } = await supabase
                     .from('businesses')
                     .update({
@@ -208,7 +201,6 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                 if (updateError) throw updateError;
             }
 
-            // 2. Call our Edge Function to get the Mercado Pago checkout URL
             const { data, error: funcError } = await supabase.functions.invoke('mercadopago-payment', {
                 body: {
                     businessId: businessId,
@@ -218,12 +210,8 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                 }
             });
 
-            if (funcError) {
-                console.error('Mercado Pago Invocation Error:', funcError);
-                throw funcError;
-            }
+            if (funcError) throw funcError;
 
-            // 3. Redirect to Mercado Pago
             if (data?.url) {
                 window.location.href = data.url;
             } else {
@@ -238,26 +226,28 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
     };
 
     return (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 2000, display: 'flex', justifyContent: 'center', padding: '1rem', overflowY: 'auto' }}>
-            <div className="glass-card" style={{ maxWidth: '800px', width: '100%', padding: '2rem', height: 'fit-content', margin: 'auto' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem' }}>
-                    <h2>{business ? 'Editar Negocio' : 'Nuevo Negocio'}</h2>
-                    <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}><X /></button>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', zIndex: 2000, display: 'flex', justifyContent: 'center', padding: '1rem', overflowY: 'auto' }}>
+            <div className="card" style={{ maxWidth: '600px', width: '100%', padding: '1.5rem', height: 'fit-content', margin: 'auto' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', alignItems: 'center' }}>
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: '800' }}>{business ? 'Editar Negocio' : 'Nuevo Negocio'}</h2>
+                    <button onClick={onClose} style={{ background: '#f3f4f6', border: 'none', borderRadius: '50%', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><X size={20} /></button>
                 </div>
 
-                <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    <div>
+                        <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>Nombre</label>
+                        <input
+                            className="input-field"
+                            value={formData.name}
+                            onChange={e => setFormData({ ...formData, name: e.target.value })}
+                            required
+                            placeholder="Nombre de tu negocio"
+                        />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                         <div>
-                            <label>Nombre del Negocio</label>
-                            <input
-                                className="input-field"
-                                value={formData.name}
-                                onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label>Categoría</label>
+                            <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>Categoría</label>
                             <select
                                 className="input-field"
                                 value={formData.category}
@@ -267,112 +257,102 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                             </select>
                         </div>
                         <div>
-                            <label>WhatsApp (con código de país, ej: 54911...)</label>
+                            <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>WhatsApp</label>
                             <input
                                 className="input-field"
                                 value={formData.phone}
                                 onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                                placeholder="5491100000000"
+                                placeholder="54911..."
                             />
                         </div>
-                        <div>
-                            <label>Descripción</label>
-                            <textarea
-                                className="input-field"
-                                style={{ height: '100px' }}
-                                value={formData.description}
-                                onChange={e => setFormData({ ...formData, description: e.target.value })}
-                            />
-                        </div>
-                        <div>
-                            <label>Imagen / Flyer (Formato Vertical 4:5)</label>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '0.5rem' }}>
-                                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                                    <label className="btn-primary" style={{ fontSize: '0.8rem', cursor: 'pointer' }}>
-                                        <Upload size={16} /> Seleccionar Imagen
-                                        <input type="file" hidden accept="image/*" onChange={handleFileChange} />
-                                    </label>
-                                    {imageFile && <span style={{ fontSize: '0.8rem' }}><Scissors size={12} /> Imagen lista</span>}
-                                </div>
-
-                                {(imageFile || formData.image_url) && (
-                                    <div style={{ width: '120px', aspectRatio: '4/5', borderRadius: '10px', overflow: 'hidden', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--accent)' }}>
-                                        <img
-                                            src={imageFile ? URL.createObjectURL(imageFile) : formData.image_url}
-                                            alt="Preview"
-                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                        />
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {isCropping && imageSrc && (
-                            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.9)', zIndex: 3000, display: 'flex', flexDirection: 'column', padding: '1rem' }}>
-                                <div style={{ position: 'relative', flex: 1, width: '100%', background: '#333' }}>
-                                    <Cropper
-                                        image={imageSrc}
-                                        crop={crop}
-                                        zoom={zoom}
-                                        aspect={4 / 5}
-                                        onCropChange={setCrop}
-                                        onCropComplete={onCropComplete}
-                                        onZoomChange={setZoom}
-                                    />
-                                </div>
-                                <div style={{ padding: '2rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
-                                    <button type="button" className="btn-primary" style={{ background: 'var(--error)' }} onClick={() => setIsCropping(false)}>Cancelar</button>
-                                    <button type="button" className="btn-primary" onClick={applyCrop}>Confirmar Recorte</button>
-                                </div>
-                            </div>
-                        )}
                     </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        <label>Ubicación (Hacé click en el mapa)</label>
-                        <div style={{ height: '300px', borderRadius: '15px', overflow: 'hidden' }}>
+                    <div>
+                        <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>Descripción</label>
+                        <textarea
+                            className="input-field"
+                            style={{ height: '80px', resize: 'none' }}
+                            value={formData.description}
+                            onChange={e => setFormData({ ...formData, description: e.target.value })}
+                            placeholder="Contanos qué haces..."
+                        />
+                    </div>
+
+                    <div>
+                        <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>Foto / Flyer (Vertical 4:5)</label>
+                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                            <label className="btn-primary" style={{ fontSize: '0.8rem', cursor: 'pointer', background: '#f3f4f6', color: 'var(--text-main)', border: '1px solid var(--border-light)' }}>
+                                <Upload size={16} /> Subir Imagen
+                                <input type="file" hidden accept="image/*" onChange={handleFileChange} />
+                            </label>
+                            {(imageFile || formData.image_url) && (
+                                <div style={{ width: '60px', height: '75px', borderRadius: '6px', overflow: 'hidden', border: '1px solid var(--border-light)' }}>
+                                    <img
+                                        src={imageFile ? URL.createObjectURL(imageFile) : formData.image_url}
+                                        alt="Preview"
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600' }}>Ubicación</label>
+                        <div style={{ height: '200px', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-light)' }}>
                             <MapContainer
-                                center={position[0] ? position : [-34.6037, -58.3816]}
-                                zoom={13}
+                                center={position[0] ? position : [-31.4201, -64.1888]} // Nueva Córdoba center
+                                zoom={15}
                                 style={{ height: '100%', width: '100%' }}
                             >
                                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                                 <LocationPicker position={position} setPosition={setPosition} />
                             </MapContainer>
                         </div>
-                        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                            <MapPin size={12} /> {position[0].toFixed(6)}, {position[1].toFixed(6)}
-                        </p>
-
-                        {needsPayment && (
-                            <div className="glass-card" style={{ padding: '1.5rem', marginTop: 'auto', border: '1px solid var(--accent)' }}>
-                                <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
-                                    <p style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}>Membresía Mensual</p>
-                                    <h3 style={{ color: 'var(--accent)', fontSize: '1.5rem' }}>${price.toLocaleString()}</h3>
-                                    {isExpired && <p style={{ fontSize: '0.7rem', color: 'var(--error)', marginTop: '0.3rem' }}>Suscripción vencida</p>}
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={handlePayment}
-                                    className="btn-primary"
-                                    style={{ width: '100%', background: 'linear-gradient(45deg, var(--accent), #eab308)', color: 'black' }}
-                                    disabled={loading || !formData.name}
-                                >
-                                    {business ? 'Renovar Suscripción' : 'Pagar y Activar Negocio'}
-                                </button>
-                                <p style={{ fontSize: '0.7rem', marginTop: '0.5rem', textAlign: 'center', opacity: 0.7 }}>
-                                    Incluye 30 días de visibilidad en el sitio.
-                                </p>
-                            </div>
-                        )}
-
-                        {business && !needsPayment && (
-                            <button type="submit" className="btn-primary" style={{ marginTop: 'auto', width: '100%' }} disabled={loading}>
-                                <Save size={20} /> {loading ? 'Guardando...' : 'Guardar Cambios'}
-                            </button>
-                        )}
                     </div>
+
+                    {needsPayment && (
+                        <div style={{ padding: '1rem', background: '#fefce8', borderRadius: '12px', border: '1px solid #fde047', textAlign: 'center' }}>
+                            <p style={{ fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.5rem' }}>Activación (30 días)</p>
+                            <h3 style={{ fontSize: '1.5rem', color: '#854d0e', marginBottom: '1rem' }}>${price.toLocaleString()}</h3>
+                            <button
+                                type="button"
+                                onClick={handlePayment}
+                                className="btn-primary"
+                                style={{ width: '100%', background: '#22c55e' }}
+                                disabled={loading || !formData.name}
+                            >
+                                <MessageCircle size={20} /> {business ? 'Renovar con Mercado Pago' : 'Pagar y Activar'}
+                            </button>
+                        </div>
+                    )}
+
+                    {business && !needsPayment && (
+                        <button type="submit" className="btn-primary" style={{ width: '100%' }} disabled={loading}>
+                            <Save size={20} /> {loading ? 'Guardando...' : 'Guardar Cambios'}
+                        </button>
+                    )}
                 </form>
+
+                {isCropping && imageSrc && (
+                    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'white', zIndex: 3000, display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ position: 'relative', flex: 1, width: '100%' }}>
+                            <Cropper
+                                image={imageSrc}
+                                crop={crop}
+                                zoom={zoom}
+                                aspect={4 / 5}
+                                onCropChange={setCrop}
+                                onCropComplete={onCropComplete}
+                                onZoomChange={setZoom}
+                            />
+                        </div>
+                        <div style={{ padding: '2rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
+                            <button type="button" className="btn-primary" style={{ background: '#f3f4f6', color: 'black' }} onClick={() => setIsCropping(false)}>Cancelar</button>
+                            <button type="button" className="btn-primary" onClick={applyCrop}>Confirmar</button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

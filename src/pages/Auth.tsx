@@ -41,14 +41,14 @@ export default function Auth() {
 
     return (
         <div className="container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
-            <div className="glass-card" style={{ padding: '3rem', maxWidth: '450px', width: '100%' }}>
-                <h1 style={{ marginBottom: '2rem', textAlign: 'center', color: 'var(--accent)' }}>
+            <div className="card" style={{ padding: '2rem', maxWidth: '400px', width: '100%' }}>
+                <h1 style={{ marginBottom: '1.5rem', textAlign: 'center', fontSize: '1.5rem', fontWeight: '800' }}>
                     {isSignUp ? 'Crea tu cuenta' : 'Iniciar Sesión'}
                 </h1>
 
-                <form onSubmit={handleAuth} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <form onSubmit={handleAuth} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                     <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem' }}>Correo Electrónico</label>
+                        <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '500' }}>Correo Electrónico</label>
                         <div style={{ position: 'relative' }}>
                             <Mail size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                             <input
@@ -64,7 +64,7 @@ export default function Auth() {
                     </div>
 
                     <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem' }}>Contraseña</label>
+                        <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '500' }}>Contraseña</label>
                         <div style={{ position: 'relative' }}>
                             <Lock size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                             <input
@@ -81,21 +81,21 @@ export default function Auth() {
 
                     {message && (
                         <div style={{
-                            padding: '1rem',
-                            borderRadius: '10px',
-                            background: message.type === 'success' ? 'rgba(254, 223, 0, 0.1)' : 'rgba(255, 92, 138, 0.1)',
-                            color: message.type === 'success' ? 'var(--accent)' : 'var(--error)',
+                            padding: '0.75rem',
+                            borderRadius: '8px',
+                            background: message.type === 'success' ? '#fefce8' : '#fff1f2',
+                            color: message.type === 'success' ? '#a16207' : 'var(--error)',
                             display: 'flex',
                             alignItems: 'center',
                             gap: '0.5rem',
-                            fontSize: '0.9rem'
+                            fontSize: '0.85rem'
                         }}>
                             {message.type === 'success' && <CheckCircle size={16} />}
                             {message.text}
                         </div>
                     )}
 
-                    <button type="submit" className="btn-primary" disabled={loading}>
+                    <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: '0.5rem' }} disabled={loading}>
                         {loading ? 'Cargando...' : isSignUp ? (
                             <><UserPlus size={20} /> Registrarme</>
                         ) : (
@@ -104,15 +104,15 @@ export default function Auth() {
                     </button>
                 </form>
 
-                <p style={{ marginTop: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                <p style={{ marginTop: '1.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
                     {isSignUp ? '¿Ya tienes cuenta?' : '¿No tienes cuenta?'}
                     <button
                         onClick={() => setIsSignUp(!isSignUp)}
                         style={{
                             background: 'none',
                             border: 'none',
-                            color: 'var(--accent)',
-                            marginLeft: '0.5rem',
+                            color: 'var(--primary)',
+                            marginLeft: '0.4rem',
                             cursor: 'pointer',
                             fontWeight: '600'
                         }}
