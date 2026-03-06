@@ -158,13 +158,22 @@ export default function Home() {
                                         <MapPin size={14} />
                                         <span>Ubicación</span>
                                     </div>
-                                    <div style={{ marginTop: 'auto', alignSelf: 'flex-end' }}>
+                                    <div style={{ marginTop: 'auto', display: 'flex', gap: '8px' }}>
                                         <button
                                             className="btn-whatsapp"
+                                            style={{ flex: 1, padding: '8px', fontSize: '0.8rem', justifyContent: 'center' }}
                                             onClick={(e) => openWhatsApp(e, business.phone || '')}
                                         >
-                                            <MessageCircle size={18} fill="currentColor" />
+                                            <MessageCircle size={16} fill="currentColor" />
                                             WhatsApp
+                                        </button>
+                                        <button
+                                            className="btn-primary"
+                                            style={{ flex: 1, padding: '8px', fontSize: '0.8rem', background: '#f3f4f6', color: 'var(--text-main)', border: '1px solid var(--border-light)' }}
+                                            onClick={(e) => openMaps(e, business.location_lat || 0, business.location_lng || 0)}
+                                        >
+                                            <MapPin size={16} />
+                                            Mapa
                                         </button>
                                     </div>
                                 </div>
@@ -200,13 +209,22 @@ export default function Home() {
                             <h2 style={{ fontSize: '2rem', margin: '0.5rem 0' }}>{selectedBusiness.name}</h2>
                             <p style={{ marginBottom: '2rem', lineHeight: '1.6', color: 'var(--text-muted)' }}>{selectedBusiness.description}</p>
 
-                            <button
-                                className="btn-primary"
-                                style={{ width: '100%', padding: '15px' }}
-                                onClick={(e) => openWhatsApp(e, selectedBusiness.phone || '')}
-                            >
-                                <MessageCircle size={20} /> Contactar por WhatsApp
-                            </button>
+                            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                                <button
+                                    className="btn-whatsapp"
+                                    style={{ flex: 1, padding: '15px', justifyContent: 'center' }}
+                                    onClick={(e) => openWhatsApp(e, selectedBusiness.phone || '')}
+                                >
+                                    <MessageCircle size={20} fill="currentColor" /> WhatsApp
+                                </button>
+                                <button
+                                    className="btn-primary"
+                                    style={{ flex: 1, padding: '15px', background: '#f3f4f6', color: 'var(--text-main)', border: '1px solid var(--border-light)' }}
+                                    onClick={(e) => openMaps(e, selectedBusiness.location_lat || 0, selectedBusiness.location_lng || 0)}
+                                >
+                                    <MapPin size={20} /> Ver Mapa
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
