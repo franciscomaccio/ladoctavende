@@ -7,11 +7,22 @@ interface PromotionWithBusiness extends Promotion {
     businesses: Business;
 }
 
+const DAYS = [
+    { id: 0, name: 'Dom' },
+    { id: 1, name: 'Lun' },
+    { id: 2, name: 'Mar' },
+    { id: 3, name: 'Mié' },
+    { id: 4, name: 'Jue' },
+    { id: 5, name: 'Vie' },
+    { id: 6, name: 'Sáb' }
+];
+
 export default function Promotions() {
     const [promotions, setPromotions] = useState<PromotionWithBusiness[]>([]);
     const [filteredPromos, setFilteredPromos] = useState<PromotionWithBusiness[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedDay, setSelectedDay] = useState<number | null>(new Date().getDay());
     const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
 
     useEffect(() => {
@@ -19,15 +30,23 @@ export default function Promotions() {
     }, []);
 
     useEffect(() => {
+        filterPromos();
+    }, [searchTerm, promotions, selectedDay]);
+
+    function filterPromos() {
         const lowerSearch = searchTerm.toLowerCase();
-        setFilteredPromos(
-            promotions.filter(p =>
-                p.title.toLowerCase().includes(lowerSearch) ||
-                p.description?.toLowerCase().includes(lowerSearch) ||
-                p.businesses.name.toLowerCase().includes(lowerSearch)
-            )
+        let filtered = promotions.filter(p =>
+            p.title.toLowerCase().includes(lowerSearch) ||
+            p.description?.toLowerCase().includes(lowerSearch) ||
+            p.businesses.name.toLowerCase().includes(lowerSearch)
         );
-    }, [searchTerm, promotions]);
+
+        if (selectedDay !== null) {
+            filtered = filtered.filter(p => p.days_of_week.includes(selectedDay));
+        }
+
+        setFilteredPromos(filtered);
+    }
 
     async function fetchPromotions() {
         try {
@@ -61,10 +80,31 @@ export default function Promotions() {
 
     return (
         <div className="container" style={{ paddingTop: '1rem' }}>
-            <h1 style={{ fontSize: '1.75rem', fontWeight: '800', marginBottom: '1rem', color: 'var(--text-main)' }}>Promociones</h1>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: '0.95rem' }}>Descubrí las mejores ofertas de locales en Córdoba.</p>
+            <h1 style={{ fontSize: '1.75rem', fontWeight: '800', marginBottom: '0.5rem', color: 'var(--text-main)' }}>Promociones</h1>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: '0.95rem' }}>Las mejores ofertas de hoy en Córdoba.</p>
 
-            <div style={{ position: 'relative', margin: '1rem 0 2rem' }}>
+            {/* Day Filter */}
+            <div style={{ display: 'flex', overflowX: 'auto', gap: '0.5rem', marginBottom: '1.5rem', paddingBottom: '0.5rem', scrollbarWidth: 'none' }}>
+                <div
+                    className={`category-pill ${selectedDay === null ? 'active' : ''}`}
+                    onClick={() => setSelectedDay(null)}
+                    style={{ padding: '8px 16px', minWidth: 'auto' }}
+                >
+                    <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>Todos</span>
+                </div>
+                {DAYS.map(day => (
+                    <div
+                        key={day.id}
+                        className={`category-pill ${selectedDay === day.id ? 'active' : ''}`}
+                        onClick={() => setSelectedDay(day.id)}
+                        style={{ padding: '8px 16px', minWidth: 'auto' }}
+                    >
+                        <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>{day.name}</span>
+                    </div>
+                ))}
+            </div>
+
+            <div style={{ position: 'relative', margin: '0 0 1.5rem' }}>
                 <Search size={20} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                 <input
                     type="text"
@@ -76,7 +116,7 @@ export default function Promotions() {
                 />
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {loading ? (
                     <div style={{ textAlign: 'center', padding: '2rem' }}>
                         <div className="loading-spinner" style={{ margin: '0 auto 1rem' }}></div>
@@ -88,7 +128,7 @@ export default function Promotions() {
                             <div
                                 key={promo.id}
                                 className="business-card-h"
-                                style={{ cursor: 'pointer', border: '1px solid var(--border-light)' }}
+                                style={{ cursor: 'pointer', border: '1px solid var(--border-light)', minHeight: '120px' }}
                                 onClick={() => setSelectedBusiness(promo.businesses)}
                             >
                                 <div style={{ position: 'relative', width: '120px', height: '120px', flexShrink: 0 }}>
@@ -111,35 +151,24 @@ export default function Promotions() {
                                         OFERTA
                                     </div>
                                 </div>
-                                <div className="business-info" style={{ padding: '12px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}>
-                                        <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: '700' }}>{promo.businesses.name}</span>
-                                    </div>
+                                <div className="business-info" style={{ padding: '12px', justifyContent: 'flex-start' }}>
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: '700', marginBottom: '2px' }}>{promo.businesses.name}</span>
                                     <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: 'var(--text-main)', marginBottom: '4px', lineHeight: '1.2' }}>{promo.title}</h3>
                                     <p style={{
                                         fontSize: '0.85rem', color: 'var(--text-muted)',
-                                        display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+                                        display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical',
                                         overflow: 'hidden', margin: 0, lineHeight: '1.4'
                                     }}>
                                         {promo.description}
                                     </p>
-                                    <div style={{ marginTop: 'auto', display: 'flex', gap: '8px' }}>
-                                        <button
-                                            className="btn-whatsapp"
-                                            style={{ flex: 1, padding: '6px 12px', fontSize: '0.8rem', justifyContent: 'center', borderRadius: '8px' }}
-                                            onClick={(e) => openWhatsApp(e, promo.businesses.phone || '')}
-                                        >
-                                            <MessageCircle size={16} fill="currentColor" /> Consultar
-                                        </button>
-                                    </div>
                                 </div>
                             </div>
                         ))
                     ) : (
                         <div style={{ textAlign: 'center', padding: '3rem 1rem', background: '#f9fafb', borderRadius: '16px' }}>
                             <Tag size={48} color="#ccc" style={{ marginBottom: '1rem' }} />
-                            <h3 style={{ fontSize: '1.1rem', color: 'var(--text-main)', marginBottom: '0.5rem' }}>No hay promos todavía</h3>
-                            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Volvé pronto para ver las mejores ofertas.</p>
+                            <h3 style={{ fontSize: '1.1rem', color: 'var(--text-main)', marginBottom: '0.5rem' }}>No hay promos para este día</h3>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Probá eligiendo otro día o buscando algo específico.</p>
                         </div>
                     )
                 )}
