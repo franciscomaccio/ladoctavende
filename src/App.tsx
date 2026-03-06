@@ -4,7 +4,7 @@ import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import { useAuth } from './hooks/useAuth';
-import { ShieldCheck, Menu, Home as HomeIcon, Search, UserCircle } from 'lucide-react';
+import { ShieldCheck, Home as HomeIcon, Search, Tag, UserCircle } from 'lucide-react';
 
 function Navigation() {
   const { user, isAdmin } = useAuth();
@@ -16,15 +16,21 @@ function Navigation() {
         <Link to="/" className="logo">
           <img src="logo.png" alt="La Docta Vende" style={{ height: '40px' }} />
         </Link>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
           {isAdmin && (
             <Link to="/admin" style={{ color: 'var(--primary)', display: 'flex' }} title="Admin">
               <ShieldCheck size={24} />
             </Link>
           )}
-          <button style={{ background: 'none', border: 'none', color: 'var(--text-main)', cursor: 'pointer' }}>
-            <Menu size={28} />
-          </button>
+          {user ? (
+            <Link to="/dashboard" style={{ color: 'var(--text-main)', display: 'flex' }} title="Mi Cuenta">
+              <UserCircle size={28} />
+            </Link>
+          ) : (
+            <Link to="/auth" style={{ color: 'var(--text-main)', display: 'flex' }} title="Ingresar">
+              <UserCircle size={28} />
+            </Link>
+          )}
         </div>
       </header>
 
@@ -58,17 +64,10 @@ function Navigation() {
           <Search size={24} />
           <span>Buscar</span>
         </Link>
-        {user ? (
-          <Link to="/dashboard" className={`nav-item ${location.pathname === '/dashboard' ? 'active' : ''}`}>
-            <UserCircle size={24} />
-            <span>Cuenta</span>
-          </Link>
-        ) : (
-          <Link to="/auth" className={`nav-item ${location.pathname === '/auth' ? 'active' : ''}`}>
-            <UserCircle size={24} />
-            <span>Ingresar</span>
-          </Link>
-        )}
+        <Link to="/" className="nav-item">
+          <Tag size={24} />
+          <span>Promos</span>
+        </Link>
       </nav>
     </>
   );
