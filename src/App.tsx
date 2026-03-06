@@ -3,6 +3,7 @@ import Home from './pages/Home';
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import Promotions from './pages/Promotions';
 import { useAuth } from './hooks/useAuth';
 import { ShieldCheck, Home as HomeIcon, Search, Tag, UserCircle } from 'lucide-react';
 
@@ -40,6 +41,7 @@ function Navigation() {
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/promos" element={<Promotions />} />
         </Routes>
       </main>
 
@@ -64,7 +66,7 @@ function Navigation() {
           <Search size={24} />
           <span>Buscar</span>
         </Link>
-        <Link to="/" className="nav-item">
+        <Link to="/promos" className={`nav-item ${location.pathname === '/promos' ? 'active' : ''}`}>
           <Tag size={24} />
           <span>Promos</span>
         </Link>
