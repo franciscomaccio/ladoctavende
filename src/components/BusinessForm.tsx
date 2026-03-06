@@ -4,7 +4,7 @@ import type { Business } from '../types/database';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { Save, X, MapPin, Upload, Scissors, MessageCircle } from 'lucide-react';
+import { Save, X, Upload, MessageCircle } from 'lucide-react';
 import Cropper from 'react-easy-crop';
 import { getCroppedImg } from '../utils/imageUtils';
 
@@ -301,7 +301,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                         <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600' }}>Ubicación</label>
                         <div style={{ height: '200px', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-light)' }}>
                             <MapContainer
-                                center={position[0] ? position : [-31.4201, -64.1888]} // Nueva Córdoba center
+                                center={position[0] ? position : [-31.4201, -64.1888]} // Coordinates center
                                 zoom={15}
                                 style={{ height: '100%', width: '100%' }}
                             >
