@@ -189,42 +189,63 @@ export default function Home() {
             {selectedBusiness && (
                 <div style={{
                     position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                    background: 'rgba(255,255,255,0.98)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+                    background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
                     padding: '1rem'
-                }}>
-                    <div style={{ maxWidth: '600px', width: '100%', position: 'relative' }}>
+                }} onClick={() => setSelectedBusiness(null)}>
+                    <div
+                        style={{
+                            maxWidth: '500px', width: '100%', maxHeight: '90vh',
+                            background: 'white', borderRadius: '20px', position: 'relative',
+                            display: 'flex', flexDirection: 'column', overflow: 'hidden',
+                            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)'
+                        }}
+                        onClick={e => e.stopPropagation()}
+                    >
+                        {/* Close button inside and fixed */}
                         <button
                             onClick={() => setSelectedBusiness(null)}
-                            style={{ position: 'absolute', right: '0', top: '-40px', background: 'none', border: 'none', color: 'var(--text-main)', cursor: 'pointer' }}
+                            style={{
+                                position: 'absolute', right: '12px', top: '12px', background: 'rgba(255,255,255,0.8)',
+                                border: 'none', color: 'var(--text-main)', cursor: 'pointer', zIndex: 10,
+                                borderRadius: '50%', width: '36px', height: '36px', display: 'flex',
+                                alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)'
+                            }}
                         >
-                            <X size={32} />
+                            <X size={24} />
                         </button>
 
-                        {selectedBusiness.image_url && (
-                            <img src={selectedBusiness.image_url} alt={selectedBusiness.name} style={{ width: '100%', borderRadius: '12px', marginBottom: '1.5rem' }} />
-                        )}
+                        <div style={{ overflowY: 'auto', flex: 1 }}>
+                            {selectedBusiness.image_url && (
+                                <img
+                                    src={selectedBusiness.image_url}
+                                    alt={selectedBusiness.name}
+                                    style={{ width: '100%', height: '250px', objectFit: 'cover' }}
+                                />
+                            )}
 
-                        <div style={{ padding: '0 1rem' }}>
-                            <span style={{ color: 'var(--primary)', fontWeight: '600', fontSize: '0.9rem' }}>{selectedBusiness.category}</span>
-                            <h2 style={{ fontSize: '2rem', margin: '0.5rem 0' }}>{selectedBusiness.name}</h2>
-                            <p style={{ marginBottom: '2rem', lineHeight: '1.6', color: 'var(--text-muted)' }}>{selectedBusiness.description}</p>
-
-                            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                                <button
-                                    className="btn-whatsapp"
-                                    style={{ flex: 1, padding: '15px', justifyContent: 'center' }}
-                                    onClick={(e) => openWhatsApp(e, selectedBusiness.phone || '')}
-                                >
-                                    <MessageCircle size={20} fill="currentColor" /> WhatsApp
-                                </button>
-                                <button
-                                    className="btn-primary"
-                                    style={{ flex: 1, padding: '15px', background: '#f3f4f6', color: 'var(--text-main)', border: '1px solid var(--border-light)' }}
-                                    onClick={(e) => openMaps(e, selectedBusiness.location_lat || 0, selectedBusiness.location_lng || 0)}
-                                >
-                                    <MapPin size={20} /> Ver Mapa
-                                </button>
+                            <div style={{ padding: '1.5rem' }}>
+                                <span style={{ color: 'var(--primary)', fontWeight: '600', fontSize: '0.9rem' }}>{selectedBusiness.category}</span>
+                                <h2 style={{ fontSize: '1.75rem', margin: '0.5rem 0' }}>{selectedBusiness.name}</h2>
+                                <p style={{ lineHeight: '1.6', color: 'var(--text-muted)', fontSize: '1rem' }}>{selectedBusiness.description}</p>
                             </div>
+                        </div>
+
+                        {/* Footer always visible */}
+                        <div style={{ padding: '1.25rem', borderTop: '1px solid var(--border-light)', display: 'flex', gap: '0.75rem', background: '#fff' }}>
+                            <button
+                                className="btn-whatsapp"
+                                style={{ flex: 1, padding: '12px', justifyContent: 'center' }}
+                                onClick={(e) => openWhatsApp(e, selectedBusiness.phone || '')}
+                            >
+                                <MessageCircle size={20} fill="currentColor" /> WhatsApp
+                            </button>
+                            <button
+                                className="btn-primary"
+                                style={{ flex: 1, padding: '12px', background: '#f3f4f6', color: 'var(--text-main)', border: '1px solid var(--border-light)' }}
+                                onClick={(e) => openMaps(e, selectedBusiness.location_lat || 0, selectedBusiness.location_lng || 0)}
+                            >
+                                <MapPin size={20} /> Mapa
+                            </button>
                         </div>
                     </div>
                 </div>
