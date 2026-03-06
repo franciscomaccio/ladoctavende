@@ -10,9 +10,10 @@ interface PromotionWithBusiness extends Promotion {
 const CATEGORIES = [
     { name: 'Gastronomía', icon: '🍔' },
     { name: 'Moda', icon: '👕' },
-    { name: 'Servicios', icon: '🛠️' },
-    { name: 'Vehículo', icon: '🚗' },
+    { name: 'Salud', icon: '🏥' },
     { name: 'Hogar', icon: '🏠' },
+    { name: 'Vehículo', icon: '🚗' },
+    { name: 'Servicios', icon: '🛠️' },
     { name: 'Belleza', icon: '💄' },
     { name: 'Otros', icon: '✨' }
 ];

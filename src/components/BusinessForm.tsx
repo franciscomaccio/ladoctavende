@@ -19,7 +19,7 @@ let DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-const CATEGORIES = ['Gastronomía', 'Moda', 'Salud', 'Para el hogar', 'Vehículo', 'Servicios', 'Otros'];
+const CATEGORIES = ['Gastronomía', 'Moda', 'Salud', 'Hogar', 'Vehículo', 'Servicios', 'Belleza', 'Otros'];
 
 interface BusinessFormProps {
     business?: Business | null;
