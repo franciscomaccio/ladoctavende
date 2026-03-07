@@ -23,7 +23,7 @@ export default function Promotions() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedDay, setSelectedDay] = useState<number | null>(new Date().getDay());
-    const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
+    const [selectedPromotion, setSelectedPromotion] = useState<PromotionWithBusiness | null>(null);
 
     useEffect(() => {
         fetchPromotions();
@@ -80,8 +80,7 @@ export default function Promotions() {
 
     return (
         <div className="container" style={{ paddingTop: '1rem' }}>
-            <h1 style={{ fontSize: '1.75rem', fontWeight: '800', marginBottom: '0.5rem', color: 'var(--text-main)' }}>Promociones</h1>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: '0.95rem' }}>Las mejores ofertas de hoy en Córdoba.</p>
+            <h1 style={{ fontSize: '1.75rem', fontWeight: '800', marginBottom: '1.5rem', color: 'var(--text-main)' }}>Promociones</h1>
 
             {/* Day Filter */}
             <div style={{ display: 'flex', overflowX: 'auto', gap: '0.5rem', marginBottom: '1.5rem', paddingBottom: '0.5rem', scrollbarWidth: 'none' }}>
@@ -129,7 +128,7 @@ export default function Promotions() {
                                 key={promo.id}
                                 className="business-card-h"
                                 style={{ cursor: 'pointer', border: 'none', minHeight: '120px', background: '#7f1d1d', color: 'white' }}
-                                onClick={() => setSelectedBusiness(promo.businesses)}
+                                onClick={() => setSelectedPromotion(promo)}
                             >
                                 <div style={{ position: 'relative', width: '120px', height: '120px', flexShrink: 0 }}>
                                     {(promo.image_url || promo.businesses.image_url) ? (
@@ -143,13 +142,6 @@ export default function Promotions() {
                                             <Tag size={32} color="#fca5a5" />
                                         </div>
                                     )}
-                                    <div style={{
-                                        position: 'absolute', top: '8px', left: '8px', background: 'var(--primary)',
-                                        color: 'white', padding: '4px 10px', borderRadius: '20px', fontSize: '0.7rem', fontWeight: '800',
-                                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                                    }}>
-                                        OFERTA
-                                    </div>
                                 </div>
                                 <div className="business-info" style={{ padding: '12px', justifyContent: 'flex-start' }}>
                                     <span style={{ fontSize: '0.75rem', color: '#fca5a5', fontWeight: '700', marginBottom: '2px' }}>{promo.businesses.name}</span>
@@ -174,12 +166,12 @@ export default function Promotions() {
                 )}
             </div>
 
-            {selectedBusiness && (
+            {selectedPromotion && (
                 <div style={{
                     position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
                     background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
                     padding: '1rem'
-                }} onClick={() => setSelectedBusiness(null)}>
+                }} onClick={() => setSelectedPromotion(null)}>
                     <div
                         style={{
                             maxWidth: '500px', width: '100%', maxHeight: '90vh',
@@ -190,7 +182,7 @@ export default function Promotions() {
                         onClick={e => e.stopPropagation()}
                     >
                         <button
-                            onClick={() => setSelectedBusiness(null)}
+                            onClick={() => setSelectedPromotion(null)}
                             style={{
                                 position: 'absolute', right: '12px', top: '12px', background: 'rgba(255,255,255,0.8)',
                                 border: 'none', color: 'var(--text-main)', cursor: 'pointer', zIndex: 10,
@@ -202,18 +194,18 @@ export default function Promotions() {
                         </button>
 
                         <div style={{ overflowY: 'auto', flex: 1 }}>
-                            {selectedBusiness.image_url && (
+                            {(selectedPromotion.image_url || selectedPromotion.businesses.image_url) && (
                                 <img
-                                    src={selectedBusiness.image_url}
-                                    alt={selectedBusiness.name}
+                                    src={selectedPromotion.image_url || selectedPromotion.businesses.image_url!}
+                                    alt={selectedPromotion.title}
                                     style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover' }}
                                 />
                             )}
 
                             <div style={{ padding: '1.5rem' }}>
-                                <span style={{ color: 'var(--primary)', fontWeight: '600', fontSize: '0.9rem' }}>{selectedBusiness.category}</span>
-                                <h2 style={{ fontSize: '1.75rem', margin: '0.5rem 0' }}>{selectedBusiness.name}</h2>
-                                <p style={{ lineHeight: '1.6', color: 'var(--text-muted)', fontSize: '1rem' }}>{selectedBusiness.description}</p>
+                                <span style={{ color: 'var(--primary)', fontWeight: '700', fontSize: '0.9rem' }}>{selectedPromotion.businesses.name}</span>
+                                <h2 style={{ fontSize: '1.75rem', margin: '0.5rem 0', fontWeight: '800' }}>{selectedPromotion.title}</h2>
+                                <p style={{ lineHeight: '1.6', color: 'var(--text-muted)', fontSize: '1rem' }}>{selectedPromotion.description}</p>
                             </div>
                         </div>
 
@@ -221,16 +213,16 @@ export default function Promotions() {
                             <button
                                 className="btn-whatsapp"
                                 style={{ flex: 1, padding: '12px', justifyContent: 'center' }}
-                                onClick={(e) => openWhatsApp(e, selectedBusiness.phone || '')}
+                                onClick={(e) => openWhatsApp(e, selectedPromotion.businesses.phone || '')}
                             >
                                 <MessageCircle size={20} fill="currentColor" /> WhatsApp
                             </button>
 
                             <button
                                 className="btn-web"
-                                style={{ flex: 1, padding: '12px', justifyContent: 'center', opacity: selectedBusiness.website_url ? 1 : 0.5 }}
-                                onClick={() => selectedBusiness.website_url && window.open(selectedBusiness.website_url, '_blank')}
-                                disabled={!selectedBusiness.website_url}
+                                style={{ flex: 1, padding: '12px', justifyContent: 'center', opacity: selectedPromotion.businesses.website_url ? 1 : 0.5 }}
+                                onClick={() => selectedPromotion.businesses.website_url && window.open(selectedPromotion.businesses.website_url, '_blank')}
+                                disabled={!selectedPromotion.businesses.website_url}
                             >
                                 <Globe size={20} /> Web
                             </button>
@@ -238,7 +230,7 @@ export default function Promotions() {
                             <button
                                 className="btn-map"
                                 style={{ flex: 1, padding: '12px', justifyContent: 'center' }}
-                                onClick={(e) => openMaps(e, selectedBusiness.location_lat || 0, selectedBusiness.location_lng || 0)}
+                                onClick={(e) => openMaps(e, selectedPromotion.businesses.location_lat || 0, selectedPromotion.businesses.location_lng || 0)}
                             >
                                 <MapPin size={20} /> Mapa
                             </button>
