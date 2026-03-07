@@ -150,27 +150,18 @@ export default function Home() {
                                         <Tag size={32} color="#ccc" />
                                     </div>
                                 )}
-                                <div className="business-info">
+                                <div className="business-info" style={{ padding: '12px', justifyContent: 'flex-start' }}>
                                     <h3 style={{ fontSize: '1.1rem', marginBottom: '2px' }}>{business.name}</h3>
                                     <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '4px' }}>{business.category}</span>
-                                    <div style={{ marginTop: 'auto', display: 'flex', gap: '8px' }}>
-                                        <button
-                                            className="btn-whatsapp"
-                                            style={{ flex: 1, padding: '8px', fontSize: '0.8rem', justifyContent: 'center' }}
-                                            onClick={(e) => openWhatsApp(e, business.phone || '')}
-                                        >
-                                            <MessageCircle size={16} fill="currentColor" />
-                                            WhatsApp
-                                        </button>
-                                        <button
-                                            className="btn-primary"
-                                            style={{ flex: 1, padding: '8px', fontSize: '0.8rem', background: '#f3f4f6', color: 'var(--text-main)', border: '1px solid var(--border-light)' }}
-                                            onClick={(e) => openMaps(e, business.location_lat || 0, business.location_lng || 0)}
-                                        >
-                                            <MapPin size={16} />
-                                            Mapa
-                                        </button>
-                                    </div>
+                                    {business.description && (
+                                        <p style={{
+                                            fontSize: '0.85rem', color: 'var(--text-muted)',
+                                            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+                                            overflow: 'hidden', margin: 0, lineHeight: '1.4'
+                                        }}>
+                                            {business.description}
+                                        </p>
+                                    )}
                                 </div>
                             </div>
                         ))
