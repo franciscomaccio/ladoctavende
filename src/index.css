@@ -34,6 +34,12 @@ body {
   padding: 1rem;
 }
 
+.container-wide {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
 .glass-card,
 .card {
   background: var(--bg-card);

@@ -85,7 +85,7 @@ export default function AdminDashboard() {
     }
 
     return (
-        <div className="container">
+        <div className="container-wide">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', flexWrap: 'wrap', gap: '1.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: '#7f1d1d', flex: 1, minWidth: 'min-content' }}>
                     <LayoutDashboard size={32} />
