@@ -1,23 +1,27 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
-import type { Business } from '../types/database';
+import type { Business, Promotion } from '../types/database';
 import { Plus, Edit2, Trash2, Tag } from 'lucide-react';
 import BusinessForm from '../components/BusinessForm';
 import PromotionForm from '../components/PromotionForm';
 import BusinessStats from '../components/BusinessStats';
 import { BarChart2 } from 'lucide-react';
 
+interface BusinessWithPromos extends Business {
+    promotions: Promotion[];
+}
+
 export default function Dashboard() {
     const { user } = useAuth();
-    const [businesses, setBusinesses] = useState<Business[]>([]);
+    const [businesses, setBusinesses] = useState<BusinessWithPromos[]>([]);
     const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
     const [isPromoFormOpen, setIsPromoFormOpen] = useState(false);
     const [activeBusinessId, setActiveBusinessId] = useState<string | null>(null);
-    const [statsBusiness, setStatsBusiness] = useState<{ id: string, name: string } | null>(null);
+    const [statsBusiness, setStatsBusiness] = useState<{ id: string, name: string, promoId?: string, promoTitle?: string } | null>(null);
 
     useEffect(() => {
         const hash = window.location.hash;
@@ -36,12 +40,12 @@ export default function Dashboard() {
         try {
             const { data, error } = await supabase
                 .from('businesses')
-                .select('*')
+                .select('*, promotions(*)')
                 .eq('owner_id', user?.id)
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
-            setBusinesses(data || []);
+            setBusinesses(data as BusinessWithPromos[] || []);
         } catch (error) {
             console.error('Error fetching businesses:', error);
         } finally {
@@ -151,6 +155,33 @@ export default function Dashboard() {
                                         </button>
                                     </div>
                                 </div>
+
+                                {/* Promotions List */}
+                                {business.promotions && business.promotions.length > 0 && (
+                                    <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #f1f5f9' }}>
+                                        <div style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                            <Tag size={12} /> Promociones Activas
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                            {business.promotions.map(promo => (
+                                                <div key={promo.id} style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                    <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>{promo.title}</span>
+                                                    <button
+                                                        onClick={() => setStatsBusiness({
+                                                            id: business.id,
+                                                            name: business.name,
+                                                            promoId: promo.id,
+                                                            promoTitle: promo.title
+                                                        })}
+                                                        style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '4px 8px', color: '#7c3aed', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', fontWeight: '600' }}
+                                                    >
+                                                        <BarChart2 size={14} /> Ver Stats
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ))
@@ -185,6 +216,8 @@ export default function Dashboard() {
                 <BusinessStats
                     businessId={statsBusiness.id}
                     businessName={statsBusiness.name}
+                    promotionId={statsBusiness.promoId}
+                    promotionTitle={statsBusiness.promoTitle}
                     onClose={() => setStatsBusiness(null)}
                 />
             )}

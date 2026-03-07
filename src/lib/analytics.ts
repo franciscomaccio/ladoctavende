@@ -2,12 +2,16 @@ import { supabase } from './supabase';
 
 export type AnalyticsEventType = 'view' | 'open' | 'whatsapp' | 'map' | 'web';
 
-export async function recordBusinessEvent(businessId: string, eventType: AnalyticsEventType) {
+export async function recordBusinessEvent(businessId: string, eventType: AnalyticsEventType, promotionId?: string) {
     try {
         const { error } = await supabase
             .from('business_analytics')
             .insert([
-                { business_id: businessId, event_type: eventType }
+                {
+                    business_id: businessId,
+                    event_type: eventType,
+                    promotion_id: promotionId
+                }
             ]);
 
         if (error) {

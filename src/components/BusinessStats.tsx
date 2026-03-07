@@ -9,6 +9,8 @@ import { X, Calendar, TrendingUp, Eye, MessageCircle, MapPin, Globe } from 'luci
 interface StatsProps {
     businessId: string;
     businessName: string;
+    promotionId?: string;
+    promotionTitle?: string;
     onClose: () => void;
 }
 
@@ -17,7 +19,7 @@ interface AnalyticsRow {
     event_type: string;
 }
 
-export default function BusinessStats({ businessId, businessName, onClose }: StatsProps) {
+export default function BusinessStats({ businessId, businessName, promotionId, promotionTitle, onClose }: StatsProps) {
     const [timeRange, setTimeRange] = useState<'day' | 'week' | 'month'>('week');
     const [loading, setLoading] = useState(true);
     const [chartData, setChartData] = useState<any[]>([]);
@@ -31,7 +33,7 @@ export default function BusinessStats({ businessId, businessName, onClose }: Sta
 
     useEffect(() => {
         fetchStats();
-    }, [timeRange, businessId]);
+    }, [timeRange, businessId, promotionId]);
 
     const fetchStats = async () => {
         setLoading(true);
@@ -43,12 +45,17 @@ export default function BusinessStats({ businessId, businessName, onClose }: Sta
             else if (timeRange === 'week') startDate.setDate(now.getDate() - 7);
             else if (timeRange === 'month') startDate.setDate(now.getDate() - 30);
 
-            const { data, error } = await supabase
+            let query = supabase
                 .from('business_analytics')
                 .select('event_type, created_at')
                 .eq('business_id', businessId)
-                .gte('created_at', startDate.toISOString())
-                .order('created_at', { ascending: true });
+                .gte('created_at', startDate.toISOString());
+
+            if (promotionId) {
+                query = query.eq('promotion_id', promotionId);
+            }
+
+            const { data, error } = await query.order('created_at', { ascending: true });
 
             if (error) throw error;
 
@@ -97,8 +104,12 @@ export default function BusinessStats({ businessId, businessName, onClose }: Sta
                 {/* Header */}
                 <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
-                        <h2 style={{ fontSize: '1.25rem', fontWeight: '800', margin: 0 }}>Estadísticas: {businessName}</h2>
-                        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>Rendimiento de tu negocio en la plataforma</p>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: '800', margin: 0 }}>
+                            {promotionId ? `Estadísticas Promo: ${promotionTitle}` : `Estadísticas: ${businessName}`}
+                        </h2>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+                            {promotionId ? `Rendimiento de esta promoción específica` : `Rendimiento de tu negocio en la plataforma`}
+                        </p>
                     </div>
                     <button
                         onClick={onClose}

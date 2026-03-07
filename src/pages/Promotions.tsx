@@ -54,7 +54,7 @@ export default function Promotions() {
         if (filteredPromos.length === 0) return;
 
         const timer = setTimeout(() => {
-            filteredPromos.forEach(p => recordBusinessEvent(p.businesses.id, 'view'));
+            filteredPromos.forEach(p => recordBusinessEvent(p.businesses.id, 'view', p.id));
         }, 1000);
 
         return () => clearTimeout(timer);
@@ -77,19 +77,17 @@ export default function Promotions() {
         }
     }
 
-    const openWhatsApp = (e: React.MouseEvent, businessId: string, phone: string) => {
+    const openWhatsApp = (e: React.MouseEvent, businessId: string, phone: string, promoId?: string) => {
         e.stopPropagation();
-        recordBusinessEvent(businessId, 'whatsapp');
+        recordBusinessEvent(businessId, 'whatsapp', promoId);
         const cleanPhone = phone.replace(/\D/g, '');
         window.open(`https://wa.me/${cleanPhone}`, '_blank');
     };
 
-    const openMaps = (e: React.MouseEvent, businessId: string, lat: number, lng: number) => {
+    const openMaps = (e: React.MouseEvent, businessId: string, lat: number, lng: number, promoId?: string) => {
         e.stopPropagation();
-        recordBusinessEvent(businessId, 'map');
-        if (lat && lng) {
-            window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
-        }
+        recordBusinessEvent(businessId, 'map', promoId);
+        window.open(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`, '_blank');
     };
 
     return (
@@ -143,7 +141,7 @@ export default function Promotions() {
                                 className="business-card-h"
                                 style={{ cursor: 'pointer', border: 'none', minHeight: '120px', background: '#7f1d1d', color: 'white' }}
                                 onClick={() => {
-                                    recordBusinessEvent(promo.businesses.id, 'open');
+                                    recordBusinessEvent(promo.businesses.id, 'open', promo.id);
                                     setSelectedPromotion(promo);
                                 }}
                             >
@@ -230,7 +228,7 @@ export default function Promotions() {
                             <button
                                 className="btn-whatsapp"
                                 style={{ flex: 1, padding: '12px', justifyContent: 'center' }}
-                                onClick={(e) => openWhatsApp(e, selectedPromotion.businesses.id, selectedPromotion.businesses.phone || '')}
+                                onClick={(e) => openWhatsApp(e, selectedPromotion.businesses.id, selectedPromotion.businesses.phone || '', selectedPromotion.id)}
                             >
                                 <MessageCircle size={20} fill="currentColor" /> WhatsApp
                             </button>
@@ -240,7 +238,7 @@ export default function Promotions() {
                                 style={{ flex: 1, padding: '12px', justifyContent: 'center', opacity: selectedPromotion.businesses.website_url ? 1 : 0.5 }}
                                 onClick={() => {
                                     if (selectedPromotion.businesses.website_url) {
-                                        recordBusinessEvent(selectedPromotion.businesses.id, 'web');
+                                        recordBusinessEvent(selectedPromotion.businesses.id, 'web', selectedPromotion.id);
                                         window.open(selectedPromotion.businesses.website_url, '_blank');
                                     }
                                 }}
@@ -252,7 +250,7 @@ export default function Promotions() {
                             <button
                                 className="btn-map"
                                 style={{ flex: 1, padding: '12px', justifyContent: 'center' }}
-                                onClick={(e) => openMaps(e, selectedPromotion.businesses.id, selectedPromotion.businesses.location_lat || 0, selectedPromotion.businesses.location_lng || 0)}
+                                onClick={(e) => openMaps(e, selectedPromotion.businesses.id, selectedPromotion.businesses.location_lat || 0, selectedPromotion.businesses.location_lng || 0, selectedPromotion.id)}
                             >
                                 <MapPin size={20} /> Mapa
                             </button>
