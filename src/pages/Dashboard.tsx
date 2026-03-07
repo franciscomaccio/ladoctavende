@@ -123,16 +123,22 @@ export default function Dashboard() {
                                     </div>
                                     <div style={{ display: 'flex', gap: '8px' }}>
                                         <button
-                                            onClick={() => { setEditingBusiness(business); setIsFormOpen(true); }}
-                                            style={{ background: '#f3f4f6', border: 'none', borderRadius: '6px', padding: '6px', cursor: 'pointer' }}
+                                            onClick={() => { setActiveBusinessId(business.id); setIsPromoFormOpen(true); }}
+                                            style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '8px 12px', color: 'var(--primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: '700' }}
                                         >
-                                            <Edit2 size={18} />
+                                            <Plus size={18} /> Promo
+                                        </button>
+                                        <button
+                                            onClick={() => { setEditingBusiness(business); setIsFormOpen(true); }}
+                                            style={{ background: '#f3f4f6', border: '1px solid var(--border-light)', borderRadius: '8px', padding: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                        >
+                                            <Edit2 size={22} />
                                         </button>
                                         <button
                                             onClick={() => deleteBusiness(business.id)}
-                                            style={{ background: '#fef2f2', border: 'none', borderRadius: '6px', padding: '6px', color: 'var(--error)', cursor: 'pointer' }}
+                                            style={{ background: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '8px', padding: '10px', color: 'var(--error)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                         >
-                                            <Trash2 size={18} />
+                                            <Trash2 size={22} />
                                         </button>
                                     </div>
                                 </div>
