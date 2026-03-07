@@ -22,6 +22,7 @@ export default function Dashboard() {
     const [isPromoFormOpen, setIsPromoFormOpen] = useState(false);
     const [activeBusinessId, setActiveBusinessId] = useState<string | null>(null);
     const [statsBusiness, setStatsBusiness] = useState<{ id: string, name: string, promoId?: string, promoTitle?: string } | null>(null);
+    const [editingPromotion, setEditingPromotion] = useState<Promotion | null>(null);
 
     useEffect(() => {
         const hash = window.location.hash;
@@ -60,6 +61,17 @@ export default function Dashboard() {
             const { error } = await supabase.from('businesses').delete().eq('id', id);
             if (error) throw error;
             setBusinesses(businesses.filter(b => b.id !== id));
+        } catch (error: any) {
+            alert(error.message);
+        }
+    }
+
+    async function deletePromotion(id: string) {
+        if (!confirm('¿Estás seguro de que quieres eliminar esta promoción?')) return;
+        try {
+            const { error } = await supabase.from('promotions').delete().eq('id', id);
+            if (error) throw error;
+            fetchUserBusinesses();
         } catch (error: any) {
             alert(error.message);
         }
@@ -166,17 +178,33 @@ export default function Dashboard() {
                                             {business.promotions.map(promo => (
                                                 <div key={promo.id} style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                                     <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>{promo.title}</span>
-                                                    <button
-                                                        onClick={() => setStatsBusiness({
-                                                            id: business.id,
-                                                            name: business.name,
-                                                            promoId: promo.id,
-                                                            promoTitle: promo.title
-                                                        })}
-                                                        style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '4px 8px', color: '#7c3aed', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', fontWeight: '600' }}
-                                                    >
-                                                        <BarChart2 size={14} /> Ver Stats
-                                                    </button>
+                                                    <div style={{ display: 'flex', gap: '6px' }}>
+                                                        <button
+                                                            onClick={() => { setEditingPromotion(promo); setActiveBusinessId(business.id); setIsPromoFormOpen(true); }}
+                                                            style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '6px', color: 'var(--text-main)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                                            title="Editar Promo"
+                                                        >
+                                                            <Edit2 size={14} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => deletePromotion(promo.id)}
+                                                            style={{ background: 'white', border: '1px solid #fee2e2', borderRadius: '6px', padding: '6px', color: 'var(--error)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                                            title="Eliminar Promo"
+                                                        >
+                                                            <Trash2 size={14} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setStatsBusiness({
+                                                                id: business.id,
+                                                                name: business.name,
+                                                                promoId: promo.id,
+                                                                promoTitle: promo.title
+                                                            })}
+                                                            style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '4px 8px', color: '#7c3aed', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', fontWeight: '600' }}
+                                                        >
+                                                            <BarChart2 size={14} /> Ver Stats
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             ))}
                                         </div>
@@ -211,8 +239,9 @@ export default function Dashboard() {
             {isPromoFormOpen && activeBusinessId && (
                 <PromotionForm
                     businessId={activeBusinessId}
-                    onClose={() => { setIsPromoFormOpen(false); setActiveBusinessId(null); }}
-                    onSave={() => { setIsPromoFormOpen(false); setActiveBusinessId(null); }}
+                    promotion={editingPromotion}
+                    onClose={() => { setIsPromoFormOpen(false); setActiveBusinessId(null); setEditingPromotion(null); }}
+                    onSave={() => { fetchUserBusinesses(); setIsPromoFormOpen(false); setActiveBusinessId(null); setEditingPromotion(null); }}
                 />
             )}
 
