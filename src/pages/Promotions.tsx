@@ -236,8 +236,8 @@ export default function Promotions() {
                             </button>
 
                             <button
-                                className="btn-primary"
-                                style={{ flex: 1, padding: '12px', background: '#f3f4f6', color: 'var(--text-main)', border: '1px solid var(--border-light)', justifyContent: 'center' }}
+                                className="btn-map"
+                                style={{ flex: 1, padding: '12px', justifyContent: 'center' }}
                                 onClick={(e) => openMaps(e, selectedBusiness.location_lat || 0, selectedBusiness.location_lng || 0)}
                             >
                                 <MapPin size={20} /> Mapa
