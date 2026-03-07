@@ -142,20 +142,21 @@ export default function Home() {
                                 key={business.id}
                                 className="business-card-h"
                                 onClick={() => setSelectedBusiness(business)}
+                                style={{ background: '#1f2937', color: 'white', border: 'none' }}
                             >
                                 {business.image_url ? (
                                     <img src={business.image_url} alt={business.name} />
                                 ) : (
-                                    <div style={{ width: '120px', height: '120px', background: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        <Tag size={32} color="#ccc" />
+                                    <div style={{ width: '120px', height: '120px', background: '#374151', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <Tag size={32} color="#9ca3af" />
                                     </div>
                                 )}
                                 <div className="business-info" style={{ padding: '12px', justifyContent: 'flex-start' }}>
-                                    <h3 style={{ fontSize: '1.1rem', marginBottom: '2px' }}>{business.name}</h3>
-                                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '4px' }}>{business.category}</span>
+                                    <h3 style={{ fontSize: '1.1rem', marginBottom: '2px', color: 'white' }}>{business.name}</h3>
+                                    <span style={{ fontSize: '0.85rem', color: '#9ca3af', marginBottom: '4px' }}>{business.category}</span>
                                     {business.description && (
                                         <p style={{
-                                            fontSize: '0.85rem', color: 'var(--text-muted)',
+                                            fontSize: '0.85rem', color: '#d1d5db',
                                             display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
                                             overflow: 'hidden', margin: 0, lineHeight: '1.4'
                                         }}>

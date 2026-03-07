@@ -128,7 +128,7 @@ export default function Promotions() {
                             <div
                                 key={promo.id}
                                 className="business-card-h"
-                                style={{ cursor: 'pointer', border: '1px solid var(--border-light)', minHeight: '120px' }}
+                                style={{ cursor: 'pointer', border: 'none', minHeight: '120px', background: '#7f1d1d', color: 'white' }}
                                 onClick={() => setSelectedBusiness(promo.businesses)}
                             >
                                 <div style={{ position: 'relative', width: '120px', height: '120px', flexShrink: 0 }}>
@@ -139,8 +139,8 @@ export default function Promotions() {
                                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                         />
                                     ) : (
-                                        <div style={{ width: '100%', height: '100%', background: '#f8f9fa', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                            <Tag size={32} color="#ccc" />
+                                        <div style={{ width: '100%', height: '100%', background: '#991b1b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            <Tag size={32} color="#fca5a5" />
                                         </div>
                                     )}
                                     <div style={{
@@ -152,10 +152,10 @@ export default function Promotions() {
                                     </div>
                                 </div>
                                 <div className="business-info" style={{ padding: '12px', justifyContent: 'flex-start' }}>
-                                    <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: '700', marginBottom: '2px' }}>{promo.businesses.name}</span>
-                                    <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: 'var(--text-main)', marginBottom: '4px', lineHeight: '1.2' }}>{promo.title}</h3>
+                                    <span style={{ fontSize: '0.75rem', color: '#fca5a5', fontWeight: '700', marginBottom: '2px' }}>{promo.businesses.name}</span>
+                                    <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: 'white', marginBottom: '4px', lineHeight: '1.2' }}>{promo.title}</h3>
                                     <p style={{
-                                        fontSize: '0.85rem', color: 'var(--text-muted)',
+                                        fontSize: '0.85rem', color: '#fecaca',
                                         display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical',
                                         overflow: 'hidden', margin: 0, lineHeight: '1.4'
                                     }}>
