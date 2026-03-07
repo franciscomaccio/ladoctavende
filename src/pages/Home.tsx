@@ -161,15 +161,6 @@ export default function Home() {
                                             {business.description}
                                         </p>
                                     )}
-                                    {business.website_url && (
-                                        <button
-                                            className="btn-primary"
-                                            style={{ padding: '4px 10px', fontSize: '0.75rem', background: '#374151', color: 'white', border: '1px solid #4b5563', display: 'flex', alignItems: 'center', gap: '4px', alignSelf: 'flex-start' }}
-                                            onClick={(e) => { e.stopPropagation(); window.open(business.website_url!, '_blank'); }}
-                                        >
-                                            <Globe size={14} /> Ver Web
-                                        </button>
-                                    )}
                                 </div>
                             </div>
                         ))

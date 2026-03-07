@@ -161,15 +161,6 @@ export default function Promotions() {
                                     }}>
                                         {promo.description}
                                     </p>
-                                    {promo.businesses.website_url && (
-                                        <button
-                                            className="btn-primary"
-                                            style={{ padding: '4px 10px', fontSize: '0.75rem', background: '#991b1b', color: 'white', border: '1px solid #b91c1c', display: 'flex', alignItems: 'center', gap: '4px', alignSelf: 'flex-start' }}
-                                            onClick={(e) => { e.stopPropagation(); window.open(promo.businesses.website_url!, '_blank'); }}
-                                        >
-                                            <Globe size={14} /> Ver Web
-                                        </button>
-                                    )}
                                 </div>
                             </div>
                         ))
