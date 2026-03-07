@@ -86,12 +86,12 @@ export default function AdminDashboard() {
 
     return (
         <div className="container">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: '#7f1d1d' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', flexWrap: 'wrap', gap: '1.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: '#7f1d1d', flex: 1, minWidth: 'min-content' }}>
                     <LayoutDashboard size={32} />
-                    <h1 style={{ color: '#7f1d1d' }}>Panel Administrador</h1>
+                    <h1 style={{ color: '#7f1d1d', margin: 0 }}>Panel Administrador</h1>
                 </div>
-                <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', minWidth: '350px' }}>
+                <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%', maxWidth: '400px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', justifyContent: 'space-between' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <DollarSign size={20} style={{ color: 'var(--accent)' }} />
@@ -139,66 +139,69 @@ export default function AdminDashboard() {
                 <p>Cargando negocios...</p>
             ) : (
                 <div className="glass-card" style={{ padding: '1rem' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <thead>
-                            <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
-                                <th style={{ textAlign: 'left', padding: '1rem' }}>Negocio</th>
-                                <th style={{ textAlign: 'left', padding: '1rem' }}>Categoría</th>
-                                <th style={{ textAlign: 'left', padding: '1rem' }}>Vencimiento</th>
-                                <th style={{ textAlign: 'left', padding: '1rem' }}>Estado</th>
-                                <th style={{ textAlign: 'center', padding: '1rem' }}>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {businesses.map((business) => {
-                                const isExpired = business.subscription_expires_at
-                                    ? new Date(business.subscription_expires_at) < new Date()
-                                    : true;
+                    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', width: '100%' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
+                            <thead>
+                                <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
+                                    <th style={{ textAlign: 'left', padding: '1rem' }}>Negocio</th>
+                                    <th style={{ textAlign: 'left', padding: '1rem' }}>Categoría</th>
+                                    <th style={{ textAlign: 'left', padding: '1rem' }}>Vencimiento</th>
+                                    <th style={{ textAlign: 'left', padding: '1rem' }}>Estado</th>
+                                    <th style={{ textAlign: 'center', padding: '1rem' }}>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {businesses.map((business) => {
+                                    const isExpired = business.subscription_expires_at
+                                        ? new Date(business.subscription_expires_at) < new Date()
+                                        : true;
 
-                                return (
-                                    <tr key={business.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                                        <td style={{ padding: '1rem' }}>{business.name}</td>
-                                        <td style={{ padding: '1rem' }}>{business.category}</td>
-                                        <td style={{ padding: '1rem' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: isExpired ? 'var(--error)' : 'var(--text-main)' }}>
-                                                <Calendar size={14} />
-                                                {business.subscription_expires_at
-                                                    ? new Date(business.subscription_expires_at).toLocaleDateString()
-                                                    : 'Sin fecha'}
-                                            </div>
-                                        </td>
-                                        <td style={{ padding: '1rem' }}>
-                                            <span style={{
-                                                padding: '4px 8px',
-                                                borderRadius: '20px',
-                                                fontSize: '0.8rem',
-                                                background: business.active ? 'rgba(0, 155, 58, 0.2)' : 'rgba(255, 92, 138, 0.2)',
-                                                color: business.active ? '#4ade80' : 'var(--error)'
-                                            }}>
-                                                {business.active ? 'Visible' : 'Oculto'}
-                                            </span>
-                                        </td>
-                                        <td style={{ padding: '1rem', textAlign: 'center' }}>
-                                            <button
-                                                onClick={() => toggleActive(business.id, business.active)}
-                                                className="btn-primary"
-                                                style={{
-                                                    padding: '6px 12px',
+                                    return (
+                                        <tr key={business.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                            <td style={{ padding: '1rem' }}>{business.name}</td>
+                                            <td style={{ padding: '1rem' }}>{business.category}</td>
+                                            <td style={{ padding: '1rem' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: isExpired ? 'var(--error)' : 'var(--text-main)' }}>
+                                                    <Calendar size={14} />
+                                                    {business.subscription_expires_at
+                                                        ? new Date(business.subscription_expires_at).toLocaleDateString()
+                                                        : 'Sin fecha'}
+                                                </div>
+                                            </td>
+                                            <td style={{ padding: '1rem' }}>
+                                                <span style={{
+                                                    padding: '4px 8px',
+                                                    borderRadius: '20px',
                                                     fontSize: '0.8rem',
-                                                    background: business.active ? 'var(--error)' : 'var(--primary)'
-                                                }}
-                                            >
-                                                {business.active ? <XCircle size={14} /> : <CheckCircle size={14} />}
-                                                {business.active ? ' Desactivar' : ' Activar'}
-                                            </button>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
+                                                    background: business.active ? 'rgba(0, 155, 58, 0.2)' : 'rgba(255, 92, 138, 0.2)',
+                                                    color: business.active ? '#4ade80' : 'var(--error)'
+                                                }}>
+                                                    {business.active ? 'Visible' : 'Oculto'}
+                                                </span>
+                                            </td>
+                                            <td style={{ padding: '1rem', textAlign: 'center' }}>
+                                                <button
+                                                    onClick={() => toggleActive(business.id, business.active)}
+                                                    className="btn-primary"
+                                                    style={{
+                                                        padding: '6px 12px',
+                                                        fontSize: '0.8rem',
+                                                        background: business.active ? 'var(--error)' : 'var(--primary)'
+                                                    }}
+                                                >
+                                                    {business.active ? <XCircle size={14} /> : <CheckCircle size={14} />}
+                                                    {business.active ? ' Desactivar' : ' Activar'}
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             )}
         </div>
     );
 }
+
