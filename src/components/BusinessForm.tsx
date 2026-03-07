@@ -4,7 +4,7 @@ import type { Business } from '../types/database';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { Save, X, Upload, MessageCircle, Scissors, Globe } from 'lucide-react';
+import { Save, X, Upload, Scissors, Globe, CreditCard } from 'lucide-react';
 import Cropper from 'react-easy-crop';
 import { getCroppedImg } from '../utils/imageUtils';
 
@@ -349,10 +349,10 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                                 type="button"
                                 onClick={handlePayment}
                                 className="btn-primary"
-                                style={{ width: '100%', background: '#22c55e' }}
+                                style={{ width: '100%', background: '#009ee3' }}
                                 disabled={loading || !formData.name}
                             >
-                                <MessageCircle size={20} /> {business ? 'Renovar con Mercado Pago' : 'Pagar y Activar'}
+                                <CreditCard size={20} /> {business ? 'Renovar con Mercado Pago' : 'Pagar y Activar'}
                             </button>
                         </div>
                     )}
