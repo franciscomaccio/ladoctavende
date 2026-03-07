@@ -134,13 +134,13 @@ export default function Dashboard() {
                                     })()}
                                 </div>
 
-                                <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                                <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                                         {business.subscription_expires_at && (
                                             <div>Expira: {new Date(business.subscription_expires_at).toLocaleDateString()}</div>
                                         )}
                                     </div>
-                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end', flex: 1 }}>
                                         <button
                                             onClick={() => { setActiveBusinessId(business.id); setIsPromoFormOpen(true); }}
                                             style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '8px 12px', color: 'var(--primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: '700' }}
@@ -176,9 +176,9 @@ export default function Dashboard() {
                                     {business.promotions && business.promotions.length > 0 ? (
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                             {business.promotions.map(promo => (
-                                                <div key={promo.id} style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                    <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>{promo.title}</span>
-                                                    <div style={{ display: 'flex', gap: '6px' }}>
+                                                <div key={promo.id} style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                                                    <span style={{ fontSize: '0.85rem', fontWeight: '600', flex: 1, minWidth: '120px' }}>{promo.title}</span>
+                                                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                                                         <button
                                                             onClick={() => { setEditingPromotion(promo); setActiveBusinessId(business.id); setIsPromoFormOpen(true); }}
                                                             style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '6px', color: 'var(--text-main)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
