@@ -187,13 +187,28 @@ export default function PromotionForm({ businessId, promotion, onClose, onSave }
 
                     <div>
                         <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>Imagen (Vertical 4:5)</label>
-                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                            <label className="btn-primary" style={{ fontSize: '0.8rem', cursor: 'pointer', background: '#f3f4f6', color: 'var(--text-main)', border: '1px solid var(--border-light)' }}>
-                                <Upload size={16} /> Subir Imagen
+                        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                            <label className="btn-primary" style={{ fontSize: '0.8rem', cursor: 'pointer', background: '#f3f4f6', color: 'var(--text-main)', border: '1px solid var(--border-light)', margin: 0 }}>
+                                <Upload size={16} /> {imageFile || formData.image_url ? 'Cambiar Imagen' : 'Subir Imagen'}
                                 <input type="file" hidden accept="image/*" onChange={handleFileChange} />
                             </label>
+
                             {(imageFile || formData.image_url) && (
-                                <div style={{ width: '60px', height: '75px', borderRadius: '6px', overflow: 'hidden', border: '1px solid var(--border-light)' }}>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setImageSrc(imageFile ? URL.createObjectURL(imageFile) : formData.image_url);
+                                        setIsCropping(true);
+                                    }}
+                                    className="btn-primary"
+                                    style={{ fontSize: '0.8rem', background: '#eff6ff', color: 'var(--primary)', border: '1px solid #bfdbfe' }}
+                                >
+                                    <Scissors size={16} /> Recortar
+                                </button>
+                            )}
+
+                            {(imageFile || formData.image_url) && (
+                                <div style={{ width: '50px', height: '62px', borderRadius: '8px', overflow: 'hidden', border: '2px solid white', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
                                     <img
                                         src={imageFile ? URL.createObjectURL(imageFile) : formData.image_url}
                                         alt="Preview"
@@ -204,7 +219,7 @@ export default function PromotionForm({ businessId, promotion, onClose, onSave }
                         </div>
 
                         {isCropping && imageSrc && (
-                            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'white', zIdex: 4000, display: 'flex', flexDirection: 'column' }}>
+                            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'white', zIndex: 4000, display: 'flex', flexDirection: 'column' }}>
                                 <div style={{ position: 'relative', flex: 1, width: '100%' }}>
                                     <Cropper
                                         image={imageSrc}

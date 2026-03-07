@@ -4,7 +4,7 @@ import type { Business } from '../types/database';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { Save, X, Upload, MessageCircle } from 'lucide-react';
+import { Save, X, Upload, MessageCircle, Scissors } from 'lucide-react';
 import Cropper from 'react-easy-crop';
 import { getCroppedImg } from '../utils/imageUtils';
 
@@ -280,13 +280,28 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
 
                     <div>
                         <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>Foto / Flyer (Vertical 4:5)</label>
-                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                            <label className="btn-primary" style={{ fontSize: '0.8rem', cursor: 'pointer', background: '#f3f4f6', color: 'var(--text-main)', border: '1px solid var(--border-light)' }}>
-                                <Upload size={16} /> Subir Imagen
+                        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                            <label className="btn-primary" style={{ fontSize: '0.8rem', cursor: 'pointer', background: '#f3f4f6', color: 'var(--text-main)', border: '1px solid var(--border-light)', margin: 0 }}>
+                                <Upload size={16} /> {imageFile || formData.image_url ? 'Cambiar Imagen' : 'Subir Imagen'}
                                 <input type="file" hidden accept="image/*" onChange={handleFileChange} />
                             </label>
+
                             {(imageFile || formData.image_url) && (
-                                <div style={{ width: '60px', height: '75px', borderRadius: '6px', overflow: 'hidden', border: '1px solid var(--border-light)' }}>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setImageSrc(imageFile ? URL.createObjectURL(imageFile) : formData.image_url);
+                                        setIsCropping(true);
+                                    }}
+                                    className="btn-primary"
+                                    style={{ fontSize: '0.8rem', background: '#eff6ff', color: 'var(--primary)', border: '1px solid #bfdbfe' }}
+                                >
+                                    <Scissors size={16} /> Recortar
+                                </button>
+                            )}
+
+                            {(imageFile || formData.image_url) && (
+                                <div style={{ width: '50px', height: '62px', borderRadius: '8px', overflow: 'hidden', border: '2px solid white', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
                                     <img
                                         src={imageFile ? URL.createObjectURL(imageFile) : formData.image_url}
                                         alt="Preview"
