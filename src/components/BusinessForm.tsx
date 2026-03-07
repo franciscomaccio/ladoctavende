@@ -273,6 +273,8 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                         <textarea
                             className="input-field"
                             style={{ height: '80px', resize: 'none' }}
+                            value={formData.description}
+                            onChange={e => setFormData({ ...formData, description: e.target.value })}
                             placeholder="Contanos qué haces..."
                         />
                     </div>

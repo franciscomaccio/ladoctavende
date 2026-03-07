@@ -71,6 +71,21 @@ body {
   font-size: 0.9rem;
 }
 
+.btn-web {
+  background-color: #3b82f6;
+  color: white;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+}
+
 .input-field {
   background: #f3f4f6;
   border: 1px solid transparent;
