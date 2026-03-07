@@ -71,6 +71,8 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
     const [isCropping, setIsCropping] = useState(false);
 
     const [price, setPrice] = useState<number>(0);
+    const [originalPrice, setOriginalPrice] = useState<number>(0);
+    const [promoDescription, setPromoDescription] = useState<string>('');
 
     const onCropComplete = (_croppedArea: any, croppedAreaPixels: any) => {
         setCroppedAreaPixels(croppedAreaPixels);
@@ -102,11 +104,18 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
     };
 
     useEffect(() => {
-        const fetchPrice = async () => {
-            const { data } = await supabase.from('config').select('value').eq('key', 'subscription_price').single();
-            if (data) setPrice(data.value);
+        const fetchPrices = async () => {
+            const { data } = await supabase.from('config').select('key, value');
+            if (data) {
+                const p = data.find(c => c.key === 'subscription_price')?.value;
+                const o = data.find(c => c.key === 'original_price')?.value;
+                const d = data.find(c => c.key === 'promo_description')?.value;
+                if (p) setPrice(Number(p));
+                if (o) setOriginalPrice(Number(o));
+                if (d) setPromoDescription(d);
+            }
         };
-        fetchPrice();
+        fetchPrices();
     }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -342,14 +351,42 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                     </div>
 
                     {needsPayment && (
-                        <div style={{ padding: '1rem', background: '#fefce8', borderRadius: '12px', border: '1px solid #fde047', textAlign: 'center' }}>
-                            <p style={{ fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.5rem' }}>Activación (30 días)</p>
-                            <h3 style={{ fontSize: '1.5rem', color: '#854d0e', marginBottom: '1rem' }}>${price.toLocaleString()}</h3>
+                        <div style={{ padding: '1.25rem', background: '#fefce8', borderRadius: '16px', border: '1px solid #fde047', textAlign: 'center', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+                            <p style={{ fontSize: '0.9rem', fontWeight: '700', color: '#854d0e', marginBottom: '0.5rem' }}>Activación (30 días)</p>
+
+                            <div style={{ marginBottom: '1.25rem' }}>
+                                {originalPrice > 0 && originalPrice !== price && (
+                                    <span style={{
+                                        fontSize: '1.1rem',
+                                        color: '#a16207',
+                                        textDecoration: 'line-through',
+                                        marginRight: '0.75rem',
+                                        opacity: 0.7
+                                    }}>
+                                        ${originalPrice.toLocaleString()}
+                                    </span>
+                                )}
+                                <span style={{ fontSize: '2rem', fontWeight: '800', color: '#854d0e' }}>
+                                    ${price.toLocaleString()}
+                                </span>
+                                {promoDescription && (
+                                    <p style={{
+                                        fontSize: '0.85rem',
+                                        color: '#b45309',
+                                        fontWeight: '600',
+                                        marginTop: '0.25rem',
+                                        fontStyle: 'italic'
+                                    }}>
+                                        {promoDescription}
+                                    </p>
+                                )}
+                            </div>
+
                             <button
                                 type="button"
                                 onClick={handlePayment}
                                 className="btn-primary"
-                                style={{ width: '100%', background: '#009ee3' }}
+                                style={{ width: '100%', background: '#009ee3', padding: '14px', borderRadius: '12px' }}
                                 disabled={loading || !formData.name}
                             >
                                 <CreditCard size={20} /> {business ? 'Renovar con Mercado Pago' : 'Pagar y Activar'}

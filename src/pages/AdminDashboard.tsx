@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { CheckCircle, XCircle, Settings, LayoutDashboard, Calendar, DollarSign } from 'lucide-react';
@@ -16,6 +16,8 @@ export default function AdminDashboard() {
     const [businesses, setBusinesses] = useState<Business[]>([]);
     const [loading, setLoading] = useState(true);
     const [price, setPrice] = useState<number>(0);
+    const [originalPrice, setOriginalPrice] = useState<number>(0);
+    const [promoDescription, setPromoDescription] = useState<string>('');
 
     useEffect(() => {
         if (isAdmin) {
@@ -36,10 +38,17 @@ export default function AdminDashboard() {
     const fetchPrice = async () => {
         const { data } = await supabase
             .from('config')
-            .select('value')
-            .eq('key', 'subscription_price')
-            .single();
-        if (data) setPrice(data.value);
+            .select('key, value');
+
+        if (data) {
+            const priceVal = data.find(c => c.key === 'subscription_price')?.value;
+            const originalVal = data.find(c => c.key === 'original_price')?.value;
+            const descVal = data.find(c => c.key === 'promo_description')?.value;
+
+            if (priceVal) setPrice(Number(priceVal));
+            if (originalVal) setOriginalPrice(Number(originalVal));
+            if (descVal) setPromoDescription(descVal);
+        }
     };
 
     const toggleActive = async (id: string, currentStatus: boolean) => {
@@ -51,11 +60,24 @@ export default function AdminDashboard() {
     };
 
     const updatePrice = async () => {
-        const { error } = await supabase
-            .from('config')
-            .update({ value: price })
-            .eq('key', 'subscription_price');
-        if (!error) alert('Precio actualizado con éxito');
+        try {
+            const updates = [
+                { key: 'subscription_price', value: price.toString() },
+                { key: 'original_price', value: originalPrice.toString() },
+                { key: 'promo_description', value: promoDescription }
+            ];
+
+            for (const update of updates) {
+                const { error } = await supabase
+                    .from('config')
+                    .upsert(update);
+                if (error) throw error;
+            }
+
+            alert('Precios y promociones actualizados con éxito');
+        } catch (error: any) {
+            alert('Error updating prices: ' + error.message);
+        }
     };
 
     if (!isAdmin) {
@@ -65,21 +87,50 @@ export default function AdminDashboard() {
     return (
         <div className="container">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: 'var(--accent)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: '#7f1d1d' }}>
                     <LayoutDashboard size={32} />
-                    <h1>Panel Administrador</h1>
+                    <h1 style={{ color: '#7f1d1d' }}>Panel Administrador</h1>
                 </div>
-                <div className="glass-card" style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <DollarSign size={20} style={{ color: 'var(--accent)' }} />
-                    <input
-                        type="number"
-                        value={price}
-                        onChange={(e) => setPrice(Number(e.target.value))}
-                        className="input-field"
-                        style={{ width: '100px', margin: 0 }}
-                    />
-                    <button onClick={updatePrice} className="btn-primary" style={{ padding: '8px 16px' }}>
-                        <Settings size={18} /> Actualizar Precio
+                <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', minWidth: '350px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <DollarSign size={20} style={{ color: 'var(--accent)' }} />
+                            <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>Precio Real:</span>
+                        </div>
+                        <input
+                            type="number"
+                            value={originalPrice}
+                            onChange={(e) => setOriginalPrice(Number(e.target.value))}
+                            className="input-field"
+                            style={{ width: '120px', margin: 0 }}
+                        />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <DollarSign size={20} style={{ color: 'var(--primary)' }} />
+                            <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>Precio Promo:</span>
+                        </div>
+                        <input
+                            type="number"
+                            value={price}
+                            onChange={(e) => setPrice(Number(e.target.value))}
+                            className="input-field"
+                            style={{ width: '120px', margin: 0 }}
+                        />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                        <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>Descripción Promo:</span>
+                        <input
+                            type="text"
+                            value={promoDescription}
+                            onChange={(e) => setPromoDescription(e.target.value)}
+                            className="input-field"
+                            placeholder="Ej: Oferta Lanzamiento"
+                            style={{ margin: 0 }}
+                        />
+                    </div>
+                    <button onClick={updatePrice} className="btn-primary" style={{ width: '100%', marginTop: '0.5rem' }}>
+                        <Settings size={18} /> Actualizar Precios
                     </button>
                 </div>
             </div>
