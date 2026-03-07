@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Search, Tag, MessageCircle, MapPin, X, Globe } from 'lucide-react';
 import type { Business, Promotion } from '../types/database';
+import { recordBusinessEvent } from '../lib/analytics';
 
 interface PromotionWithBusiness extends Promotion {
     businesses: Business;
@@ -46,6 +47,8 @@ export default function Promotions() {
         }
 
         setFilteredPromos(filtered);
+        // Record views for all filtered promotions' businesses
+        filtered.forEach(p => recordBusinessEvent(p.businesses.id, 'view'));
     }
 
     async function fetchPromotions() {
@@ -65,14 +68,16 @@ export default function Promotions() {
         }
     }
 
-    const openWhatsApp = (e: React.MouseEvent, phone: string) => {
+    const openWhatsApp = (e: React.MouseEvent, businessId: string, phone: string) => {
         e.stopPropagation();
+        recordBusinessEvent(businessId, 'whatsapp');
         const cleanPhone = phone.replace(/\D/g, '');
         window.open(`https://wa.me/${cleanPhone}`, '_blank');
     };
 
-    const openMaps = (e: React.MouseEvent, lat: number, lng: number) => {
+    const openMaps = (e: React.MouseEvent, businessId: string, lat: number, lng: number) => {
         e.stopPropagation();
+        recordBusinessEvent(businessId, 'map');
         if (lat && lng) {
             window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
         }
@@ -128,7 +133,10 @@ export default function Promotions() {
                                 key={promo.id}
                                 className="business-card-h"
                                 style={{ cursor: 'pointer', border: 'none', minHeight: '120px', background: '#7f1d1d', color: 'white' }}
-                                onClick={() => setSelectedPromotion(promo)}
+                                onClick={() => {
+                                    setSelectedPromotion(promo);
+                                    recordBusinessEvent(promo.businesses.id, 'open');
+                                }}
                             >
                                 <div style={{ position: 'relative', width: '120px', height: '120px', flexShrink: 0 }}>
                                     {(promo.image_url || promo.businesses.image_url) ? (
@@ -213,7 +221,7 @@ export default function Promotions() {
                             <button
                                 className="btn-whatsapp"
                                 style={{ flex: 1, padding: '12px', justifyContent: 'center' }}
-                                onClick={(e) => openWhatsApp(e, selectedPromotion.businesses.phone || '')}
+                                onClick={(e) => openWhatsApp(e, selectedPromotion.businesses.id, selectedPromotion.businesses.phone || '')}
                             >
                                 <MessageCircle size={20} fill="currentColor" /> WhatsApp
                             </button>
@@ -221,7 +229,12 @@ export default function Promotions() {
                             <button
                                 className="btn-web"
                                 style={{ flex: 1, padding: '12px', justifyContent: 'center', opacity: selectedPromotion.businesses.website_url ? 1 : 0.5 }}
-                                onClick={() => selectedPromotion.businesses.website_url && window.open(selectedPromotion.businesses.website_url, '_blank')}
+                                onClick={() => {
+                                    if (selectedPromotion.businesses.website_url) {
+                                        recordBusinessEvent(selectedPromotion.businesses.id, 'web');
+                                        window.open(selectedPromotion.businesses.website_url, '_blank');
+                                    }
+                                }}
                                 disabled={!selectedPromotion.businesses.website_url}
                             >
                                 <Globe size={20} /> Web
@@ -230,7 +243,7 @@ export default function Promotions() {
                             <button
                                 className="btn-map"
                                 style={{ flex: 1, padding: '12px', justifyContent: 'center' }}
-                                onClick={(e) => openMaps(e, selectedPromotion.businesses.location_lat || 0, selectedPromotion.businesses.location_lng || 0)}
+                                onClick={(e) => openMaps(e, selectedPromotion.businesses.id, selectedPromotion.businesses.location_lat || 0, selectedPromotion.businesses.location_lng || 0)}
                             >
                                 <MapPin size={20} /> Mapa
                             </button>

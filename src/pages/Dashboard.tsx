@@ -5,6 +5,8 @@ import type { Business } from '../types/database';
 import { Plus, Edit2, Trash2, Tag } from 'lucide-react';
 import BusinessForm from '../components/BusinessForm';
 import PromotionForm from '../components/PromotionForm';
+import BusinessStats from '../components/BusinessStats';
+import { BarChart2 } from 'lucide-react';
 
 export default function Dashboard() {
     const { user } = useAuth();
@@ -15,6 +17,7 @@ export default function Dashboard() {
     const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
     const [isPromoFormOpen, setIsPromoFormOpen] = useState(false);
     const [activeBusinessId, setActiveBusinessId] = useState<string | null>(null);
+    const [statsBusiness, setStatsBusiness] = useState<{ id: string, name: string } | null>(null);
 
     useEffect(() => {
         const hash = window.location.hash;
@@ -129,6 +132,12 @@ export default function Dashboard() {
                                             <Plus size={18} /> Promo
                                         </button>
                                         <button
+                                            onClick={() => setStatsBusiness({ id: business.id, name: business.name })}
+                                            style={{ background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: '8px', padding: '8px 12px', color: '#7c3aed', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: '700' }}
+                                        >
+                                            <BarChart2 size={18} /> Estadísticas
+                                        </button>
+                                        <button
                                             onClick={() => { setEditingBusiness(business); setIsFormOpen(true); }}
                                             style={{ background: '#f3f4f6', border: '1px solid var(--border-light)', borderRadius: '8px', padding: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                         >
@@ -169,6 +178,14 @@ export default function Dashboard() {
                     businessId={activeBusinessId}
                     onClose={() => { setIsPromoFormOpen(false); setActiveBusinessId(null); }}
                     onSave={() => { setIsPromoFormOpen(false); setActiveBusinessId(null); }}
+                />
+            )}
+
+            {statsBusiness && (
+                <BusinessStats
+                    businessId={statsBusiness.id}
+                    businessName={statsBusiness.name}
+                    onClose={() => setStatsBusiness(null)}
                 />
             )}
         </div>
