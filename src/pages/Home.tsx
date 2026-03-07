@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Search, MapPin, X, Tag, MessageCircle } from 'lucide-react';
+import { Search, Tag, MessageCircle, MapPin, X, Globe } from 'lucide-react';
 import type { Business, Promotion } from '../types/database';
 
 interface PromotionWithBusiness extends Promotion {
@@ -224,9 +224,18 @@ export default function Home() {
                             >
                                 <MessageCircle size={20} fill="currentColor" /> WhatsApp
                             </button>
+                            {selectedBusiness.website_url && (
+                                <button
+                                    className="btn-primary"
+                                    style={{ flex: 1, padding: '12px', background: '#eff6ff', color: 'var(--primary)', border: '1px solid #bfdbfe', justifyContent: 'center' }}
+                                    onClick={() => window.open(selectedBusiness.website_url!, '_blank')}
+                                >
+                                    <Globe size={20} /> Web
+                                </button>
+                            )}
                             <button
                                 className="btn-primary"
-                                style={{ flex: 1, padding: '12px', background: '#f3f4f6', color: 'var(--text-main)', border: '1px solid var(--border-light)' }}
+                                style={{ flex: 1, padding: '12px', background: '#f3f4f6', color: 'var(--text-main)', border: '1px solid var(--border-light)', justifyContent: 'center' }}
                                 onClick={(e) => openMaps(e, selectedBusiness.location_lat || 0, selectedBusiness.location_lng || 0)}
                             >
                                 <MapPin size={20} /> Mapa

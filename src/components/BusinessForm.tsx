@@ -4,7 +4,7 @@ import type { Business } from '../types/database';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { Save, X, Upload, MessageCircle, Scissors } from 'lucide-react';
+import { Save, X, Upload, MessageCircle, Scissors, Globe } from 'lucide-react';
 import Cropper from 'react-easy-crop';
 import { getCroppedImg } from '../utils/imageUtils';
 
@@ -57,6 +57,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
         category: business?.category || CATEGORIES[0],
         phone: business?.phone || '',
         image_url: business?.image_url || '',
+        website_url: business?.website_url || '',
     });
     const [position, setPosition] = useState<[number, number]>([
         business?.location_lat || 0,
@@ -272,10 +273,22 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                         <textarea
                             className="input-field"
                             style={{ height: '80px', resize: 'none' }}
-                            value={formData.description}
-                            onChange={e => setFormData({ ...formData, description: e.target.value })}
                             placeholder="Contanos qué haces..."
                         />
+                    </div>
+
+                    <div>
+                        <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>Página Web / Red Social</label>
+                        <div style={{ position: 'relative' }}>
+                            <Globe size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                            <input
+                                className="input-field"
+                                style={{ paddingLeft: '40px' }}
+                                value={formData.website_url}
+                                onChange={e => setFormData({ ...formData, website_url: e.target.value })}
+                                placeholder="https://tu-sitio.com"
+                            />
+                        </div>
                     </div>
 
                     <div>
