@@ -5,11 +5,16 @@ import Dashboard from './pages/Dashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import Promotions from './pages/Promotions';
 import { useAuth } from './hooks/useAuth';
-import { ShieldCheck, Home as HomeIcon, Search, Tag, UserCircle } from 'lucide-react';
+import { ShieldCheck, Home as HomeIcon, Search, Tag, UserCircle, LogOut } from 'lucide-react';
 
 function Navigation() {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, signOut } = useAuth();
   const location = useLocation();
+
+  const handleSignOut = async () => {
+    await signOut();
+    // Optional: reload or navigate to home
+  };
 
   return (
     <>
@@ -24,9 +29,18 @@ function Navigation() {
             </Link>
           )}
           {user ? (
-            <Link to="/dashboard" style={{ color: 'var(--text-main)', display: 'flex' }} title="Mi Cuenta">
-              <UserCircle size={28} />
-            </Link>
+            <>
+              <Link to="/dashboard" style={{ color: 'var(--text-main)', display: 'flex' }} title="Mi Cuenta">
+                <UserCircle size={28} />
+              </Link>
+              <button
+                onClick={handleSignOut}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', display: 'flex' }}
+                title="Cerrar Sesión"
+              >
+                <LogOut size={24} />
+              </button>
+            </>
           ) : (
             <Link to="/auth" style={{ color: 'var(--text-main)', display: 'flex' }} title="Ingresar">
               <UserCircle size={28} />
