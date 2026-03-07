@@ -8,6 +8,8 @@ interface PromotionWithBusiness extends Promotion {
     businesses: Business;
 }
 
+import { useHorizontalScroll } from '../hooks/useHorizontalScroll';
+
 const DAYS = [
     { id: 0, name: 'Dom' },
     { id: 1, name: 'Lun' },
@@ -19,6 +21,7 @@ const DAYS = [
 ];
 
 export default function Promotions() {
+    const scrollRef = useHorizontalScroll();
     const [promotions, setPromotions] = useState<PromotionWithBusiness[]>([]);
     const [filteredPromos, setFilteredPromos] = useState<PromotionWithBusiness[]>([]);
     const [loading, setLoading] = useState(true);
@@ -91,11 +94,11 @@ export default function Promotions() {
     };
 
     return (
-        <div className="container" style={{ paddingTop: '1rem' }}>
+        <div className="container-wide" style={{ paddingTop: '1rem' }}>
             <h1 style={{ fontSize: '1.75rem', fontWeight: '800', marginBottom: '1.5rem', color: 'var(--text-main)' }}>Promociones</h1>
 
             {/* Day Filter */}
-            <div style={{ display: 'flex', overflowX: 'auto', gap: '0.5rem', marginBottom: '1.5rem', paddingBottom: '0.5rem', scrollbarWidth: 'none' }}>
+            <div ref={scrollRef} style={{ display: 'flex', overflowX: 'auto', gap: '0.5rem', marginBottom: '1.5rem', paddingBottom: '0.5rem', scrollbarWidth: 'none' }}>
                 <div
                     className={`category-pill ${selectedDay === null ? 'active' : ''}`}
                     onClick={() => setSelectedDay(null)}

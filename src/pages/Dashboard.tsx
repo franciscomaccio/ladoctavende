@@ -79,14 +79,14 @@ export default function Dashboard() {
 
     if (!user) {
         return (
-            <div className="container" style={{ textAlign: 'center', marginTop: '2rem' }}>
+            <div className="container-wide" style={{ textAlign: 'center', marginTop: '2rem' }}>
                 <p>Debes iniciar sesión para ver tu panel.</p>
             </div>
         );
     }
 
     return (
-        <div className="container" style={{ paddingBottom: '100px' }}>
+        <div className="container-wide" style={{ paddingBottom: '100px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '1.5rem 0' }}>
                 <h1 style={{ fontSize: '1.5rem', fontWeight: '800' }}>Panel de Control</h1>
                 <button

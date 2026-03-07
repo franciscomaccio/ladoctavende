@@ -8,6 +8,8 @@ interface PromotionWithBusiness extends Promotion {
     businesses: Business;
 }
 
+import { useHorizontalScroll } from '../hooks/useHorizontalScroll';
+
 const CATEGORIES = [
     { name: 'Gastronomía', icon: '🍔' },
     { name: 'Moda', icon: '👕' },
@@ -22,6 +24,7 @@ const CATEGORIES = [
 ];
 
 export default function Home() {
+    const scrollRef = useHorizontalScroll();
     const [businesses, setBusinesses] = useState<Business[]>([]);
     const [filteredBusinesses, setFilteredBusinesses] = useState<Business[]>([]);
     const [loading, setLoading] = useState(true);
@@ -116,7 +119,7 @@ export default function Home() {
     };
 
     return (
-        <div className="container">
+        <div className="container-wide">
             {/* Search Bar */}
             <div style={{ position: 'relative', margin: '1rem 0 1.5rem' }}>
                 <Search size={20} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
@@ -132,7 +135,7 @@ export default function Home() {
             </div>
 
             {/* Categories */}
-            <div style={{ display: 'flex', overflowX: 'auto', gap: '0.5rem', marginBottom: '2rem', paddingBottom: '0.5rem', scrollbarWidth: 'none' }}>
+            <div ref={scrollRef} style={{ display: 'flex', overflowX: 'auto', gap: '0.5rem', marginBottom: '2rem', paddingBottom: '0.5rem', scrollbarWidth: 'none' }}>
                 {CATEGORIES.map(cat => (
                     <div
                         key={cat.name}
