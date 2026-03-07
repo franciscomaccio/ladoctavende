@@ -129,8 +129,6 @@ export default function Home() {
                 ))}
             </div>
 
-            <h2 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '1.5rem' }}>Negocios cerca tuyo</h2>
-
             {/* List */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {loading ? (
