@@ -84,10 +84,19 @@ export default function Home() {
                 filtered = filtered.filter(b => b.category === selectedCategory);
             }
             setFilteredBusinesses(filtered);
-            // Record views for all filtered businesses
-            filtered.forEach(b => recordBusinessEvent(b.id, 'view'));
         }
     }
+
+    // Debounce view tracking to avoid flooding the DB while typing
+    useEffect(() => {
+        if (filteredBusinesses.length === 0) return;
+
+        const timer = setTimeout(() => {
+            filteredBusinesses.forEach(b => recordBusinessEvent(b.id, 'view'));
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, [filteredBusinesses]);
 
     const openWhatsApp = (e: React.MouseEvent, businessId: string, phone: string) => {
         e.stopPropagation();
@@ -145,8 +154,8 @@ export default function Home() {
                                 key={business.id}
                                 className="business-card-h"
                                 onClick={() => {
-                                    setSelectedBusiness(business);
                                     recordBusinessEvent(business.id, 'open');
+                                    setSelectedBusiness(business);
                                 }}
                                 style={{ background: '#1f2937', color: 'white', border: 'none' }}
                             >

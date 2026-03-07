@@ -47,9 +47,18 @@ export default function Promotions() {
         }
 
         setFilteredPromos(filtered);
-        // Record views for all filtered promotions' businesses
-        filtered.forEach(p => recordBusinessEvent(p.businesses.id, 'view'));
     }
+
+    // Debounce view tracking to avoid flooding the DB
+    useEffect(() => {
+        if (filteredPromos.length === 0) return;
+
+        const timer = setTimeout(() => {
+            filteredPromos.forEach(p => recordBusinessEvent(p.businesses.id, 'view'));
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, [filteredPromos]);
 
     async function fetchPromotions() {
         try {
@@ -134,8 +143,8 @@ export default function Promotions() {
                                 className="business-card-h"
                                 style={{ cursor: 'pointer', border: 'none', minHeight: '120px', background: '#7f1d1d', color: 'white' }}
                                 onClick={() => {
-                                    setSelectedPromotion(promo);
                                     recordBusinessEvent(promo.businesses.id, 'open');
+                                    setSelectedPromotion(promo);
                                 }}
                             >
                                 <div style={{ position: 'relative', width: '120px', height: '120px', flexShrink: 0 }}>
