@@ -16,6 +16,8 @@ const CATEGORIES = [
     { name: 'Vehículo', icon: '🚗' },
     { name: 'Servicios', icon: '🛠️' },
     { name: 'Belleza', icon: '💄' },
+    { name: 'Mascotas', icon: '🐾' },
+    { name: 'Deportes', icon: '⚽' },
     { name: 'Otros', icon: '✨' }
 ];
 
