@@ -225,7 +225,7 @@ export default function PromotionForm({ businessId, promotion, onClose, onSave }
                                         image={imageSrc}
                                         crop={crop}
                                         zoom={zoom}
-                                        aspect={4 / 5}
+                                        aspect={1 / 1}
                                         onCropChange={setCrop}
                                         onCropComplete={onCropComplete}
                                         onZoomChange={setZoom}

@@ -156,10 +156,19 @@ export default function Home() {
                                         <p style={{
                                             fontSize: '0.85rem', color: '#d1d5db',
                                             display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-                                            overflow: 'hidden', margin: 0, lineHeight: '1.4'
+                                            overflow: 'hidden', margin: '0 0 8px 0', lineHeight: '1.4'
                                         }}>
                                             {business.description}
                                         </p>
+                                    )}
+                                    {business.website_url && (
+                                        <button
+                                            className="btn-primary"
+                                            style={{ padding: '4px 10px', fontSize: '0.75rem', background: '#374151', color: 'white', border: '1px solid #4b5563', display: 'flex', alignItems: 'center', gap: '4px', alignSelf: 'flex-start' }}
+                                            onClick={(e) => { e.stopPropagation(); window.open(business.website_url!, '_blank'); }}
+                                        >
+                                            <Globe size={14} /> Ver Web
+                                        </button>
                                     )}
                                 </div>
                             </div>
@@ -204,7 +213,7 @@ export default function Home() {
                                 <img
                                     src={selectedBusiness.image_url}
                                     alt={selectedBusiness.name}
-                                    style={{ width: '100%', height: '250px', objectFit: 'cover' }}
+                                    style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover' }}
                                 />
                             )}
 
