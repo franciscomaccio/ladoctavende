@@ -157,11 +157,11 @@ export default function Dashboard() {
                                 </div>
 
                                 {/* Promotions List */}
-                                {business.promotions && business.promotions.length > 0 && (
-                                    <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #f1f5f9' }}>
-                                        <div style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                            <Tag size={12} /> Promociones Activas
-                                        </div>
+                                <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #f1f5f9' }}>
+                                    <div style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <Tag size={12} /> Promociones
+                                    </div>
+                                    {business.promotions && business.promotions.length > 0 ? (
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                             {business.promotions.map(promo => (
                                                 <div key={promo.id} style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -180,8 +180,12 @@ export default function Dashboard() {
                                                 </div>
                                             ))}
                                         </div>
-                                    </div>
-                                )}
+                                    ) : (
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic', padding: '4px 0' }}>
+                                            No hay promociones activas.
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     ))
