@@ -22,7 +22,7 @@ function Navigation() {
     <>
       <header className="navbar">
         <Link to="/" className="logo">
-          <img src="logo.png" alt="La Docta Vende" style={{ height: '40px' }} />
+          <img src="header-logo.png" alt="La Docta Vende" style={{ height: '40px' }} />
         </Link>
         <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
           {isAdmin && (
