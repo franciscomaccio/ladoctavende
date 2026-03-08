@@ -6,7 +6,8 @@ import { Plus, Edit2, Trash2, Tag } from 'lucide-react';
 import BusinessForm from '../components/BusinessForm';
 import PromotionForm from '../components/PromotionForm';
 import BusinessStats from '../components/BusinessStats';
-import { BarChart2 } from 'lucide-react';
+import UpdatePasswordForm from '../components/UpdatePasswordForm';
+import { BarChart2, Key } from 'lucide-react';
 
 interface BusinessWithPromos extends Business {
     promotions: Promotion[];
@@ -23,6 +24,7 @@ export default function Dashboard() {
     const [activeBusinessId, setActiveBusinessId] = useState<string | null>(null);
     const [statsBusiness, setStatsBusiness] = useState<{ id: string, name: string, promoId?: string, promoTitle?: string } | null>(null);
     const [editingPromotion, setEditingPromotion] = useState<Promotion | null>(null);
+    const [isPasswordFormOpen, setIsPasswordFormOpen] = useState(false);
 
     useEffect(() => {
         const hash = window.location.hash;
@@ -89,12 +91,23 @@ export default function Dashboard() {
         <div className="container-wide" style={{ paddingBottom: '100px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '1.5rem 0' }}>
                 <h1 style={{ fontSize: '1.5rem', fontWeight: '800' }}>Panel de Control</h1>
-                <button
-                    style={{ background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                    onClick={() => { setEditingBusiness(null); setIsFormOpen(true); }}
-                >
-                    <Plus size={24} />
-                </button>
+                <div style={{ display: 'flex', gap: '0.8rem' }}>
+                    <button
+                        className="btn-primary"
+                        style={{ padding: '8px 16px', background: 'var(--bg-card)', color: 'var(--text-main)', border: '1px solid var(--border-light)' }}
+                        onClick={() => setIsPasswordFormOpen(true)}
+                        title="Cambiar Contraseña"
+                    >
+                        <Key size={20} /> <span className="hide-mobile">Cambiar Clave</span>
+                    </button>
+                    <button
+                        style={{ background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                        onClick={() => { setEditingBusiness(null); setIsFormOpen(true); }}
+                        title="Agregar Negocio"
+                    >
+                        <Plus size={24} />
+                    </button>
+                </div>
             </div>
 
             {paymentStatus === 'success' && (
@@ -253,6 +266,10 @@ export default function Dashboard() {
                     promotionTitle={statsBusiness.promoTitle}
                     onClose={() => setStatsBusiness(null)}
                 />
+            )}
+
+            {isPasswordFormOpen && (
+                <UpdatePasswordForm onClose={() => setIsPasswordFormOpen(false)} />
             )}
         </div>
     );

@@ -6,6 +6,7 @@ import { Mail, Lock, UserPlus, LogIn, CheckCircle } from 'lucide-react';
 export default function Auth() {
     const navigate = useNavigate();
     const [isSignUp, setIsSignUp] = useState(false);
+    const [isForgotPassword, setIsForgotPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -17,7 +18,13 @@ export default function Auth() {
         setMessage(null);
 
         try {
-            if (isSignUp) {
+            if (isForgotPassword) {
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: `${window.location.origin}/#/dashboard`,
+                });
+                if (error) throw error;
+                setMessage({ type: 'success', text: 'Te enviamos un enlace de recuperación. Revisa tu correo.' });
+            } else if (isSignUp) {
                 const { error } = await supabase.auth.signUp({
                     email,
                     password,
@@ -43,7 +50,7 @@ export default function Auth() {
         <div className="container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
             <div className="card" style={{ padding: '2rem', maxWidth: '400px', width: '100%' }}>
                 <h1 style={{ marginBottom: '1.5rem', textAlign: 'center', fontSize: '1.5rem', fontWeight: '800' }}>
-                    {isSignUp ? 'Crea tu cuenta' : 'Iniciar Sesión'}
+                    {isForgotPassword ? 'Recuperar Contraseña' : isSignUp ? 'Crea tu cuenta' : 'Iniciar Sesión'}
                 </h1>
 
                 <form onSubmit={handleAuth} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -63,21 +70,35 @@ export default function Auth() {
                         </div>
                     </div>
 
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '500' }}>Contraseña</label>
-                        <div style={{ position: 'relative' }}>
-                            <Lock size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                            <input
-                                type="password"
-                                className="input-field"
-                                style={{ paddingLeft: '40px' }}
-                                placeholder="********"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                            />
+                    {!isForgotPassword && (
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '500' }}>Contraseña</label>
+                            <div style={{ position: 'relative' }}>
+                                <Lock size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                                <input
+                                    type="password"
+                                    className="input-field"
+                                    style={{ paddingLeft: '40px' }}
+                                    placeholder="********"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                />
+                            </div>
                         </div>
-                    </div>
+                    )}
+
+                    {!isSignUp && !isForgotPassword && (
+                        <div style={{ textAlign: 'right' }}>
+                            <button
+                                type="button"
+                                onClick={() => { setIsForgotPassword(true); setMessage(null); }}
+                                style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.85rem' }}
+                            >
+                                ¿Has olvidado tu contraseña?
+                            </button>
+                        </div>
+                    )}
 
                     {message && (
                         <div style={{
@@ -96,7 +117,9 @@ export default function Auth() {
                     )}
 
                     <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: '0.5rem' }} disabled={loading}>
-                        {loading ? 'Cargando...' : isSignUp ? (
+                        {loading ? 'Cargando...' : isForgotPassword ? (
+                            <><Mail size={20} /> Enviar Enlace</>
+                        ) : isSignUp ? (
                             <><UserPlus size={20} /> Registrarme</>
                         ) : (
                             <><LogIn size={20} /> Entrar</>
@@ -105,20 +128,31 @@ export default function Auth() {
                 </form>
 
                 <p style={{ marginTop: '1.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                    {isSignUp ? '¿Ya tienes cuenta?' : '¿No tienes cuenta?'}
-                    <button
-                        onClick={() => setIsSignUp(!isSignUp)}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            color: 'var(--primary)',
-                            marginLeft: '0.4rem',
-                            cursor: 'pointer',
-                            fontWeight: '600'
-                        }}
-                    >
-                        {isSignUp ? 'Inicia Sesión' : 'Regístrate'}
-                    </button>
+                    {isForgotPassword ? (
+                        <button
+                            onClick={() => { setIsForgotPassword(false); setMessage(null); }}
+                            style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontWeight: '600' }}
+                        >
+                            Volver a Iniciar Sesión
+                        </button>
+                    ) : (
+                        <>
+                            {isSignUp ? '¿Ya tienes cuenta?' : '¿No tienes cuenta?'}
+                            <button
+                                onClick={() => { setIsSignUp(!isSignUp); setMessage(null); }}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: 'var(--primary)',
+                                    marginLeft: '0.4rem',
+                                    cursor: 'pointer',
+                                    fontWeight: '600'
+                                }}
+                            >
+                                {isSignUp ? 'Inicia Sesión' : 'Regístrate'}
+                            </button>
+                        </>
+                    )}
                 </p>
             </div>
         </div>
