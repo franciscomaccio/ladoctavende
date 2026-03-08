@@ -12,8 +12,10 @@ function Navigation() {
   const location = useLocation();
 
   const handleSignOut = async () => {
-    await signOut();
-    // Optional: reload or navigate to home
+    if (window.confirm('¿Estás seguro que deseas cerrar sesión?')) {
+      await signOut();
+      // Optional: reload or navigate to home
+    }
   };
 
   return (
