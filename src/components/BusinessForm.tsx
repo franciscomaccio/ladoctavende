@@ -4,7 +4,7 @@ import type { Business } from '../types/database';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { Save, X, Upload, Scissors, Globe, CreditCard } from 'lucide-react';
+import { Save, X, Upload, Scissors, Globe, CreditCard, CheckCircle } from 'lucide-react';
 import Cropper from 'react-easy-crop';
 import { getCroppedImg } from '../utils/imageUtils';
 
@@ -164,52 +164,85 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
     const isExpired = business?.subscription_expires_at ? new Date(business.subscription_expires_at) < new Date() : false;
     const needsPayment = !business || !business.active || isExpired;
 
-    const handlePayment = async () => {
-        if (!formData.name) return;
-        setLoading(true);
-        try {
-            let finalImageUrl = formData.image_url;
-            if (imageFile) {
-                const fileExt = imageFile.name.split('.').pop();
-                const fileName = `${userId}/${Math.random()}.${fileExt}`;
-                await supabase.storage.from('flyers').upload(fileName, imageFile);
-                const { data: { publicUrl } } = supabase.storage.from('flyers').getPublicUrl(fileName);
-                finalImageUrl = publicUrl;
-            }
+    const saveOrCreateBusiness = async () => {
+        let finalImageUrl = formData.image_url;
+        if (imageFile) {
+            const fileExt = imageFile.name.split('.').pop();
+            const fileName = `${userId}/${Math.random()}.${fileExt}`;
+            await supabase.storage.from('flyers').upload(fileName, imageFile);
+            const { data: { publicUrl } } = supabase.storage.from('flyers').getPublicUrl(fileName);
+            finalImageUrl = publicUrl;
+        }
 
-            let businessId = business?.id;
+        let businessId = business?.id;
 
-            if (!businessId) {
-                const businessData = {
+        if (!businessId) {
+            const businessData = {
+                ...formData,
+                image_url: finalImageUrl,
+                location_lat: position[0],
+                location_lng: position[1],
+                owner_id: userId,
+                active: false,
+            };
+
+            const { data: newBusiness, error: createError } = await supabase
+                .from('businesses')
+                .insert([businessData])
+                .select()
+                .single();
+
+            if (createError) throw createError;
+            businessId = newBusiness.id;
+        } else {
+            const { error: updateError } = await supabase
+                .from('businesses')
+                .update({
                     ...formData,
                     image_url: finalImageUrl,
                     location_lat: position[0],
                     location_lng: position[1],
-                    owner_id: userId,
-                    active: false,
-                };
+                })
+                .eq('id', businessId);
 
-                const { data: newBusiness, error: createError } = await supabase
-                    .from('businesses')
-                    .insert([businessData])
-                    .select()
-                    .single();
+            if (updateError) throw updateError;
+        }
 
-                if (createError) throw createError;
-                businessId = newBusiness.id;
-            } else {
-                const { error: updateError } = await supabase
-                    .from('businesses')
-                    .update({
-                        ...formData,
-                        image_url: finalImageUrl,
-                        location_lat: position[0],
-                        location_lng: position[1],
-                    })
-                    .eq('id', businessId);
+        return { businessId, finalImageUrl };
+    };
 
-                if (updateError) throw updateError;
-            }
+    const handleFreeActivation = async () => {
+        if (!formData.name) return;
+        setLoading(true);
+        try {
+            const { businessId } = await saveOrCreateBusiness();
+
+            const expiryDate = new Date();
+            expiryDate.setDate(expiryDate.getDate() + 30);
+
+            const { error } = await supabase
+                .from('businesses')
+                .update({
+                    active: true,
+                    subscription_expires_at: expiryDate.toISOString(),
+                })
+                .eq('id', businessId);
+
+            if (error) throw error;
+
+            onSave();
+        } catch (error: any) {
+            alert('Error al activar: ' + error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handlePayment = async () => {
+        if (!formData.name) return;
+        setLoading(true);
+        try {
+            const { businessId } = await saveOrCreateBusiness();
 
             const { data, error: funcError } = await supabase.functions.invoke('mercadopago-payment', {
                 body: {
@@ -350,7 +383,27 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                         </div>
                     </div>
 
-                    {needsPayment && (
+                    {needsPayment && price === 0 && (
+                        <div style={{ padding: '1.25rem', background: '#f0fdf4', borderRadius: '16px', border: '1px solid #86efac', textAlign: 'center', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+                            <p style={{ fontSize: '1rem', fontWeight: '700', color: '#166534', marginBottom: '0.5rem' }}>🎉 Registrá tu negocio gratis</p>
+                            {promoDescription && (
+                                <p style={{ fontSize: '0.85rem', color: '#15803d', fontWeight: '600', marginBottom: '1rem', fontStyle: 'italic' }}>
+                                    {promoDescription}
+                                </p>
+                            )}
+                            <button
+                                type="button"
+                                onClick={handleFreeActivation}
+                                className="btn-primary"
+                                style={{ width: '100%', background: '#16a34a', padding: '14px', borderRadius: '12px' }}
+                                disabled={loading || !formData.name}
+                            >
+                                <CheckCircle size={20} /> {loading ? 'Activando...' : 'Activar Gratis'}
+                            </button>
+                        </div>
+                    )}
+
+                    {needsPayment && price > 0 && (
                         <div style={{ padding: '1.25rem', background: '#fefce8', borderRadius: '16px', border: '1px solid #fde047', textAlign: 'center', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
                             <p style={{ fontSize: '0.9rem', fontWeight: '700', color: '#854d0e', marginBottom: '0.5rem' }}>Activación (30 días)</p>
 
