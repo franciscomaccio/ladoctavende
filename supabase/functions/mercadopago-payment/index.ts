@@ -48,23 +48,62 @@ Deno.serve(async (req) => {
 
             if (payment.status === 'approved') {
                 const businessId = payment.external_reference;
+                const months = payment.additional_info?.items?.[0]?.category_id ? parseInt(payment.additional_info.items[0].category_id) : 1;
+
                 if (businessId) {
                     const expiryDate = new Date();
-                    expiryDate.setDate(expiryDate.getDate() + 30);
+                    expiryDate.setMonth(expiryDate.getMonth() + months);
+
                     await supabaseAdmin.from('businesses').update({
                         active: true,
                         subscription_expires_at: expiryDate.toISOString()
                     }).eq('id', businessId);
-                    console.log(`Business ${businessId} activated.`);
+
+                    // Log the payment
+                    await supabaseAdmin.from('payments').insert([{
+                        business_id: businessId,
+                        amount: payment.transaction_amount,
+                        months: months,
+                        payment_id: paymentId,
+                        status: 'approved'
+                    }]);
+
+                    // Send confirmation email
+                    const { data: business } = await supabaseAdmin
+                        .from('businesses')
+                        .select('name, profiles!businesses_owner_id_fkey(email)')
+                        .eq('id', businessId)
+                        .single();
+
+                    if (business && (business as any).profiles?.email) {
+                        try {
+                            await fetch(`${SUPABASE_URL}/functions/v1/send-confirmation-email`, {
+                                method: 'POST',
+                                headers: {
+                                    'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    email: (business as any).profiles.email,
+                                    businessName: business.name,
+                                    expiryDate: expiryDate.toISOString()
+                                })
+                            });
+                        } catch (emailErr) {
+                            console.error('Error triggering confirmation email:', emailErr);
+                        }
+                    }
+
+                    console.log(`Business ${businessId} activated and notified.`);
                 }
             }
             return new Response(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders });
         }
 
         // 2. Preference creation (Frontend calling us)
-        const { businessId, businessName, amount, email } = body;
-        if (!businessId || !amount) {
-            return new Response(JSON.stringify({ error: 'Missing businessId or amount' }), { status: 400 });
+        const { businessId, businessName, amount, email, months } = body;
+        if (!businessId || !amount || !months) {
+            return new Response(JSON.stringify({ error: 'Missing businessId, amount or months' }), { status: 400 });
         }
 
         const notificationUrl = `${SUPABASE_URL}/functions/v1/mercadopago-payment`;
@@ -82,6 +121,7 @@ Deno.serve(async (req) => {
                     quantity: 1,
                     unit_price: Number(amount),
                     currency_id: 'ARS',
+                    category_id: months.toString(), // We use category_id to store months temporarily for the webhook
                 }],
                 payer: { email },
                 external_reference: businessId,

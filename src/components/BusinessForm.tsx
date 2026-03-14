@@ -221,8 +221,42 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
         return { businessId, finalImageUrl };
     };
 
+    const validateForm = () => {
+        if (!formData.name.trim()) {
+            alert('Por favor, ingresá el nombre del negocio.');
+            return false;
+        }
+        if (!formData.category) {
+            alert('Por favor, seleccioná una categoría.');
+            return false;
+        }
+        if (!formData.phone.trim()) {
+            alert('Por favor, ingresá un número de WhatsApp.');
+            return false;
+        }
+        if (!formData.description.trim()) {
+            alert('Por favor, ingresá una descripción.');
+            return false;
+        }
+        if (!location) {
+            alert('Por favor, seleccioná la ubicación en el mapa.');
+            return false;
+        }
+        return true;
+    };
+
+    const sendConfirmation = async (email: string, businessName: string, expiryDate: string) => {
+        try {
+            await supabase.functions.invoke('send-confirmation-email', {
+                body: { email, businessName, expiryDate }
+            });
+        } catch (err) {
+            console.error('Error sending confirmation email:', err);
+        }
+    };
+
     const handleFreeActivation = async () => {
-        if (!formData.name) return;
+        if (!validateForm()) return;
         setLoading(true);
         try {
             const { businessId } = await saveOrCreateBusiness();
@@ -252,6 +286,12 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                     status: 'approved'
                 }]);
 
+            // Send confirmation email
+            const user = (await supabase.auth.getUser()).data.user;
+            if (user?.email) {
+                await sendConfirmation(user.email, formData.name, expiryDate.toISOString());
+            }
+
             onSave();
         } catch (error: any) {
             alert('Error al activar: ' + error.message);
@@ -261,7 +301,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
     };
 
     const handlePayment = async () => {
-        if (!formData.name) return;
+        if (!validateForm()) return;
         setLoading(true);
         try {
             const { businessId } = await saveOrCreateBusiness();
@@ -322,7 +362,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                                 {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                             </select>
                         </div>
-                        <div>
+                        <div style={{ flex: 1 }}>
                             <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>WhatsApp</label>
                             <input
                                 className="input-field"
@@ -345,7 +385,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                     </div>
 
                     <div>
-                        <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>Página Web / Red Social</label>
+                        <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>Página Web / Red Social (Opcional)</label>
                         <div style={{ position: 'relative' }}>
                             <Globe size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                             <input
@@ -381,7 +421,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                             )}
 
                             {(imageFile || formData.image_url) && (
-                                <div style={{ width: '50px', height: '62px', borderRadius: '8px', overflow: 'hidden', border: '2px solid white', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+                                <div style={{ width: '50px', height: '50px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border-light)' }}>
                                     <img
                                         src={imageFile ? URL.createObjectURL(imageFile) : formData.image_url}
                                         alt="Preview"
@@ -502,26 +542,28 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                     )}
                 </form>
 
-                {isCropping && imageSrc && (
-                    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'white', zIndex: 3000, display: 'flex', flexDirection: 'column' }}>
-                        <div style={{ position: 'relative', flex: 1, width: '100%' }}>
-                            <Cropper
-                                image={imageSrc}
-                                crop={crop}
-                                zoom={zoom}
-                                aspect={1 / 1}
-                                onCropChange={setCrop}
-                                onCropComplete={onCropComplete}
-                                onZoomChange={setZoom}
-                            />
+                {
+                    isCropping && imageSrc && (
+                        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'white', zIndex: 3000, display: 'flex', flexDirection: 'column' }}>
+                            <div style={{ position: 'relative', flex: 1, width: '100%' }}>
+                                <Cropper
+                                    image={imageSrc}
+                                    crop={crop}
+                                    zoom={zoom}
+                                    aspect={1 / 1}
+                                    onCropChange={setCrop}
+                                    onCropComplete={onCropComplete}
+                                    onZoomChange={setZoom}
+                                />
+                            </div>
+                            <div style={{ padding: '2rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
+                                <button type="button" className="btn-primary" style={{ background: '#f3f4f6', color: 'black' }} onClick={() => setIsCropping(false)}>Cancelar</button>
+                                <button type="button" className="btn-primary" onClick={applyCrop}>Confirmar</button>
+                            </div>
                         </div>
-                        <div style={{ padding: '2rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
-                            <button type="button" className="btn-primary" style={{ background: '#f3f4f6', color: 'black' }} onClick={() => setIsCropping(false)}>Cancelar</button>
-                            <button type="button" className="btn-primary" onClick={applyCrop}>Confirmar</button>
-                        </div>
-                    </div>
-                )}
-            </div>
-        </div>
+                    )
+                }
+            </div >
+        </div >
     );
 }
