@@ -241,6 +241,17 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
 
             if (error) throw error;
 
+            // Log the "free" payment
+            await supabase
+                .from('payments')
+                .insert([{
+                    business_id: businessId,
+                    amount: 0,
+                    months: months,
+                    payment_id: 'free',
+                    status: 'approved'
+                }]);
+
             onSave();
         } catch (error: any) {
             alert('Error al activar: ' + error.message);

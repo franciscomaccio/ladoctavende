@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
-import { CheckCircle, XCircle, Settings, LayoutDashboard, Calendar } from 'lucide-react';
+import { CheckCircle, XCircle, Settings, LayoutDashboard, Calendar, Users, TrendingUp, BarChart3, PieChart } from 'lucide-react';
+import { BusinessStatsModal } from '../components/BusinessStatsModal';
 
 interface Business {
     id: string;
@@ -22,11 +23,20 @@ export default function AdminDashboard() {
         '12m': { original: 0, promo: 0 },
     });
     const [promoDescription, setPromoDescription] = useState<string>('');
+    const [selectedBusinessForStats, setSelectedBusinessForStats] = useState<{ id: string, name: string } | null>(null);
+    const [generalStats, setGeneralStats] = useState({
+        totalBusinesses: 0,
+        activeBusinesses: 0,
+        monthlyRevenue: 0,
+        totalRevenue: 0,
+        categoryDistribution: {} as Record<string, number>
+    });
 
     useEffect(() => {
         if (isAdmin) {
             fetchBusinesses();
             fetchPrice();
+            fetchPayments();
         }
     }, [isAdmin]);
 
@@ -56,6 +66,40 @@ export default function AdminDashboard() {
 
             const descVal = data.find(c => c.key === 'promo_description')?.value;
             if (descVal !== undefined) setPromoDescription(descVal);
+        }
+    };
+
+    const fetchPayments = async () => {
+        const { data: payments } = await supabase
+            .from('payments')
+            .select('*');
+
+        const { data: bData } = await supabase
+            .from('businesses')
+            .select('active, category');
+
+        if (payments && bData) {
+            const now = new Date();
+            const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+            const mRev = payments
+                .filter(p => new Date(p.created_at) >= firstDayOfMonth)
+                .reduce((acc, p) => acc + Number(p.amount), 0);
+
+            const tRev = payments.reduce((acc, p) => acc + Number(p.amount), 0);
+
+            const cats: Record<string, number> = {};
+            bData.forEach(b => {
+                if (b.category) cats[b.category] = (cats[b.category] || 0) + 1;
+            });
+
+            setGeneralStats({
+                totalBusinesses: bData.length,
+                activeBusinesses: bData.filter(b => b.active).length,
+                monthlyRevenue: mRev,
+                totalRevenue: tRev,
+                categoryDistribution: cats
+            });
         }
     };
 
@@ -102,6 +146,44 @@ export default function AdminDashboard() {
                     <LayoutDashboard size={32} />
                     <h1 style={{ color: '#7f1d1d', margin: 0 }}>Panel Administrador</h1>
                 </div>
+
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                    gap: '1rem',
+                    width: '100%',
+                    marginBottom: '1rem'
+                }}>
+                    <div className="glass-card" style={{ padding: '1.25rem', borderLeft: '4px solid var(--primary)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                            <span style={{ fontSize: '0.85rem', fontWeight: '600', opacity: 0.7 }}>Ingresos (Mes)</span>
+                            <TrendingUp size={18} color="var(--primary)" />
+                        </div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: '800' }}>${generalStats.monthlyRevenue.toLocaleString()}</div>
+                    </div>
+                    <div className="glass-card" style={{ padding: '1.25rem', borderLeft: '4px solid #3b82f6' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                            <span style={{ fontSize: '0.85rem', fontWeight: '600', opacity: 0.7 }}>Negocios Totales</span>
+                            <Users size={18} color="#3b82f6" />
+                        </div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: '800' }}>{generalStats.totalBusinesses}</div>
+                    </div>
+                    <div className="glass-card" style={{ padding: '1.25rem', borderLeft: '4px solid #10b981' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                            <span style={{ fontSize: '0.85rem', fontWeight: '600', opacity: 0.7 }}>Negocios Activos</span>
+                            <CheckCircle size={18} color="#10b981" />
+                        </div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: '800' }}>{generalStats.activeBusinesses}</div>
+                    </div>
+                    <div className="glass-card" style={{ padding: '1.25rem', borderLeft: '4px solid #cb7f00' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                            <span style={{ fontSize: '0.85rem', fontWeight: '600', opacity: 0.7 }}>Recaudación Total</span>
+                            <PieChart size={18} color="#cb7f00" />
+                        </div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: '800' }}>${generalStats.totalRevenue.toLocaleString()}</div>
+                    </div>
+                </div>
+
                 <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', maxWidth: '600px' }}>
                     <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem' }}>Suscripciones</h3>
 
@@ -203,18 +285,33 @@ export default function AdminDashboard() {
                                                 </span>
                                             </td>
                                             <td style={{ padding: '1rem', textAlign: 'center' }}>
-                                                <button
-                                                    onClick={() => toggleActive(business.id, business.active)}
-                                                    className="btn-primary"
-                                                    style={{
-                                                        padding: '6px 12px',
-                                                        fontSize: '0.8rem',
-                                                        background: business.active ? 'var(--error)' : 'var(--primary)'
-                                                    }}
-                                                >
-                                                    {business.active ? <XCircle size={14} /> : <CheckCircle size={14} />}
-                                                    {business.active ? ' Desactivar' : ' Activar'}
-                                                </button>
+                                                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                                                    <button
+                                                        onClick={() => setSelectedBusinessForStats({ id: business.id, name: business.name })}
+                                                        className="btn-primary"
+                                                        style={{
+                                                            padding: '6px 12px',
+                                                            fontSize: '0.8rem',
+                                                            background: 'rgba(255,255,255,0.05)',
+                                                            color: 'var(--text-main)',
+                                                            border: '1px solid var(--border-light)'
+                                                        }}
+                                                    >
+                                                        <BarChart3 size={14} /> Stats
+                                                    </button>
+                                                    <button
+                                                        onClick={() => toggleActive(business.id, business.active)}
+                                                        className="btn-primary"
+                                                        style={{
+                                                            padding: '6px 12px',
+                                                            fontSize: '0.8rem',
+                                                            background: business.active ? 'var(--error)' : 'var(--primary)'
+                                                        }}
+                                                    >
+                                                        {business.active ? <XCircle size={14} /> : <CheckCircle size={14} />}
+                                                        {business.active ? ' Desactivar' : ' Activar'}
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     );
@@ -223,6 +320,14 @@ export default function AdminDashboard() {
                         </table>
                     </div>
                 </div>
+            )}
+
+            {selectedBusinessForStats && (
+                <BusinessStatsModal
+                    businessId={selectedBusinessForStats.id}
+                    businessName={selectedBusinessForStats.name}
+                    onClose={() => setSelectedBusinessForStats(null)}
+                />
             )}
         </div>
     );
