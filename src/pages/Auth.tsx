@@ -28,6 +28,9 @@ export default function Auth() {
                 const { error } = await supabase.auth.signUp({
                     email,
                     password,
+                    options: {
+                        emailRedirectTo: `${window.location.origin}/#/dashboard`,
+                    },
                 });
                 if (error) throw error;
                 setMessage({ type: 'success', text: '¡Registro exitoso! Revisa tu correo para confirmar tu cuenta.' });
