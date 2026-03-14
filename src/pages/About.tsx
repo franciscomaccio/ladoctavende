@@ -1,5 +1,5 @@
 import React from 'react';
-import { Target, TrendingUp, MessageCircle, Mail, ShieldCheck, Search, Award } from 'lucide-react';
+import { Target, TrendingUp, MessageCircle, Mail, Search, Award } from 'lucide-react';
 
 const About: React.FC = () => {
     return (
@@ -13,7 +13,7 @@ const About: React.FC = () => {
                         Potenciamos el Comercio Local
                     </h1>
                     <p style={{ fontSize: '1.2rem', opacity: 0.8, lineHeight: '1.6' }}>
-                        La Docta Vende es la plataforma líder en Córdoba para conectar negocios locales con clientes de toda la ciudad.
+                        La Docta Vende es la plataforma en Córdoba para conectar negocios locales con clientes cercanos.
                         Simplificamos la búsqueda de servicios y productos, dándole a cada emprendimiento el lugar que merece.
                     </p>
                 </div>
@@ -53,22 +53,10 @@ const About: React.FC = () => {
                         <Target size={18} /> Nuestra Misión
                     </div>
                     <p style={{ fontSize: '1.3rem', fontWeight: '500', lineHeight: '1.6', maxWidth: '600px', margin: '0 auto' }}>
-                        "Buscamos digitalizar la Docta, brindando herramientas de primer nivel a cada comercio de barrio,
-                        fomentando el crecimiento de nuestra comunidad."
+                        "Buscamos ayudar a los vecinos para que descubran y se conecten con los negocios de su barrio de forma simple."
                     </p>
                 </div>
 
-                {/* Trust Section */}
-                <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-light)', borderRadius: '24px', padding: '2rem', marginBottom: '3rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-                        <ShieldCheck size={32} style={{ color: '#10b981' }} />
-                        <h3 style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>Seguridad y Confianza</h3>
-                    </div>
-                    <p style={{ opacity: 0.8, lineHeight: '1.6' }}>
-                        Validamos la información de cada negocio para asegurar una experiencia segura tanto para compradores como para vendedores.
-                        Nuestro equipo de soporte está siempre disponible para asistirte en el proceso de publicación.
-                    </p>
-                </div>
 
                 {/* Contact Footer */}
                 <div style={{ textAlign: 'center', borderTop: '1px solid var(--border-light)', paddingTop: '3rem', marginTop: '1rem' }}>
