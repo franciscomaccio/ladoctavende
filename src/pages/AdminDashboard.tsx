@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
-import { CheckCircle, XCircle, Settings, LayoutDashboard, Calendar, DollarSign } from 'lucide-react';
+import { CheckCircle, XCircle, Settings, LayoutDashboard, Calendar } from 'lucide-react';
 
 interface Business {
     id: string;
@@ -15,8 +15,12 @@ export default function AdminDashboard() {
     const { isAdmin } = useAuth();
     const [businesses, setBusinesses] = useState<Business[]>([]);
     const [loading, setLoading] = useState(true);
-    const [price, setPrice] = useState<number>(0);
-    const [originalPrice, setOriginalPrice] = useState<number>(0);
+    const [prices, setPrices] = useState<Record<string, { original: number, promo: number }>>({
+        '1m': { original: 0, promo: 0 },
+        '3m': { original: 0, promo: 0 },
+        '6m': { original: 0, promo: 0 },
+        '12m': { original: 0, promo: 0 },
+    });
     const [promoDescription, setPromoDescription] = useState<string>('');
 
     useEffect(() => {
@@ -41,13 +45,17 @@ export default function AdminDashboard() {
             .select('key, value');
 
         if (data) {
-            const priceVal = data.find(c => c.key === 'subscription_price')?.value;
-            const originalVal = data.find(c => c.key === 'original_price')?.value;
-            const descVal = data.find(c => c.key === 'promo_description')?.value;
+            const newPrices = { ...prices };
+            ['1m', '3m', '6m', '12m'].forEach(tier => {
+                const pVal = data.find(c => c.key === `subscription_price_${tier}`)?.value;
+                const oVal = data.find(c => c.key === `original_price_${tier}`)?.value;
+                if (pVal !== undefined) newPrices[tier].promo = Number(pVal);
+                if (oVal !== undefined) newPrices[tier].original = Number(oVal);
+            });
+            setPrices(newPrices);
 
-            if (priceVal) setPrice(Number(priceVal));
-            if (originalVal) setOriginalPrice(Number(originalVal));
-            if (descVal) setPromoDescription(descVal);
+            const descVal = data.find(c => c.key === 'promo_description')?.value;
+            if (descVal !== undefined) setPromoDescription(descVal);
         }
     };
 
@@ -62,10 +70,13 @@ export default function AdminDashboard() {
     const updatePrice = async () => {
         try {
             const updates = [
-                { key: 'subscription_price', value: price.toString() },
-                { key: 'original_price', value: originalPrice.toString() },
                 { key: 'promo_description', value: promoDescription }
             ];
+
+            ['1m', '3m', '6m', '12m'].forEach(tier => {
+                updates.push({ key: `subscription_price_${tier}`, value: prices[tier].promo.toString() });
+                updates.push({ key: `original_price_${tier}`, value: prices[tier].original.toString() });
+            });
 
             for (const update of updates) {
                 const { error } = await supabase
@@ -91,35 +102,46 @@ export default function AdminDashboard() {
                     <LayoutDashboard size={32} />
                     <h1 style={{ color: '#7f1d1d', margin: 0 }}>Panel Administrador</h1>
                 </div>
-                <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%', maxWidth: '400px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', justifyContent: 'space-between' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <DollarSign size={20} style={{ color: 'var(--accent)' }} />
-                            <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>Precio Real:</span>
-                        </div>
-                        <input
-                            type="number"
-                            value={originalPrice}
-                            onChange={(e) => setOriginalPrice(Number(e.target.value))}
-                            className="input-field"
-                            style={{ width: '120px', margin: 0 }}
-                        />
+                <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', maxWidth: '600px' }}>
+                    <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem' }}>Suscripciones</h3>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
+                        {[
+                            { id: '1m', label: '1 Mes' },
+                            { id: '3m', label: '3 Meses' },
+                            { id: '6m', label: '6 Meses' },
+                            { id: '12m', label: '12 Meses' }
+                        ].map((tier) => (
+                            <div key={tier.id} style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '12px' }}>
+                                <h4 style={{ margin: '0 0 1rem', color: 'var(--accent)' }}>{tier.label}</h4>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <span style={{ fontSize: '0.85rem' }}>Precio Real ($):</span>
+                                        <input
+                                            type="number"
+                                            value={prices[tier.id].original}
+                                            onChange={(e) => setPrices(prev => ({ ...prev, [tier.id]: { ...prev[tier.id], original: Number(e.target.value) } }))}
+                                            className="input-field"
+                                            style={{ width: '100px', margin: 0, padding: '4px 8px' }}
+                                        />
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <span style={{ fontSize: '0.85rem' }}>Promo ($):</span>
+                                        <input
+                                            type="number"
+                                            value={prices[tier.id].promo}
+                                            onChange={(e) => setPrices(prev => ({ ...prev, [tier.id]: { ...prev[tier.id], promo: Number(e.target.value) } }))}
+                                            className="input-field"
+                                            style={{ width: '100px', margin: 0, padding: '4px 8px' }}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', justifyContent: 'space-between' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <DollarSign size={20} style={{ color: 'var(--primary)' }} />
-                            <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>Precio Promo:</span>
-                        </div>
-                        <input
-                            type="number"
-                            value={price}
-                            onChange={(e) => setPrice(Number(e.target.value))}
-                            className="input-field"
-                            style={{ width: '120px', margin: 0 }}
-                        />
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                        <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>Descripción Promo:</span>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem' }}>
+                        <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>Descripción Promo General:</span>
                         <input
                             type="text"
                             value={promoDescription}
@@ -129,7 +151,8 @@ export default function AdminDashboard() {
                             style={{ margin: 0 }}
                         />
                     </div>
-                    <button onClick={updatePrice} className="btn-primary" style={{ width: '100%', marginTop: '0.5rem' }}>
+
+                    <button onClick={updatePrice} className="btn-primary" style={{ width: '100%' }}>
                         <Settings size={18} /> Actualizar Precios
                     </button>
                 </div>

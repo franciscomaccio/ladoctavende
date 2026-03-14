@@ -70,8 +70,13 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
     const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
     const [isCropping, setIsCropping] = useState(false);
 
-    const [price, setPrice] = useState<number>(0);
-    const [originalPrice, setOriginalPrice] = useState<number>(0);
+    const [tierPrices, setTierPrices] = useState<Record<string, { original: number, promo: number }>>({
+        '1m': { original: 0, promo: 0 },
+        '3m': { original: 0, promo: 0 },
+        '6m': { original: 0, promo: 0 },
+        '12m': { original: 0, promo: 0 },
+    });
+    const [selectedTier, setSelectedTier] = useState<string>('1m');
     const [promoDescription, setPromoDescription] = useState<string>('');
 
     const onCropComplete = (_croppedArea: any, croppedAreaPixels: any) => {
@@ -107,11 +112,16 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
         const fetchPrices = async () => {
             const { data } = await supabase.from('config').select('key, value');
             if (data) {
-                const p = data.find(c => c.key === 'subscription_price')?.value;
-                const o = data.find(c => c.key === 'original_price')?.value;
+                const newPrices = { ...tierPrices };
+                ['1m', '3m', '6m', '12m'].forEach(tier => {
+                    const p = data.find(c => c.key === `subscription_price_${tier}`)?.value;
+                    const o = data.find(c => c.key === `original_price_${tier}`)?.value;
+                    if (p !== undefined) newPrices[tier].promo = Number(p);
+                    if (o !== undefined) newPrices[tier].original = Number(o);
+                });
+                setTierPrices(newPrices);
+
                 const d = data.find(c => c.key === 'promo_description')?.value;
-                if (p) setPrice(Number(p));
-                if (o) setOriginalPrice(Number(o));
                 if (d) setPromoDescription(d);
             }
         };
@@ -217,8 +227,9 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
         try {
             const { businessId } = await saveOrCreateBusiness();
 
+            const months = parseInt(selectedTier.replace('m', ''));
             const expiryDate = new Date();
-            expiryDate.setDate(expiryDate.getDate() + 30);
+            expiryDate.setMonth(expiryDate.getMonth() + months);
 
             const { error } = await supabase
                 .from('businesses')
@@ -248,7 +259,8 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                 body: {
                     businessId: businessId,
                     businessName: formData.name,
-                    amount: price,
+                    amount: tierPrices[selectedTier].promo,
+                    months: parseInt(selectedTier.replace('m', '')),
                     email: (await supabase.auth.getUser()).data.user?.email,
                 }
             });
@@ -383,51 +395,64 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                         </div>
                     </div>
 
-                    {needsPayment && price === 0 && (
-                        <div style={{ padding: '1.25rem', background: '#f0fdf4', borderRadius: '16px', border: '1px solid #86efac', textAlign: 'center', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-                            <p style={{ fontSize: '1rem', fontWeight: '700', color: '#166534', marginBottom: '0.5rem' }}>🎉 Registrá tu negocio gratis</p>
-                            {promoDescription && (
-                                <p style={{ fontSize: '0.85rem', color: '#15803d', fontWeight: '600', marginBottom: '1rem', fontStyle: 'italic' }}>
-                                    {promoDescription}
-                                </p>
-                            )}
-                            <button
-                                type="button"
-                                onClick={handleFreeActivation}
-                                className="btn-primary"
-                                style={{ width: '100%', background: '#16a34a', padding: '14px', borderRadius: '12px' }}
-                                disabled={loading || !formData.name}
-                            >
-                                <CheckCircle size={20} /> {loading ? 'Activando...' : 'Activar Gratis'}
-                            </button>
-                        </div>
-                    )}
+                    {needsPayment && (
+                        <div style={{ padding: '1.25rem', background: 'rgba(255,255,255,0.05)', borderRadius: '16px', border: '1px solid var(--border-light)', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+                            <p style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--text-main)', marginBottom: '1rem', textAlign: 'center' }}>Seleccioná tu plan</p>
 
-                    {needsPayment && price > 0 && (
-                        <div style={{ padding: '1.25rem', background: '#fefce8', borderRadius: '16px', border: '1px solid #fde047', textAlign: 'center', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-                            <p style={{ fontSize: '0.9rem', fontWeight: '700', color: '#854d0e', marginBottom: '0.5rem' }}>Activación (30 días)</p>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                                {[
+                                    { id: '1m', label: '1 Mes' },
+                                    { id: '3m', label: '3 Meses' },
+                                    { id: '6m', label: '6 Meses' },
+                                    { id: '12m', label: '12 Meses' }
+                                ].map((tier) => (
+                                    <button
+                                        key={tier.id}
+                                        type="button"
+                                        onClick={() => setSelectedTier(tier.id)}
+                                        style={{
+                                            padding: '12px 8px',
+                                            borderRadius: '12px',
+                                            border: '2px solid',
+                                            borderColor: selectedTier === tier.id ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
+                                            background: selectedTier === tier.id ? 'rgba(127, 29, 29, 0.1)' : 'transparent',
+                                            color: selectedTier === tier.id ? 'var(--primary)' : 'var(--text-muted)',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            gap: '4px'
+                                        }}
+                                    >
+                                        <span style={{ fontWeight: '700', fontSize: '1rem' }}>{tier.label}</span>
+                                        <span style={{ fontSize: '0.8rem', opacity: 0.8 }}>
+                                            ${tierPrices[tier.id].promo.toLocaleString()}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
 
-                            <div style={{ marginBottom: '1.25rem' }}>
-                                {originalPrice > 0 && originalPrice !== price && (
+                            <div style={{ textAlign: 'center', marginBottom: '1.5rem', padding: '1rem', background: 'rgba(0,0,0,0.03)', borderRadius: '12px' }}>
+                                <div style={{ marginBottom: '0.5rem' }}>
                                     <span style={{
-                                        fontSize: '1.1rem',
-                                        color: '#a16207',
+                                        fontSize: '1.2rem',
+                                        color: 'var(--text-muted)',
                                         textDecoration: 'line-through',
                                         marginRight: '0.75rem',
-                                        opacity: 0.7
+                                        opacity: 0.6
                                     }}>
-                                        ${originalPrice.toLocaleString()}
+                                        ${tierPrices[selectedTier].original.toLocaleString()}
                                     </span>
-                                )}
-                                <span style={{ fontSize: '2rem', fontWeight: '800', color: '#854d0e' }}>
-                                    ${price.toLocaleString()}
-                                </span>
+                                    <span style={{ fontSize: '2.25rem', fontWeight: '800', color: 'var(--primary)' }}>
+                                        ${tierPrices[selectedTier].promo.toLocaleString()}
+                                    </span>
+                                </div>
                                 {promoDescription && (
                                     <p style={{
                                         fontSize: '0.85rem',
-                                        color: '#b45309',
+                                        color: 'var(--primary)',
                                         fontWeight: '600',
-                                        marginTop: '0.25rem',
                                         fontStyle: 'italic'
                                     }}>
                                         {promoDescription}
@@ -435,15 +460,27 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                                 )}
                             </div>
 
-                            <button
-                                type="button"
-                                onClick={handlePayment}
-                                className="btn-primary"
-                                style={{ width: '100%', background: '#009ee3', padding: '14px', borderRadius: '12px' }}
-                                disabled={loading || !formData.name}
-                            >
-                                <CreditCard size={20} /> {business ? 'Renovar con Mercado Pago' : 'Pagar y Activar'}
-                            </button>
+                            {tierPrices[selectedTier].promo === 0 ? (
+                                <button
+                                    type="button"
+                                    onClick={handleFreeActivation}
+                                    className="btn-primary"
+                                    style={{ width: '100%', background: '#16a34a', padding: '14px', borderRadius: '12px' }}
+                                    disabled={loading || !formData.name}
+                                >
+                                    <CheckCircle size={20} /> {loading ? 'Activando...' : 'Activar Gratis'}
+                                </button>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={handlePayment}
+                                    className="btn-primary"
+                                    style={{ width: '100%', background: '#009ee3', padding: '14px', borderRadius: '12px' }}
+                                    disabled={loading || !formData.name}
+                                >
+                                    <CreditCard size={20} /> {business ? 'Renovar con Mercado Pago' : 'Pagar y Activar'}
+                                </button>
+                            )}
                         </div>
                     )}
 
