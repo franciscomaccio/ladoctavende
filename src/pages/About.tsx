@@ -1,5 +1,5 @@
 import React from 'react';
-import { Info, Target, TrendingUp, MessageCircle, Mail, ShieldCheck, Search, Award } from 'lucide-react';
+import { Target, TrendingUp, MessageCircle, Mail, ShieldCheck, Search, Award } from 'lucide-react';
 
 const About: React.FC = () => {
     return (
@@ -71,19 +71,33 @@ const About: React.FC = () => {
                 </div>
 
                 {/* Contact Footer */}
-                <div style={{ textAlign: 'center', borderTop: '1px solid var(--border-light)', paddingTop: '3rem' }}>
-                    <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>Soporte y Publicidad</h3>
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '2rem' }}>
+                <div style={{ textAlign: 'center', borderTop: '1px solid var(--border-light)', paddingTop: '3rem', marginTop: '1rem' }}>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1.25rem', color: 'var(--text-main)' }}>Soporte y Publicidad</h3>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '2.5rem' }}>
                         <a
                             href="mailto:administracion@ladoctavende.com.ar"
-                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--text-main)', color: 'var(--bg-main)', padding: '0.75rem 1.5rem', borderRadius: '12px', textDecoration: 'none', fontWeight: 'bold' }}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.75rem',
+                                background: 'var(--primary)',
+                                color: 'white',
+                                padding: '1rem 2rem',
+                                borderRadius: '16px',
+                                textDecoration: 'none',
+                                fontWeight: 'bold',
+                                boxShadow: '0 10px 15px -3px rgba(0, 155, 58, 0.2)',
+                                transition: 'transform 0.2s'
+                            }}
+                            onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+                            onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
                         >
-                            <Mail size={18} /> administracion@ladoctavende.com.ar
+                            <Mail size={20} /> administracion@ladoctavende.com.ar
                         </a>
                     </div>
-                    <p style={{ opacity: 0.5, fontSize: '0.9rem' }}>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: '1.5' }}>
                         © 2026 La Docta Vende. Córdoba, Argentina. <br />
-                        Tu éxito es nuestro objetivo.
+                        <span style={{ opacity: 0.8 }}>Tu éxito es nuestro objetivo.</span>
                     </p>
                 </div>
 
