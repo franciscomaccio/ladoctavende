@@ -35,13 +35,11 @@ Deno.serve(async (req) => {
         const { user, email_data } = body;
         const { token_hash, email_action_type, redirect_to } = email_data;
 
-        // Construir la URL de confirmación segun el tipo
-        // Para signup: {{ .SiteURL }}/auth/v1/verify?token={{ .TokenHash }}&type=signup&redirect_to={{ .RedirectTo }}
-        const siteUrl = Deno.env.get("SUPABASE_URL")?.replace(".supabase.co", ".supabase.co"); // Solo para referencia
-        // Realmente usamos el origin de la peticion o una variable env
-        const publicUrl = Deno.env.get("PUBLIC_SITE_URL") || "https://ladoctavende.com.ar";
+        // El endpoint de verificación debe ser el de Supabase Auth, no el del sitio web.
+        const supabaseUrl = Deno.env.get("SUPABASE_URL");
+        if (!supabaseUrl) throw new Error("Missing SUPABASE_URL");
 
-        const confirmationUrl = `\${publicUrl}/auth/v1/verify?token=\${token_hash}&type=\${email_action_type}&redirect_to=\${redirect_to}`;
+        const confirmationUrl = `${supabaseUrl}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${redirect_to}`;
 
         let subject = "";
         let title = "";
@@ -59,7 +57,6 @@ Deno.serve(async (req) => {
             buttonText = "Cambiar mi contraseña";
             message = "Hemos recibido una solicitud para restablecer la contraseña de tu cuenta. Haz clic en el siguiente botón para elegir una nueva.";
         } else {
-            // Default or other types
             subject = "Notificación de La Docta Vende";
             title = "Acción Requerida";
             buttonText = "Continuar";
@@ -91,9 +88,9 @@ Deno.serve(async (req) => {
                         <h1>La Docta Vende</h1>
                     </div>
                     <div class="content">
-                        <h2>\${title}</h2>
-                        <p>\${message}</p>
-                        <a href="\${confirmationUrl}" class="button">\${buttonText}</a>
+                        <h2>${title}</h2>
+                        <p>${message}</p>
+                        <a href="${confirmationUrl}" class="button">${buttonText}</a>
                     </div>
                     <div class="footer">
                         <p><strong>La Docta Vende</strong> - Córdoba, Argentina</p>
@@ -108,7 +105,7 @@ Deno.serve(async (req) => {
         const res = await fetch("https://api.resend.com/emails", {
             method: "POST",
             headers: {
-                "Authorization": \`Bearer \${RESEND_API_KEY}\`,
+                "Authorization": "Bearer " + RESEND_API_KEY,
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
