@@ -4,8 +4,9 @@ import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import Promotions from './pages/Promotions';
+import About from './pages/About';
 import { useAuth } from './hooks/useAuth';
-import { ShieldCheck, Home as HomeIcon, Search, Tag, UserCircle, LogOut } from 'lucide-react';
+import { ShieldCheck, Home as HomeIcon, Search, Tag, UserCircle, LogOut, Info } from 'lucide-react';
 
 function Navigation() {
   const { user, isAdmin, signOut } = useAuth();
@@ -30,6 +31,9 @@ function Navigation() {
               <ShieldCheck size={24} />
             </Link>
           )}
+          <Link to="/info" style={{ color: 'var(--text-main)', display: 'flex' }} title="Información">
+            <Info size={24} />
+          </Link>
           {user ? (
             <>
               <Link to="/dashboard" style={{ color: 'var(--text-main)', display: 'flex' }} title="Mi Cuenta">
@@ -58,6 +62,7 @@ function Navigation() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/promos" element={<Promotions />} />
+          <Route path="/info" element={<About />} />
         </Routes>
       </main>
 
