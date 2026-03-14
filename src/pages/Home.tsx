@@ -11,15 +11,17 @@ interface PromotionWithBusiness extends Promotion {
 import { useHorizontalScroll } from '../hooks/useHorizontalScroll';
 
 const CATEGORIES = [
+    { name: 'Belleza', icon: '💄' },
+    { name: 'Deportes', icon: '⚽' },
+    { name: 'Educación', icon: '📚' },
     { name: 'Gastronomía', icon: '🍔' },
+    { name: 'Hogar', icon: '🏠' },
+    { name: 'Inmobiliaria', icon: '🏢' },
+    { name: 'Mascotas', icon: '🐾' },
     { name: 'Moda', icon: '👕' },
     { name: 'Salud', icon: '🏥' },
-    { name: 'Hogar', icon: '🏠' },
-    { name: 'Vehículo', icon: '🚗' },
     { name: 'Servicios', icon: '🛠️' },
-    { name: 'Belleza', icon: '💄' },
-    { name: 'Mascotas', icon: '🐾' },
-    { name: 'Deportes', icon: '⚽' },
+    { name: 'Tecnología', icon: '💻' },
     { name: 'Otros', icon: '✨' }
 ];
 
