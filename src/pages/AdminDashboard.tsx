@@ -31,6 +31,10 @@ export default function AdminDashboard() {
         totalRevenue: 0,
         categoryDistribution: {} as Record<string, number>
     });
+    const [selectedMonth, setSelectedMonth] = useState(() => {
+        const now = new Date();
+        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    });
 
     useEffect(() => {
         if (isAdmin) {
@@ -38,7 +42,7 @@ export default function AdminDashboard() {
             fetchPrice();
             fetchPayments();
         }
-    }, [isAdmin]);
+    }, [isAdmin, selectedMonth]);
 
     const fetchBusinesses = async () => {
         const { data } = await supabase
@@ -79,11 +83,15 @@ export default function AdminDashboard() {
             .select('active, category');
 
         if (payments && bData) {
-            const now = new Date();
-            const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const [selYear, selMonth] = selectedMonth.split('-').map(Number);
+            const startDate = new Date(selYear, selMonth - 1, 1);
+            const endDate = new Date(selYear, selMonth, 0, 23, 59, 59);
 
             const mRev = payments
-                .filter(p => new Date(p.created_at) >= firstDayOfMonth)
+                .filter(p => {
+                    const d = new Date(p.created_at);
+                    return d >= startDate && d <= endDate;
+                })
                 .reduce((acc, p) => acc + Number(p.amount), 0);
 
             const tRev = payments.reduce((acc, p) => acc + Number(p.amount), 0);
@@ -101,6 +109,18 @@ export default function AdminDashboard() {
                 categoryDistribution: cats
             });
         }
+    };
+
+    const getMonthOptions = () => {
+        const options = [];
+        const now = new Date();
+        for (let i = 0; i < 12; i++) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+            const label = d.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+            options.push({ val, label });
+        }
+        return options;
     };
 
     const toggleActive = async (id: string, currentStatus: boolean) => {
@@ -147,6 +167,29 @@ export default function AdminDashboard() {
                     <h1 style={{ color: '#7f1d1d', margin: 0 }}>Panel Administrador</h1>
                 </div>
 
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'rgba(255,255,255,0.05)', padding: '0.5rem 1rem', borderRadius: '12px', border: '1px solid var(--border-light)' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 'bold', whiteSpace: 'nowrap' }}>Filtrar Mes:</span>
+                    <select
+                        value={selectedMonth}
+                        onChange={(e) => setSelectedMonth(e.target.value)}
+                        style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'var(--text-main)',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            outline: 'none',
+                            fontSize: '0.9rem'
+                        }}
+                    >
+                        {getMonthOptions().map(opt => (
+                            <option key={opt.val} value={opt.val} style={{ background: '#1a1a1a' }}>
+                                {opt.label.charAt(0).toUpperCase() + opt.label.slice(1)}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
                 <div style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
@@ -156,7 +199,7 @@ export default function AdminDashboard() {
                 }}>
                     <div className="glass-card" style={{ padding: '1.25rem', borderLeft: '4px solid var(--primary)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                            <span style={{ fontSize: '0.85rem', fontWeight: '600', opacity: 0.7 }}>Ingresos (Mes)</span>
+                            <span style={{ fontSize: '0.85rem', fontWeight: '600', opacity: 0.7 }}>Ingresos ({getMonthOptions().find(o => o.val === selectedMonth)?.label.split(' ')[0]})</span>
                             <TrendingUp size={18} color="var(--primary)" />
                         </div>
                         <div style={{ fontSize: '1.5rem', fontWeight: '800' }}>${generalStats.monthlyRevenue.toLocaleString()}</div>

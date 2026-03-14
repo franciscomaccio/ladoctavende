@@ -17,6 +17,10 @@ interface Stats {
 }
 
 export const BusinessStatsModal: React.FC<BusinessStatsModalProps> = ({ businessId, businessName, onClose }) => {
+    const [selectedMonth, setSelectedMonth] = useState(() => {
+        const now = new Date();
+        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    });
     const [stats, setStats] = useState<Stats>({ views: 0, whatsapp: 0, map: 0, web: 0, total: 0 });
     const [loading, setLoading] = useState(true);
 
@@ -24,10 +28,16 @@ export const BusinessStatsModal: React.FC<BusinessStatsModalProps> = ({ business
         const fetchStats = async () => {
             setLoading(true);
             try {
+                const [selYear, selMonth] = selectedMonth.split('-').map(Number);
+                const startDate = new Date(selYear, selMonth - 1, 1).toISOString();
+                const endDate = new Date(selYear, selMonth, 0, 23, 59, 59).toISOString();
+
                 const { data, error } = await supabase
                     .from('business_analytics')
                     .select('event_type')
-                    .eq('business_id', businessId);
+                    .eq('business_id', businessId)
+                    .gte('created_at', startDate)
+                    .lte('created_at', endDate);
 
                 if (error) throw error;
 
@@ -48,7 +58,19 @@ export const BusinessStatsModal: React.FC<BusinessStatsModalProps> = ({ business
         };
 
         fetchStats();
-    }, [businessId]);
+    }, [businessId, selectedMonth]);
+
+    const getMonthOptions = () => {
+        const options = [];
+        const now = new Date();
+        for (let i = 0; i < 12; i++) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+            const label = d.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+            options.push({ val, label });
+        }
+        return options;
+    };
 
     const statCards = [
         { label: 'Vistas Perfil', value: stats.views, icon: Eye, color: '#3b82f6' },
@@ -104,6 +126,30 @@ export const BusinessStatsModal: React.FC<BusinessStatsModalProps> = ({ business
                 </div>
 
                 <div style={{ padding: '1.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'rgba(255,255,255,0.03)', padding: '0.75rem 1rem', borderRadius: '12px', border: '1px solid var(--border-light)', marginBottom: '1.5rem' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 'bold', opacity: 0.7 }}>Ver mes:</span>
+                        <select
+                            value={selectedMonth}
+                            onChange={(e) => setSelectedMonth(e.target.value)}
+                            style={{
+                                background: 'transparent',
+                                border: 'none',
+                                color: 'var(--text-main)',
+                                fontWeight: 'bold',
+                                cursor: 'pointer',
+                                outline: 'none',
+                                fontSize: '0.85rem',
+                                flex: 1
+                            }}
+                        >
+                            {getMonthOptions().map(opt => (
+                                <option key={opt.val} value={opt.val} style={{ background: '#1a1a1a' }}>
+                                    {opt.label.charAt(0).toUpperCase() + opt.label.slice(1)}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
                     {loading ? (
                         <div style={{ textAlign: 'center', padding: '2rem' }}>Cargando datos...</div>
                     ) : (
