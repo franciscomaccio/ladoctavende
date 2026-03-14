@@ -92,12 +92,13 @@ export const BusinessStatsModal: React.FC<BusinessStatsModalProps> = ({ business
             padding: '1rem'
         }}>
             <div style={{
-                backgroundColor: 'var(--card-bg)',
+                backgroundColor: 'var(--bg-card)',
                 width: '100%',
                 maxWidth: '500px',
                 borderRadius: '24px',
                 border: '1px solid var(--border-light)',
                 overflow: 'hidden',
+                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
                 animation: 'modalSlideIn 0.3s ease-out'
             }}>
                 <div style={{
@@ -106,14 +107,14 @@ export const BusinessStatsModal: React.FC<BusinessStatsModalProps> = ({ business
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    background: 'rgba(255,255,255,0.02)'
+                    background: 'var(--bg-light)'
                 }}>
                     <div>
-                        <h2 style={{ fontSize: '1.25rem', fontWeight: '800', margin: 0 }}>Estadísticas</h2>
-                        <p style={{ fontSize: '0.85rem', opacity: 0.6, margin: 0 }}>{businessName}</p>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: '800', margin: 0, color: 'var(--text-main)' }}>Estadísticas</h2>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>{businessName}</p>
                     </div>
                     <button onClick={onClose} style={{
-                        background: 'rgba(255,255,255,0.05)',
+                        background: 'rgba(0,0,0,0.05)',
                         border: 'none',
                         color: 'var(--text-main)',
                         padding: '8px',
@@ -126,8 +127,8 @@ export const BusinessStatsModal: React.FC<BusinessStatsModalProps> = ({ business
                 </div>
 
                 <div style={{ padding: '1.5rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'rgba(255,255,255,0.03)', padding: '0.75rem 1rem', borderRadius: '12px', border: '1px solid var(--border-light)', marginBottom: '1.5rem' }}>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 'bold', opacity: 0.7 }}>Ver mes:</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'var(--bg-light)', padding: '0.75rem 1rem', borderRadius: '12px', border: '1px solid var(--border-light)', marginBottom: '1.5rem' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-muted)' }}>Ver mes:</span>
                         <select
                             value={selectedMonth}
                             onChange={(e) => setSelectedMonth(e.target.value)}
@@ -143,7 +144,7 @@ export const BusinessStatsModal: React.FC<BusinessStatsModalProps> = ({ business
                             }}
                         >
                             {getMonthOptions().map(opt => (
-                                <option key={opt.val} value={opt.val} style={{ background: '#1a1a1a' }}>
+                                <option key={opt.val} value={opt.val}>
                                     {opt.label.charAt(0).toUpperCase() + opt.label.slice(1)}
                                 </option>
                             ))}
@@ -151,7 +152,7 @@ export const BusinessStatsModal: React.FC<BusinessStatsModalProps> = ({ business
                     </div>
 
                     {loading ? (
-                        <div style={{ textAlign: 'center', padding: '2rem' }}>Cargando datos...</div>
+                        <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>Cargando datos...</div>
                     ) : (
                         <>
                             <div style={{
@@ -163,16 +164,17 @@ export const BusinessStatsModal: React.FC<BusinessStatsModalProps> = ({ business
                                 {statCards.map((card, idx) => (
                                     <div key={idx} style={{
                                         padding: '1.25rem',
-                                        background: 'rgba(255,255,255,0.03)',
+                                        background: 'var(--bg-light)',
                                         borderRadius: '16px',
                                         border: '1px solid var(--border-light)',
-                                        textAlign: 'center'
+                                        textAlign: 'center',
+                                        boxShadow: 'var(--shadow-sm)'
                                     }}>
                                         <card.icon size={24} style={{ color: card.color, marginBottom: '0.75rem' }} />
-                                        <div style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '0.25rem' }}>
+                                        <div style={{ fontSize: '1.5rem', fontWeight: '800', marginBottom: '0.25rem', color: 'var(--text-main)' }}>
                                             {card.value}
                                         </div>
-                                        <div style={{ fontSize: '0.75rem', opacity: 0.6, fontWeight: '600', textTransform: 'uppercase' }}>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600', textTransform: 'uppercase' }}>
                                             {card.label}
                                         </div>
                                     </div>
@@ -181,12 +183,12 @@ export const BusinessStatsModal: React.FC<BusinessStatsModalProps> = ({ business
 
                             <div style={{
                                 padding: '1.25rem',
-                                background: 'linear-gradient(135deg, rgba(127, 29, 29, 0.1), rgba(0, 0, 0, 0.2))',
+                                background: 'linear-gradient(135deg, rgba(0, 155, 58, 0.05), rgba(254, 223, 0, 0.05))',
                                 borderRadius: '16px',
-                                border: '1px solid rgba(127, 29, 29, 0.2)',
+                                border: '1px solid var(--border-light)',
                                 textAlign: 'center'
                             }}>
-                                <div style={{ fontSize: '0.85rem', opacity: 0.8, marginBottom: '0.25rem' }}>Total Interacciones</div>
+                                <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Total Interacciones</div>
                                 <div style={{ fontSize: '2rem', fontWeight: '900', color: 'var(--primary)' }}>{stats.total}</div>
                             </div>
                         </>
