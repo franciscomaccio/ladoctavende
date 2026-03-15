@@ -66,6 +66,17 @@ export default function Promotions() {
         }
     };
 
+    const scroll = (ref: React.RefObject<HTMLDivElement>, direction: 'left' | 'right') => {
+        const el = ref.current;
+        if (el) {
+            const scrollAmount = el.clientWidth * 0.8;
+            el.scrollBy({
+                left: direction === 'left' ? -scrollAmount : scrollAmount,
+                behavior: 'smooth'
+            });
+        }
+    };
+
     useEffect(() => {
         const dayEl = dayScrollRef.current;
         const catEl = catScrollRef.current;
@@ -167,7 +178,7 @@ export default function Promotions() {
             {/* Day Filter */}
             <div className="categories-container" style={{ marginBottom: '1rem', position: 'relative' }}>
                 {showDayLeft && (
-                    <div className="carousel-arrow left" style={{ opacity: 0.6 }}>
+                    <div className="carousel-arrow left" onClick={() => scroll(dayScrollRef, 'left')}>
                         <ChevronLeft size={20} />
                     </div>
                 )}
@@ -202,7 +213,7 @@ export default function Promotions() {
                     ))}
                 </div>
                 {showDayRight && (
-                    <div className="carousel-arrow right" style={{ opacity: 0.6 }}>
+                    <div className="carousel-arrow right" onClick={() => scroll(dayScrollRef, 'right')}>
                         <ChevronRight size={20} />
                     </div>
                 )}
@@ -211,7 +222,7 @@ export default function Promotions() {
             {/* Category Filter */}
             <div className="categories-container" style={{ position: 'relative' }}>
                 {showCatLeft && (
-                    <div className="carousel-arrow left" style={{ opacity: 0.6 }}>
+                    <div className="carousel-arrow left" onClick={() => scroll(catScrollRef, 'left')}>
                         <ChevronLeft size={20} />
                     </div>
                 )}
@@ -239,7 +250,7 @@ export default function Promotions() {
                     ))}
                 </div>
                 {showCatRight && (
-                    <div className="carousel-arrow right" style={{ opacity: 0.6 }}>
+                    <div className="carousel-arrow right" onClick={() => scroll(catScrollRef, 'right')}>
                         <ChevronRight size={20} />
                     </div>
                 )}

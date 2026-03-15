@@ -47,6 +47,17 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
         }
     };
 
+    const scroll = (direction: 'left' | 'right') => {
+        const el = scrollRef.current;
+        if (el) {
+            const scrollAmount = el.clientWidth * 0.8;
+            el.scrollBy({
+                left: direction === 'left' ? -scrollAmount : scrollAmount,
+                behavior: 'smooth'
+            });
+        }
+    };
+
     useEffect(() => {
         const el = scrollRef.current;
         if (el) {
@@ -172,7 +183,7 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
             {/* Categories */}
             <div className="categories-container" style={{ position: 'relative' }}>
                 {showLeftArrow && (
-                    <div className="carousel-arrow left" style={{ opacity: 0.6 }}>
+                    <div className="carousel-arrow left" onClick={() => scroll('left')}>
                         <ChevronLeft size={20} />
                     </div>
                 )}
@@ -200,7 +211,7 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
                     ))}
                 </div>
                 {showRightArrow && (
-                    <div className="carousel-arrow right" style={{ opacity: 0.6 }}>
+                    <div className="carousel-arrow right" onClick={() => scroll('right')}>
                         <ChevronRight size={20} />
                     </div>
                 )}
