@@ -1,5 +1,6 @@
 import { HashRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import Home from './pages/Home';
+import Index from './pages/Index';
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import AdminDashboard from './pages/AdminDashboard';
@@ -19,45 +20,50 @@ function Navigation() {
     }
   };
 
+  const isLandingPage = location.pathname === '/';
+
   return (
     <>
-      <header className="navbar">
-        <Link to="/" className="logo">
-          <img src="header-logo.png" alt="La Docta Vende" style={{ height: '40px' }} />
-        </Link>
-        <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
-          {isAdmin && (
-            <Link to="/admin" style={{ color: 'var(--primary)', display: 'flex' }} title="Admin">
-              <ShieldCheck size={24} />
-            </Link>
-          )}
-          <Link to="/info" style={{ color: 'var(--text-main)', display: 'flex' }} title="Información">
-            <Info size={24} />
+      {!isLandingPage && (
+        <header className="navbar">
+          <Link to="/" className="logo">
+            <img src="header-logo.png" alt="La Docta Vende" style={{ height: '40px' }} />
           </Link>
-          {user ? (
-            <>
-              <Link to="/dashboard" style={{ color: 'var(--text-main)', display: 'flex' }} title="Mi Cuenta">
+          <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
+            {isAdmin && (
+              <Link to="/admin" style={{ color: 'var(--primary)', display: 'flex' }} title="Admin">
+                <ShieldCheck size={24} />
+              </Link>
+            )}
+            <Link to="/info" style={{ color: 'var(--text-main)', display: 'flex' }} title="Información">
+              <Info size={24} />
+            </Link>
+            {user ? (
+              <>
+                <Link to="/dashboard" style={{ color: 'var(--text-main)', display: 'flex' }} title="Mi Cuenta">
+                  <UserCircle size={28} />
+                </Link>
+                <button
+                  onClick={handleSignOut}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', display: 'flex' }}
+                  title="Cerrar Sesión"
+                >
+                  <LogOut size={24} />
+                </button>
+              </>
+            ) : (
+              <Link to="/auth" style={{ color: 'var(--text-main)', display: 'flex' }} title="Ingresar">
                 <UserCircle size={28} />
               </Link>
-              <button
-                onClick={handleSignOut}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', display: 'flex' }}
-                title="Cerrar Sesión"
-              >
-                <LogOut size={24} />
-              </button>
-            </>
-          ) : (
-            <Link to="/auth" style={{ color: 'var(--text-main)', display: 'flex' }} title="Ingresar">
-              <UserCircle size={28} />
-            </Link>
-          )}
-        </div>
-      </header>
+            )}
+          </div>
+        </header>
+      )}
 
-      <main style={{ paddingBottom: '70px' }}>
+      <main style={{ paddingBottom: isLandingPage ? '0' : '70px' }}>
         <Routes>
-          <Route path="/" element={<Home type="business" />} />
+          <Route path="/" element={<Index />} />
+          <Route path="/negocios" element={<Home type="business" />} />
           <Route path="/clasificados" element={<Home type="classified" />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
@@ -67,36 +73,38 @@ function Navigation() {
         </Routes>
       </main>
 
-      <nav className="bottom-nav">
-        <Link to="/" className={`nav-item ${location.pathname === '/' ? 'active' : ''}`}>
-          <HomeIcon size={24} />
-          <span>Negocios</span>
-        </Link>
-        <Link
-          to="/"
-          className="nav-item"
-          onClick={(e) => {
-            if (location.pathname === '/') {
-              e.preventDefault();
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-              setTimeout(() => {
-                document.getElementById('search-input')?.focus();
-              }, 100);
-            }
-          }}
-        >
-          <Search size={24} />
-          <span>Buscar</span>
-        </Link>
-        <Link to="/promos" className={`nav-item ${location.pathname === '/promos' ? 'active' : ''}`}>
-          <Tag size={24} />
-          <span>Promos</span>
-        </Link>
-        <Link to="/clasificados" className={`nav-item ${location.pathname === '/clasificados' ? 'active' : ''}`}>
-          <Search size={24} />
-          <span>Clasificados</span>
-        </Link>
-      </nav>
+      {!isLandingPage && (
+        <nav className="bottom-nav">
+          <Link to="/negocios" className={`nav-item ${location.pathname === '/negocios' ? 'active' : ''}`}>
+            <HomeIcon size={24} />
+            <span>Negocios</span>
+          </Link>
+          <Link
+            to="/negocios"
+            className="nav-item"
+            onClick={(e) => {
+              if (location.pathname === '/negocios') {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                setTimeout(() => {
+                  document.getElementById('search-input')?.focus();
+                }, 100);
+              }
+            }}
+          >
+            <Search size={24} />
+            <span>Buscar</span>
+          </Link>
+          <Link to="/promos" className={`nav-item ${location.pathname === '/promos' ? 'active' : ''}`}>
+            <Tag size={24} />
+            <span>Promos</span>
+          </Link>
+          <Link to="/clasificados" className={`nav-item ${location.pathname === '/clasificados' ? 'active' : ''}`}>
+            <Search size={24} />
+            <span>Clasificados</span>
+          </Link>
+        </nav>
+      )}
     </>
   );
 }

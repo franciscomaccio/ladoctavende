@@ -1,0 +1,141 @@
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Home, Tag, ShoppingBag } from 'lucide-react';
+
+const Index: React.FC = () => {
+    const navigate = useNavigate();
+
+    return (
+        <div style={{
+            minHeight: '100vh',
+            background: 'radial-gradient(circle at center, #111827 0%, #000000 100%)',
+            color: 'white',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '2rem',
+            position: 'relative',
+            overflow: 'hidden'
+        }}>
+            {/* Glow effect matching the image */}
+            <div className="landing-glow" style={{ top: '20%', left: '50%', transform: 'translate(-50%, -50%)' }} />
+
+            {/* Logo with entry animation */}
+            <div className="animate-fade-in" style={{ marginBottom: '2rem', textAlign: 'center' }}>
+                <img
+                    src="header-logo.png"
+                    alt="La Docta Vende"
+                    style={{
+                        height: '140px',
+                        filter: 'drop-shadow(0 0 20px rgba(234, 179, 8, 0.3))'
+                    }}
+                />
+            </div>
+
+            {/* Slogan */}
+            <div className="animate-slide-up" style={{ textAlign: 'center', marginBottom: '3rem', animationDelay: '0.3s', opacity: 0 }}>
+                <h1 style={{
+                    fontSize: '2rem',
+                    fontWeight: '800',
+                    lineHeight: '1.2',
+                    maxWidth: '300px',
+                    margin: '0 auto'
+                }}>
+                    publicá tu negocio,<br />
+                    encontrá el negocio
+                </h1>
+            </div>
+
+            {/* Buttons Container */}
+            <div className="animate-slide-up" style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1rem',
+                width: '100%',
+                maxWidth: '320px',
+                animationDelay: '0.6s',
+                opacity: 0
+            }}>
+                <button
+                    onClick={() => navigate('/negocios')}
+                    style={{
+                        background: 'linear-gradient(135deg, #009b3a 0%, #007b2e 100%)',
+                        color: 'white',
+                        border: 'none',
+                        padding: '1.2rem',
+                        borderRadius: '16px',
+                        fontSize: '1.1rem',
+                        fontWeight: '700',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.75rem',
+                        cursor: 'pointer',
+                        boxShadow: '0 10px 15px -3px rgba(0, 155, 58, 0.3)',
+                        transition: 'transform 0.2s'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+                    onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                    <Home size={22} /> Negocios
+                </button>
+
+                <button
+                    onClick={() => navigate('/promos')}
+                    style={{
+                        background: 'linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%)',
+                        color: 'white',
+                        border: 'none',
+                        padding: '1.2rem',
+                        borderRadius: '16px',
+                        fontSize: '1.1rem',
+                        fontWeight: '700',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.75rem',
+                        cursor: 'pointer',
+                        boxShadow: '0 10px 15px -3px rgba(127, 29, 29, 0.3)',
+                        transition: 'transform 0.2s'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+                    onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                    <Tag size={22} /> Promociones
+                </button>
+
+                <button
+                    onClick={() => navigate('/clasificados')}
+                    style={{
+                        background: 'linear-gradient(135deg, #1e3a8a 0%, #172554 100%)',
+                        color: 'white',
+                        border: 'none',
+                        padding: '1.2rem',
+                        borderRadius: '16px',
+                        fontSize: '1.1rem',
+                        fontWeight: '700',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.75rem',
+                        cursor: 'pointer',
+                        boxShadow: '0 10px 15px -3px rgba(30, 58, 138, 0.3)',
+                        transition: 'transform 0.2s'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+                    onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                    <ShoppingBag size={22} /> Clasificados
+                </button>
+            </div>
+
+            {/* Bottom Credit */}
+            <div style={{ position: 'absolute', bottom: '2rem', opacity: 0.5, fontSize: '0.8rem' }}>
+                ladoctavende.com.ar
+            </div>
+        </div>
+    );
+};
+
+export default Index;
