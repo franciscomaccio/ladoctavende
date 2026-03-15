@@ -168,7 +168,14 @@ export default function Dashboard() {
                                     </div>
                                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end', flex: 1 }}>
                                         <button
-                                            onClick={() => { setActiveBusinessId(business.id); setIsPromoFormOpen(true); }}
+                                            onClick={() => {
+                                                if (business.promotions && business.promotions.length >= 2) {
+                                                    alert('Sólo se permiten 2 promos por negocio.');
+                                                    return;
+                                                }
+                                                setActiveBusinessId(business.id);
+                                                setIsPromoFormOpen(true);
+                                            }}
                                             style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '8px 12px', color: 'var(--primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: '700' }}
                                         >
                                             <Plus size={18} /> Promo
