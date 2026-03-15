@@ -36,13 +36,14 @@ const Index: React.FC = () => {
             </div>
 
             {/* Slogan */}
-            <div className="animate-slide-up" style={{ textAlign: 'center', marginBottom: '3rem', animationDelay: '0.3s', opacity: 0 }}>
+            <div className="animate-slide-up" style={{ textAlign: 'center', marginBottom: '2.5rem', animationDelay: '0.3s', opacity: 0 }}>
                 <h1 style={{
-                    fontSize: '2rem',
-                    fontWeight: '800',
-                    lineHeight: '1.2',
-                    maxWidth: '300px',
-                    margin: '0 auto'
+                    fontSize: '1.1rem',
+                    fontWeight: '500',
+                    lineHeight: '1.4',
+                    maxWidth: '400px',
+                    margin: '0 auto',
+                    opacity: 0.7
                 }}>
                     publicá tu negocio,<br />
                     encontrá el negocio
