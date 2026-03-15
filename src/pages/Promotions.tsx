@@ -66,7 +66,7 @@ export default function Promotions() {
         }
     };
 
-    const scroll = (ref: React.RefObject<HTMLDivElement>, direction: 'left' | 'right') => {
+    const scroll = (ref: React.RefObject<HTMLDivElement | null>, direction: 'left' | 'right') => {
         const el = ref.current;
         if (el) {
             const scrollAmount = el.clientWidth * 0.8;
