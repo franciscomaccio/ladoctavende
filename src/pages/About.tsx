@@ -61,7 +61,7 @@ const About: React.FC = () => {
                 {/* Contact Footer */}
                 <div style={{ textAlign: 'center', borderTop: '1px solid var(--border-light)', paddingTop: '3rem', marginTop: '1rem' }}>
                     <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1.25rem', color: 'var(--text-main)' }}>Soporte y Publicidad</h3>
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '2.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '2.5rem', flexWrap: 'wrap' }}>
                         <a
                             href="mailto:administracion@ladoctavende.com.ar"
                             style={{
@@ -81,6 +81,28 @@ const About: React.FC = () => {
                             onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
                         >
                             <Mail size={20} /> administracion@ladoctavende.com.ar
+                        </a>
+                        <a
+                            href="https://www.instagram.com/ladoctavende"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.75rem',
+                                background: '#E1306C',
+                                color: 'white',
+                                padding: '1rem 2rem',
+                                borderRadius: '16px',
+                                textDecoration: 'none',
+                                fontWeight: 'bold',
+                                boxShadow: '0 10px 15px -3px rgba(225, 48, 108, 0.2)',
+                                transition: 'transform 0.2s'
+                            }}
+                            onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+                            onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                        >
+                            <TrendingUp size={20} /> @ladoctavende
                         </a>
                     </div>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: '1.5' }}>
