@@ -45,8 +45,7 @@ const Index: React.FC = () => {
                     margin: '0 auto',
                     opacity: 0.7
                 }}>
-                    publicá tu negocio,<br />
-                    encontrá el negocio
+                    Entrá, descubrí, comprá
                 </h1>
             </div>
 
