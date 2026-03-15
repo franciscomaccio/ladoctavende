@@ -174,7 +174,7 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
                                     recordBusinessEvent(business.id, 'open');
                                     setSelectedBusiness(business);
                                 }}
-                                style={{ background: '#1f2937', color: 'white', border: 'none' }}
+                                style={{ background: type === 'business' ? '#1f2937' : '#1e3a8a', color: 'white', border: 'none' }}
                             >
                                 {business.image_url ? (
                                     <img src={business.image_url} alt={business.name} />
