@@ -52,7 +52,11 @@ export default function AdminDashboard() {
             d.setDate(1);
             return d.toISOString().split('T')[0];
         })(),
-        end: new Date().toISOString().split('T')[0]
+        end: (() => {
+            const d = new Date();
+            d.setDate(d.getDate() + 1);
+            return d.toISOString().split('T')[0];
+        })()
     });
 
     const [filterOwner, setFilterOwner] = useState('');
@@ -275,10 +279,12 @@ export default function AdminDashboard() {
                     <h1 style={{ color: '#7f1d1d', margin: 0 }}>Panel Administrador</h1>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'rgba(255,255,255,0.05)', padding: '0.5rem 1rem', borderRadius: '12px', border: '1px solid var(--border-light)', flexWrap: 'wrap' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Calendar size={16} />
-                        <span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Desde:</span>
+                <div className="date-filter-container">
+                    <div className="date-filter-item">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <Calendar size={16} />
+                            <span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Desde:</span>
+                        </div>
                         <input
                             type="date"
                             value={dateRange.start}
@@ -286,8 +292,10 @@ export default function AdminDashboard() {
                             style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', fontSize: '0.85rem', outline: 'none', cursor: 'pointer' }}
                         />
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Hasta:</span>
+                    <div className="date-filter-item">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Hasta:</span>
+                        </div>
                         <input
                             type="date"
                             value={dateRange.end}
