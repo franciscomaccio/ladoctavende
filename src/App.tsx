@@ -7,7 +7,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import Promotions from './pages/Promotions';
 import About from './pages/About';
 import { useAuth } from './hooks/useAuth';
-import { ShieldCheck, Home as HomeIcon, Search, Tag, UserCircle, LogOut, Info } from 'lucide-react';
+import { ShieldCheck, Home as HomeIcon, Tag, UserCircle, LogOut, Info, PlusCircle, ShoppingBag } from 'lucide-react';
 
 function Navigation() {
   const { user, isAdmin, signOut } = useAuth();
@@ -79,29 +79,17 @@ function Navigation() {
             <HomeIcon size={24} />
             <span>Negocios</span>
           </Link>
-          <Link
-            to="/negocios"
-            className="nav-item"
-            onClick={(e) => {
-              if (location.pathname === '/negocios') {
-                e.preventDefault();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                setTimeout(() => {
-                  document.getElementById('search-input')?.focus();
-                }, 100);
-              }
-            }}
-          >
-            <Search size={24} />
-            <span>Buscar</span>
-          </Link>
           <Link to="/promos" className={`nav-item ${location.pathname === '/promos' ? 'active' : ''}`}>
             <Tag size={24} />
             <span>Promos</span>
           </Link>
           <Link to="/clasificados" className={`nav-item ${location.pathname === '/clasificados' ? 'active' : ''}`}>
-            <Search size={24} />
+            <ShoppingBag size={24} />
             <span>Clasificados</span>
+          </Link>
+          <Link to="/dashboard" className={`nav-item ${location.pathname === '/dashboard' ? 'active' : ''}`}>
+            <PlusCircle size={24} />
+            <span>Publicar</span>
           </Link>
         </nav>
       )}
