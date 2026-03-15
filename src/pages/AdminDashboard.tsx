@@ -13,6 +13,7 @@ interface Business {
     active: boolean;
     subscription_expires_at: string | null;
     category: string;
+    profiles?: { email: string };
 }
 
 interface Payment {
@@ -65,9 +66,9 @@ export default function AdminDashboard() {
     const fetchBusinesses = async () => {
         const { data } = await supabase
             .from('businesses')
-            .select('id, name, active, subscription_expires_at, category')
+            .select('id, name, active, subscription_expires_at, category, profiles(email)')
             .order('created_at', { ascending: false });
-        if (data) setBusinesses(data);
+        if (data) setBusinesses(data as unknown as Business[]);
         setLoading(false);
     };
 
@@ -428,6 +429,7 @@ export default function AdminDashboard() {
                             <thead>
                                 <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
                                     <th style={{ textAlign: 'left', padding: '1rem' }}>Negocio</th>
+                                    <th style={{ textAlign: 'left', padding: '1rem' }}>Dueño</th>
                                     <th style={{ textAlign: 'left', padding: '1rem' }}>Categoría</th>
                                     <th style={{ textAlign: 'left', padding: '1rem' }}>Vencimiento</th>
                                     <th style={{ textAlign: 'left', padding: '1rem' }}>Estado</th>
@@ -443,6 +445,7 @@ export default function AdminDashboard() {
                                     return (
                                         <tr key={business.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                                             <td style={{ padding: '1rem' }}>{business.name}</td>
+                                            <td style={{ padding: '1rem', fontSize: '0.85rem', opacity: 0.8 }}>{business.profiles?.email || 'N/A'}</td>
                                             <td style={{ padding: '1rem' }}>{business.category}</td>
                                             <td style={{ padding: '1rem' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: isExpired ? 'var(--error)' : 'var(--text-main)' }}>
