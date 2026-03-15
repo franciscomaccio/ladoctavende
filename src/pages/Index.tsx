@@ -24,10 +24,12 @@ const Index: React.FC = () => {
             {/* Logo with entry animation */}
             <div className="animate-fade-in" style={{ marginBottom: '2rem', textAlign: 'center' }}>
                 <img
-                    src="header-logo.png"
+                    src="landing-logo.png"
                     alt="La Docta Vende"
                     style={{
-                        height: '140px',
+                        width: '100%',
+                        maxWidth: '280px',
+                        height: 'auto',
                         filter: 'drop-shadow(0 0 20px rgba(234, 179, 8, 0.3))'
                     }}
                 />
