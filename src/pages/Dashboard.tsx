@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import type { Business, Promotion } from '../types/database';
@@ -15,7 +16,8 @@ interface BusinessWithPromos extends Business {
 }
 
 export default function Dashboard() {
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
+    const navigate = useNavigate();
     const [businesses, setBusinesses] = useState<BusinessWithPromos[]>([]);
     const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
@@ -26,6 +28,12 @@ export default function Dashboard() {
     const [statsBusiness, setStatsBusiness] = useState<{ id: string, name: string, promoId?: string, promoTitle?: string } | null>(null);
     const [editingPromotion, setEditingPromotion] = useState<Promotion | null>(null);
     const [isPasswordFormOpen, setIsPasswordFormOpen] = useState(false);
+
+    useEffect(() => {
+        if (!authLoading && !user) {
+            navigate('/auth');
+        }
+    }, [user, authLoading, navigate]);
 
     useEffect(() => {
         const hash = window.location.hash;
@@ -80,12 +88,16 @@ export default function Dashboard() {
         }
     }
 
-    if (!user) {
+    if (authLoading) {
         return (
             <div className="container-wide" style={{ textAlign: 'center', marginTop: '2rem' }}>
-                <p>Debes iniciar sesión para ver tu panel.</p>
+                <p>Cargando...</p>
             </div>
         );
+    }
+
+    if (!user) {
+        return null; // Will redirect
     }
 
     return (
