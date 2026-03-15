@@ -118,38 +118,64 @@ export default function Promotions() {
             <h1 style={{ fontSize: '1.75rem', fontWeight: '800', marginBottom: '1.5rem', color: 'var(--text-main)' }}>Promociones</h1>
 
             {/* Day Filter */}
-            <div ref={scrollRef} style={{ display: 'flex', overflowX: 'auto', gap: '0.5rem', marginBottom: '1.5rem', paddingBottom: '0.5rem', scrollbarWidth: 'none' }}>
+            <div className="categories-container" style={{ marginBottom: '1rem' }}>
                 <div
-                    className={`category-pill ${selectedDay === null ? 'active' : ''}`}
-                    onClick={() => setSelectedDay(null)}
-                    style={{ padding: '8px 16px', minWidth: 'auto' }}
+                    ref={scrollRef}
+                    style={{
+                        display: 'flex',
+                        overflowX: 'auto',
+                        gap: '0.2rem',
+                        paddingBottom: '0.5rem',
+                        scrollbarWidth: 'none',
+                        scrollSnapType: 'x mandatory',
+                        paddingRight: '60px'
+                    }}
                 >
-                    <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>Todos</span>
-                </div>
-                {DAYS.map(day => (
                     <div
-                        key={day.id}
-                        className={`category-pill ${selectedDay === day.id ? 'active' : ''}`}
-                        onClick={() => setSelectedDay(day.id)}
+                        className={`category-pill ${selectedDay === null ? 'active' : ''}`}
+                        onClick={() => setSelectedDay(null)}
                         style={{ padding: '8px 16px', minWidth: 'auto' }}
                     >
-                        <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>{day.name}</span>
+                        <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>Todos</span>
                     </div>
-                ))}
+                    {DAYS.map(day => (
+                        <div
+                            key={day.id}
+                            className={`category-pill ${selectedDay === day.id ? 'active' : ''}`}
+                            onClick={() => setSelectedDay(day.id)}
+                            style={{ padding: '8px 16px', minWidth: 'auto' }}
+                        >
+                            <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>{day.name}</span>
+                        </div>
+                    ))}
+                </div>
             </div>
 
             {/* Category Filter */}
-            <div ref={scrollRef} style={{ display: 'flex', overflowX: 'auto', gap: '0.5rem', marginBottom: '1.5rem', paddingBottom: '0.5rem', scrollbarWidth: 'none' }}>
-                {CATEGORIES.map(cat => (
-                    <div
-                        key={cat.name}
-                        className={`category-pill ${selectedCategory === cat.name ? 'active' : ''}`}
-                        onClick={() => setSelectedCategory(selectedCategory === cat.name ? null : cat.name)}
-                    >
-                        <div className="category-icon">{cat.icon}</div>
-                        <span style={{ fontSize: '0.75rem', fontWeight: '500' }}>{cat.name}</span>
-                    </div>
-                ))}
+            <div className="categories-container">
+                <div
+                    ref={scrollRef}
+                    style={{
+                        display: 'flex',
+                        overflowX: 'auto',
+                        gap: '0.2rem',
+                        paddingBottom: '0.5rem',
+                        scrollbarWidth: 'none',
+                        scrollSnapType: 'x mandatory',
+                        paddingRight: '60px'
+                    }}
+                >
+                    {CATEGORIES.map(cat => (
+                        <div
+                            key={cat.name}
+                            className={`category-pill ${selectedCategory === cat.name ? 'active' : ''}`}
+                            onClick={() => setSelectedCategory(selectedCategory === cat.name ? null : cat.name)}
+                        >
+                            <div className="category-icon">{cat.icon}</div>
+                            <span style={{ fontSize: '0.75rem', fontWeight: '500' }}>{cat.name}</span>
+                        </div>
+                    ))}
+                </div>
             </div>
 
             <div style={{ position: 'relative', margin: '0 0 1.5rem' }}>
