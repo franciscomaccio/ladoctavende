@@ -75,50 +75,58 @@ export function TransferBusinessModal({ businessId, businessName, onClose, onSuc
     );
 
     return (
-        <div className="modal-overlay" onClick={onClose} style={{ zIndex: 1100 }}>
-            <div className="modal-content glass-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', width: '90%' }}>
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content glass-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', padding: '1.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                    <h2 style={{ margin: 0, fontSize: '1.25rem', color: 'var(--text-main)' }}>Transferir Negocio</h2>
-                    <button onClick={onClose} className="btn-icon" style={{ padding: '0.5rem' }}>
+                    <h2 style={{ margin: 0, fontSize: '1.25rem', color: 'var(--text-main)', fontWeight: '800' }}>Transferir Negocio</h2>
+                    <button onClick={onClose} style={{
+                        background: 'rgba(0,0,0,0.05)',
+                        border: 'none',
+                        color: 'var(--text-main)',
+                        padding: '8px',
+                        borderRadius: '50%',
+                        cursor: 'pointer',
+                        display: 'flex'
+                    }}>
                         <X size={20} />
                     </button>
                 </div>
 
                 <div style={{ marginBottom: '1.5rem' }}>
-                    <p style={{ fontSize: '0.9rem', opacity: 0.8, marginBottom: '0.5rem' }}>
-                        Selecciona el nuevo dueño para <strong>{businessName}</strong>:
+                    <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                        Selecciona el nuevo dueño para <strong>{businessName}</strong>. El negocio se transferirá inmediatamente tras confirmar.
                     </p>
 
-                    <div style={{ position: 'relative' }}>
-                        <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }} />
+                    <div style={{ position: 'relative', marginBottom: '1rem' }}>
+                        <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }} />
                         <input
                             type="text"
-                            placeholder="Buscar por email..."
+                            placeholder="Buscar usuario por email..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="input-field"
-                            style={{ paddingLeft: '2.5rem', marginBottom: '1rem' }}
+                            style={{ paddingLeft: '2.5rem' }}
                         />
                     </div>
 
                     {error && (
-                        <div style={{ color: 'var(--error)', background: 'rgba(255, 92, 138, 0.1)', padding: '0.75rem', borderRadius: '8px', fontSize: '0.85rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <div style={{ color: 'var(--error)', background: 'rgba(239, 68, 68, 0.1)', padding: '0.75rem', borderRadius: '12px', fontSize: '0.85rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
                             <AlertCircle size={16} />
                             {error}
                         </div>
                     )}
 
                     <div style={{
-                        maxHeight: '300px',
+                        maxHeight: '260px',
                         overflowY: 'auto',
-                        borderRadius: '12px',
+                        borderRadius: '16px',
                         border: '1px solid var(--border-light)',
-                        background: 'rgba(0,0,0,0.2)'
+                        background: 'var(--bg-light)'
                     }}>
                         {loading ? (
-                            <p style={{ padding: '2rem', textAlign: 'center', opacity: 0.5 }}>Cargando usuarios...</p>
+                            <p style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Cargando usuarios...</p>
                         ) : filteredProfiles.length === 0 ? (
-                            <p style={{ padding: '2rem', textAlign: 'center', opacity: 0.5 }}>No se encontraron usuarios.</p>
+                            <p style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>No se encontraron usuarios.</p>
                         ) : (
                             filteredProfiles.map(profile => (
                                 <div
@@ -128,32 +136,33 @@ export function TransferBusinessModal({ businessId, businessName, onClose, onSuc
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'space-between',
-                                        padding: '0.75rem 1rem',
+                                        padding: '1rem',
                                         cursor: 'pointer',
-                                        borderBottom: '1px solid rgba(255,255,255,0.05)',
-                                        background: selectedUserId === profile.id ? 'rgba(var(--primary-rgb), 0.1)' : 'transparent',
+                                        borderBottom: '1px solid var(--border-light)',
+                                        background: selectedUserId === profile.id ? 'rgba(0, 155, 58, 0.08)' : 'transparent',
                                         transition: 'all 0.2s ease'
                                     }}
                                 >
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                                         <div style={{
-                                            width: '32px',
-                                            height: '32px',
+                                            width: '36px',
+                                            height: '36px',
                                             borderRadius: '50%',
-                                            background: 'rgba(255,255,255,0.1)',
+                                            background: selectedUserId === profile.id ? 'var(--primary)' : 'rgba(0,0,0,0.05)',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
-                                            color: 'var(--primary)'
+                                            color: selectedUserId === profile.id ? 'white' : 'var(--text-muted)',
+                                            transition: 'all 0.2s ease'
                                         }}>
-                                            <User size={16} />
+                                            <User size={18} />
                                         </div>
-                                        <span style={{ fontSize: '0.9rem', fontWeight: selectedUserId === profile.id ? '600' : '400' }}>
+                                        <span style={{ fontSize: '0.9rem', fontWeight: selectedUserId === profile.id ? '700' : '500', color: 'var(--text-main)' }}>
                                             {profile.email}
                                         </span>
                                     </div>
                                     {selectedUserId === profile.id && (
-                                        <CheckCircle2 size={18} color="var(--primary)" />
+                                        <CheckCircle2 size={20} color="var(--primary)" />
                                     )}
                                 </div>
                             ))
@@ -164,8 +173,8 @@ export function TransferBusinessModal({ businessId, businessName, onClose, onSuc
                 <div style={{ display: 'flex', gap: '1rem' }}>
                     <button
                         onClick={onClose}
-                        className="btn-secondary"
-                        style={{ flex: 1 }}
+                        className="btn-primary"
+                        style={{ flex: 1, background: 'rgba(0,0,0,0.05)', color: 'var(--text-main)' }}
                         disabled={transferring}
                     >
                         Cancelar
