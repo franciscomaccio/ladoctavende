@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, Tag, ShoppingBag } from 'lucide-react';
+import { Home, Tag, ShoppingBag, PlusCircle } from 'lucide-react';
 
 const Index: React.FC = () => {
     const navigate = useNavigate();
@@ -105,7 +105,7 @@ const Index: React.FC = () => {
                     onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
                     onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
-                    <Tag size={22} /> Promociones
+                    <Tag size={22} /> Promos
                 </button>
 
                 <button
@@ -130,6 +130,30 @@ const Index: React.FC = () => {
                     onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
                     <ShoppingBag size={22} /> Clasificados
+                </button>
+
+                <button
+                    onClick={() => navigate('/dashboard')}
+                    style={{
+                        background: 'linear-gradient(135deg, #ea1d7b 0%, #be123c 100%)',
+                        color: 'white',
+                        border: 'none',
+                        padding: '1.2rem',
+                        borderRadius: '16px',
+                        fontSize: '1.1rem',
+                        fontWeight: '700',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.75rem',
+                        cursor: 'pointer',
+                        boxShadow: '0 10px 15px -3px rgba(234, 29, 123, 0.3)',
+                        transition: 'transform 0.2s'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+                    onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                    <PlusCircle size={22} /> Publicar
                 </button>
             </div>
 
