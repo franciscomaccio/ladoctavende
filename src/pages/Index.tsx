@@ -50,11 +50,11 @@ const Index: React.FC = () => {
                 </h1>
             </div>
 
-            {/* Buttons Container */}
+            {/* Buttons Grid Container */}
             <div className="animate-slide-up" style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.7rem',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: '0.8rem',
                 width: '100%',
                 maxWidth: '300px',
                 animationDelay: '0.6s',
@@ -66,22 +66,24 @@ const Index: React.FC = () => {
                         background: 'linear-gradient(135deg, #009b3a 0%, #007b2e 100%)',
                         color: 'white',
                         border: 'none',
-                        padding: '1rem',
-                        borderRadius: '12px',
-                        fontSize: '1rem',
+                        padding: '1.5rem 1rem',
+                        borderRadius: '16px',
+                        fontSize: '0.9rem',
                         fontWeight: '700',
                         display: 'flex',
+                        flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: '0.75rem',
+                        gap: '0.5rem',
                         cursor: 'pointer',
-                        boxShadow: '0 10px 15px -3px rgba(0, 155, 58, 0.3)',
-                        transition: 'transform 0.2s'
+                        boxShadow: '0 8px 15px -3px rgba(0, 155, 58, 0.3)',
+                        transition: 'transform 0.2s',
+                        aspectRatio: '1 / 1'
                     }}
-                    onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+                    onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
                     onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
-                    <Home size={22} /> Negocios
+                    <Home size={32} /> <span>Negocios</span>
                 </button>
 
                 <button
@@ -90,22 +92,24 @@ const Index: React.FC = () => {
                         background: 'linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%)',
                         color: 'white',
                         border: 'none',
-                        padding: '1rem',
-                        borderRadius: '12px',
-                        fontSize: '1rem',
+                        padding: '1.5rem 1rem',
+                        borderRadius: '16px',
+                        fontSize: '0.9rem',
                         fontWeight: '700',
                         display: 'flex',
+                        flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: '0.75rem',
+                        gap: '0.5rem',
                         cursor: 'pointer',
-                        boxShadow: '0 10px 15px -3px rgba(127, 29, 29, 0.3)',
-                        transition: 'transform 0.2s'
+                        boxShadow: '0 8px 15px -3px rgba(127, 29, 29, 0.3)',
+                        transition: 'transform 0.2s',
+                        aspectRatio: '1 / 1'
                     }}
-                    onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+                    onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
                     onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
-                    <Tag size={22} /> Promos
+                    <Tag size={32} /> <span>Promos</span>
                 </button>
 
                 <button
@@ -114,22 +118,24 @@ const Index: React.FC = () => {
                         background: 'linear-gradient(135deg, #1e3a8a 0%, #172554 100%)',
                         color: 'white',
                         border: 'none',
-                        padding: '1rem',
-                        borderRadius: '12px',
-                        fontSize: '1rem',
+                        padding: '1.5rem 1rem',
+                        borderRadius: '16px',
+                        fontSize: '0.9rem',
                         fontWeight: '700',
                         display: 'flex',
+                        flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: '0.75rem',
+                        gap: '0.5rem',
                         cursor: 'pointer',
-                        boxShadow: '0 10px 15px -3px rgba(30, 58, 138, 0.3)',
-                        transition: 'transform 0.2s'
+                        boxShadow: '0 8px 15px -3px rgba(30, 58, 138, 0.3)',
+                        transition: 'transform 0.2s',
+                        aspectRatio: '1 / 1'
                     }}
-                    onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+                    onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
                     onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
-                    <ShoppingBag size={22} /> Clasificados
+                    <ShoppingBag size={32} /> <span>Clasificados</span>
                 </button>
 
                 <button
@@ -138,22 +144,24 @@ const Index: React.FC = () => {
                         background: 'linear-gradient(135deg, #ea1d7b 0%, #be123c 100%)',
                         color: 'white',
                         border: 'none',
-                        padding: '1rem',
-                        borderRadius: '12px',
-                        fontSize: '1rem',
+                        padding: '1.5rem 1rem',
+                        borderRadius: '16px',
+                        fontSize: '0.9rem',
                         fontWeight: '700',
                         display: 'flex',
+                        flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: '0.75rem',
+                        gap: '0.5rem',
                         cursor: 'pointer',
-                        boxShadow: '0 10px 15px -3px rgba(234, 29, 123, 0.3)',
-                        transition: 'transform 0.2s'
+                        boxShadow: '0 8px 15px -3px rgba(234, 29, 123, 0.3)',
+                        transition: 'transform 0.2s',
+                        aspectRatio: '1 / 1'
                     }}
-                    onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+                    onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
                     onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
-                    <PlusCircle size={22} /> Publicar
+                    <PlusCircle size={32} /> <span>Publicar</span>
                 </button>
             </div>
 
