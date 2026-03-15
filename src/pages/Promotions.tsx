@@ -90,8 +90,9 @@ export default function Promotions() {
                 .returns<PromotionWithBusiness[]>();
 
             if (error) throw error;
-            // Only show promos from active businesses
-            setPromotions(data?.filter(p => p.businesses.active) || []);
+            // Only show promos from active businesses and shuffle them
+            const promos = data?.filter(p => p.businesses.active) || [];
+            setPromotions(promos.sort(() => Math.random() - 0.5));
         } catch (error) {
             console.error('Error fetching promotions:', error);
         } finally {

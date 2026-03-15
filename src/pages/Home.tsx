@@ -61,7 +61,8 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
             // Let's stick to what was there but maybe filter by type if needed?
             // "en la sección de promos, a lo que ya está, agregar el filtro por rubros como está en negocios."
             // For now, let's just make fetchBusinesses filter by type.
-            setPromotions(data?.filter(p => p.businesses.active) || []);
+            const promos = data?.filter(p => p.businesses.active) || [];
+            setPromotions(promos.sort(() => Math.random() - 0.5));
         } catch (error) {
             console.error('Error fetching promotions:', error);
         }
@@ -74,11 +75,11 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
                 .from('businesses')
                 .select('*')
                 .eq('active', true)
-                .eq('type', type)
-                .order('created_at', { ascending: false });
+                .eq('type', type);
 
             if (error) throw error;
-            setBusinesses(data || []);
+            const shuffled = (data || []).sort(() => Math.random() - 0.5);
+            setBusinesses(shuffled);
         } catch (error) {
             console.error('Error fetching businesses:', error);
         } finally {
