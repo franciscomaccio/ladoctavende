@@ -8,6 +8,7 @@ import PromotionForm from '../components/PromotionForm';
 import BusinessStats from '../components/BusinessStats';
 import UpdatePasswordForm from '../components/UpdatePasswordForm';
 import { BarChart2, Key } from 'lucide-react';
+import { translateError } from '../utils/translateError';
 
 interface BusinessWithPromos extends Business {
     promotions: Promotion[];
@@ -64,7 +65,7 @@ export default function Dashboard() {
             if (error) throw error;
             setBusinesses(businesses.filter(b => b.id !== id));
         } catch (error: any) {
-            alert(error.message);
+            alert(translateError(error.message));
         }
     }
 
@@ -75,7 +76,7 @@ export default function Dashboard() {
             if (error) throw error;
             fetchUserBusinesses();
         } catch (error: any) {
-            alert(error.message);
+            alert(translateError(error.message));
         }
     }
 

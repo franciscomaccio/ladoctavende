@@ -4,6 +4,7 @@ import { X, Save, Calendar, Upload, Scissors } from 'lucide-react';
 import type { Promotion } from '../types/database';
 import Cropper from 'react-easy-crop';
 import { getCroppedImg } from '../utils/imageUtils';
+import { translateError } from '../utils/translateError';
 
 interface PromotionFormProps {
     businessId: string;
@@ -120,7 +121,7 @@ export default function PromotionForm({ businessId, promotion, onClose, onSave }
 
             onSave();
         } catch (error: any) {
-            alert(error.message);
+            alert(translateError(error.message));
         } finally {
             setLoading(false);
         }

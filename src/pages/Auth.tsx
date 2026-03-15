@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Mail, Lock, UserPlus, LogIn, CheckCircle } from 'lucide-react';
+import { translateError } from '../utils/translateError';
 
 export default function Auth() {
     const navigate = useNavigate();
@@ -10,6 +11,7 @@ export default function Auth() {
     const [loading, setLoading] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
     const handleAuth = async (e: React.FormEvent) => {
@@ -25,6 +27,9 @@ export default function Auth() {
                 if (error) throw error;
                 setMessage({ type: 'success', text: 'Te enviamos un enlace de recuperación. Revisa tu correo.' });
             } else if (isSignUp) {
+                if (password !== confirmPassword) {
+                    throw new Error("Las contraseñas no coinciden.");
+                }
                 const { error } = await supabase.auth.signUp({
                     email,
                     password,
@@ -43,7 +48,7 @@ export default function Auth() {
                 navigate('/dashboard');
             }
         } catch (error: any) {
-            setMessage({ type: 'error', text: error.message });
+            setMessage({ type: 'error', text: translateError(error.message) });
         } finally {
             setLoading(false);
         }
@@ -85,6 +90,24 @@ export default function Auth() {
                                     placeholder="********"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {isSignUp && (
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '500' }}>Confirmar Contraseña</label>
+                            <div style={{ position: 'relative' }}>
+                                <Lock size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                                <input
+                                    type="password"
+                                    className="input-field"
+                                    style={{ paddingLeft: '40px' }}
+                                    placeholder="********"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
                                     required
                                 />
                             </div>

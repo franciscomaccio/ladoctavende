@@ -7,6 +7,7 @@ import L from 'leaflet';
 import { Save, X, Upload, Scissors, Globe, CreditCard, CheckCircle } from 'lucide-react';
 import Cropper from 'react-easy-crop';
 import { getCroppedImg } from '../utils/imageUtils';
+import { translateError } from '../utils/translateError';
 
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
@@ -165,7 +166,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
 
             onSave();
         } catch (error: any) {
-            alert(error.message);
+            alert(translateError(error.message));
         } finally {
             setLoading(false);
         }
@@ -294,7 +295,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
 
             onSave();
         } catch (error: any) {
-            alert('Error al activar: ' + error.message);
+            alert('Error al activar: ' + translateError(error.message));
         } finally {
             setLoading(false);
         }
@@ -325,7 +326,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
             }
 
         } catch (error: any) {
-            alert('Error al iniciar el pago: ' + error.message);
+            alert('Error al iniciar el pago: ' + translateError(error.message));
         } finally {
             setLoading(false);
         }

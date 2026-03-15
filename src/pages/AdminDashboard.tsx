@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { CheckCircle, XCircle, Settings, LayoutDashboard, Calendar, Users, TrendingUp, BarChart3, PieChart } from 'lucide-react';
 import { BusinessStatsModal } from '../components/BusinessStatsModal';
+import { translateError } from '../utils/translateError';
 
 interface Business {
     id: string;
@@ -151,7 +152,7 @@ export default function AdminDashboard() {
 
             alert('Precios y promociones actualizados con éxito');
         } catch (error: any) {
-            alert('Error updating prices: ' + error.message);
+            alert('Error al actualizar precios: ' + translateError(error.message));
         }
     };
 

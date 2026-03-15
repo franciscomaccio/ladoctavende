@@ -40,7 +40,6 @@ Deno.serve(async (req) => {
             redirect_to = "https://ladoctavende.com.ar/#/dashboard";
         }
 
-        // El endpoint de verificación debe ser el de Supabase Auth, no el del sitio web.
         const supabaseUrl = Deno.env.get("SUPABASE_URL");
         if (!supabaseUrl) throw new Error("Missing SUPABASE_URL");
 
@@ -58,7 +57,7 @@ Deno.serve(async (req) => {
             buttonText = "Confirmar mi cuenta";
             message = "Gracias por unirte a la plataforma líder para conectar negocios locales en Córdoba. Para empezar a publicar tu negocio, por favor confirma tu dirección de correo electrónico.";
         } else if (email_action_type === 'recovery') {
-            subject = "🔑 Recupera tu contraseña - La Docta Vende";
+            subject = "🔒 Recupera tu contraseña - La Docta Vende";
             title = "Recuperar Contraseña";
             buttonText = "Cambiar mi contraseña";
             message = "Hemos recibido una solicitud para restablecer la contraseña de tu cuenta. Haz clic en el siguiente botón para elegir una nueva.";
@@ -94,9 +93,9 @@ Deno.serve(async (req) => {
                         <h1>La Docta Vende</h1>
                     </div>
                     <div class="content">
-                        <h2>${title}</h2>
-                        <p>${message}</p>
-                        <a href="${confirmationUrl}" class="button">${buttonText}</a>
+                        <h2>\${title}</h2>
+                        <p>\${message}</p>
+                        <a href="\${confirmationUrl}" class="button">\${buttonText}</a>
                     </div>
                     <div class="footer">
                         <p><strong>La Docta Vende</strong> - Córdoba, Argentina</p>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Lock, CheckCircle, Save, X, KeyRound, ShieldAlert } from 'lucide-react';
+import { translateError } from '../utils/translateError';
 
 interface UpdatePasswordFormProps {
     onClose: () => void;
@@ -59,7 +60,7 @@ export default function UpdatePasswordForm({ onClose }: UpdatePasswordFormProps)
             }, 2000);
 
         } catch (error: any) {
-            setMessage({ type: 'error', text: error.message });
+            setMessage({ type: 'error', text: translateError(error.message) });
         } finally {
             setLoading(false);
         }
