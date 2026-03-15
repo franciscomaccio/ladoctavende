@@ -22,7 +22,7 @@ const Index: React.FC = () => {
             <div className="landing-glow" style={{ top: '20%', left: '50%', transform: 'translate(-50%, -50%)' }} />
 
             {/* Logo with entry animation */}
-            <div className="animate-fade-in" style={{ marginBottom: '1rem', textAlign: 'center' }}>
+            <div className="animate-fade-in" style={{ marginBottom: '0.3rem', textAlign: 'center' }}>
                 <img
                     src="landing-logo.png"
                     alt="La Docta Vende"
