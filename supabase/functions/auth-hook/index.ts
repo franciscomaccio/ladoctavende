@@ -33,13 +33,19 @@ Deno.serve(async (req) => {
 
         const body: AuthEmailEvent = await req.json();
         const { user, email_data } = body;
-        const { token_hash, email_action_type, redirect_to } = email_data;
+        let { token_hash, email_action_type, redirect_to } = email_data;
+
+        // Force production redirect if it comes from localhost
+        if (redirect_to.includes('localhost')) {
+            redirect_to = "https://ladoctavende.com.ar/#/dashboard";
+        }
 
         // El endpoint de verificación debe ser el de Supabase Auth, no el del sitio web.
         const supabaseUrl = Deno.env.get("SUPABASE_URL");
         if (!supabaseUrl) throw new Error("Missing SUPABASE_URL");
 
-        const confirmationUrl = `${supabaseUrl}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${redirect_to}`;
+        const confirmationUrl = `${supabaseUrl}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(redirect_to)}`;
+        console.log("Confirmation URL generated:", confirmationUrl);
 
         let subject = "";
         let title = "";
@@ -117,6 +123,7 @@ Deno.serve(async (req) => {
         });
 
         const resData = await res.json();
+        console.log("Resend Response:", JSON.stringify(resData, null, 2));
 
         return new Response(JSON.stringify(resData), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
