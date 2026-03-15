@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
-import { CheckCircle, XCircle, Settings, LayoutDashboard, Calendar, Users, TrendingUp, BarChart3, PieChart } from 'lucide-react';
+import { CheckCircle, XCircle, Settings, LayoutDashboard, Calendar, Users, TrendingUp, BarChart3, PieChart, UserPlus } from 'lucide-react';
 import { BusinessStatsModal } from '../components/BusinessStatsModal';
+import { TransferBusinessModal } from '../components/TransferBusinessModal';
 import { translateError } from '../utils/translateError';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
 interface Business {
     id: string;
@@ -11,6 +13,13 @@ interface Business {
     active: boolean;
     subscription_expires_at: string | null;
     category: string;
+}
+
+interface Payment {
+    id: string;
+    business_id: string;
+    amount: string | number;
+    created_at: string;
 }
 
 export default function AdminDashboard() {
@@ -25,16 +34,22 @@ export default function AdminDashboard() {
     });
     const [promoDescription, setPromoDescription] = useState<string>('');
     const [selectedBusinessForStats, setSelectedBusinessForStats] = useState<{ id: string, name: string } | null>(null);
+    const [selectedBusinessForTransfer, setSelectedBusinessForTransfer] = useState<{ id: string, name: string } | null>(null);
     const [generalStats, setGeneralStats] = useState({
         totalBusinesses: 0,
         activeBusinesses: 0,
         monthlyRevenue: 0,
         totalRevenue: 0,
-        categoryDistribution: {} as Record<string, number>
+        categoryDistribution: {} as Record<string, number>,
+        chartData: [] as any[]
     });
-    const [selectedMonth, setSelectedMonth] = useState(() => {
-        const now = new Date();
-        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const [dateRange, setDateRange] = useState({
+        start: (() => {
+            const d = new Date();
+            d.setDate(1);
+            return d.toISOString().split('T')[0];
+        })(),
+        end: new Date().toISOString().split('T')[0]
     });
 
     useEffect(() => {
@@ -43,7 +58,7 @@ export default function AdminDashboard() {
             fetchPrice();
             fetchPayments();
         }
-    }, [isAdmin, selectedMonth]);
+    }, [isAdmin, dateRange]);
 
     const fetchBusinesses = async () => {
         const { data } = await supabase
@@ -62,14 +77,14 @@ export default function AdminDashboard() {
         if (data) {
             const newPrices = { ...prices };
             ['1m', '3m', '6m', '12m'].forEach(tier => {
-                const pVal = data.find(c => c.key === `subscription_price_${tier}`)?.value;
-                const oVal = data.find(c => c.key === `original_price_${tier}`)?.value;
-                if (pVal !== undefined) newPrices[tier].promo = Number(pVal);
-                if (oVal !== undefined) newPrices[tier].original = Number(oVal);
+                const pVal = data.find((c: any) => c.key === `subscription_price_${tier}`)?.value;
+                const oVal = data.find((c: any) => c.key === `original_price_${tier}`)?.value;
+                if (pVal !== undefined) newPrices[tier as keyof typeof prices].promo = Number(pVal);
+                if (oVal !== undefined) newPrices[tier as keyof typeof prices].original = Number(oVal);
             });
             setPrices(newPrices);
 
-            const descVal = data.find(c => c.key === 'promo_description')?.value;
+            const descVal = data.find((c: any) => c.key === 'promo_description')?.value;
             if (descVal !== undefined) setPromoDescription(descVal);
         }
     };
@@ -77,51 +92,67 @@ export default function AdminDashboard() {
     const fetchPayments = async () => {
         const { data: payments } = await supabase
             .from('payments')
-            .select('*');
+            .select('*') as { data: Payment[] | null };
 
         const { data: bData } = await supabase
             .from('businesses')
             .select('active, category');
 
         if (payments && bData) {
-            const [selYear, selMonth] = selectedMonth.split('-').map(Number);
-            const startDate = new Date(selYear, selMonth - 1, 1);
-            const endDate = new Date(selYear, selMonth, 0, 23, 59, 59);
+            const startDate = new Date(dateRange.start);
+            startDate.setHours(0, 0, 0, 0);
+            const endDate = new Date(dateRange.end);
+            endDate.setHours(23, 59, 59, 999);
 
-            const mRev = payments
-                .filter(p => {
-                    const d = new Date(p.created_at);
-                    return d >= startDate && d <= endDate;
-                })
-                .reduce((acc, p) => acc + Number(p.amount), 0);
+            const filteredPayments = payments.filter((p: Payment) => {
+                const d = new Date(p.created_at);
+                return d >= startDate && d <= endDate;
+            });
 
-            const tRev = payments.reduce((acc, p) => acc + Number(p.amount), 0);
+            const mRev = filteredPayments.reduce((acc: number, p: Payment) => acc + Number(p.amount), 0);
+            const tRev = payments.reduce((acc: number, p: Payment) => acc + Number(p.amount), 0);
+
+            // Group data for chart
+            const chartDataMap: Record<string, number> = {};
+            const isSingleDay = dateRange.start === dateRange.end;
+
+            filteredPayments.forEach((p: Payment) => {
+                const d = new Date(p.created_at);
+                let key: string;
+                if (isSingleDay) {
+                    key = `${String(d.getHours()).padStart(2, '0')}:00`;
+                } else {
+                    key = d.toISOString().split('T')[0];
+                }
+                chartDataMap[key] = (chartDataMap[key] || 0) + Number(p.amount);
+            });
+
+            // Ensure all hours are present if single day
+            if (isSingleDay) {
+                for (let i = 0; i < 24; i++) {
+                    const h = `${String(i).padStart(2, '0')}:00`;
+                    if (!chartDataMap[h]) chartDataMap[h] = 0;
+                }
+            }
+
+            const chartData = Object.entries(chartDataMap)
+                .map(([name, value]) => ({ name, value }))
+                .sort((a, b) => a.name.localeCompare(b.name));
 
             const cats: Record<string, number> = {};
-            bData.forEach(b => {
+            bData.forEach((b: any) => {
                 if (b.category) cats[b.category] = (cats[b.category] || 0) + 1;
             });
 
             setGeneralStats({
                 totalBusinesses: bData.length,
-                activeBusinesses: bData.filter(b => b.active).length,
+                activeBusinesses: bData.filter((b: any) => b.active).length,
                 monthlyRevenue: mRev,
                 totalRevenue: tRev,
-                categoryDistribution: cats
+                categoryDistribution: cats,
+                chartData
             });
         }
-    };
-
-    const getMonthOptions = () => {
-        const options = [];
-        const now = new Date();
-        for (let i = 0; i < 12; i++) {
-            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-            const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-            const label = d.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
-            options.push({ val, label });
-        }
-        return options;
     };
 
     const toggleActive = async (id: string, currentStatus: boolean) => {
@@ -168,27 +199,26 @@ export default function AdminDashboard() {
                     <h1 style={{ color: '#7f1d1d', margin: 0 }}>Panel Administrador</h1>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'rgba(255,255,255,0.05)', padding: '0.5rem 1rem', borderRadius: '12px', border: '1px solid var(--border-light)' }}>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 'bold', whiteSpace: 'nowrap' }}>Filtrar Mes:</span>
-                    <select
-                        value={selectedMonth}
-                        onChange={(e) => setSelectedMonth(e.target.value)}
-                        style={{
-                            background: 'transparent',
-                            border: 'none',
-                            color: 'var(--text-main)',
-                            fontWeight: 'bold',
-                            cursor: 'pointer',
-                            outline: 'none',
-                            fontSize: '0.9rem'
-                        }}
-                    >
-                        {getMonthOptions().map(opt => (
-                            <option key={opt.val} value={opt.val} style={{ background: '#1a1a1a' }}>
-                                {opt.label.charAt(0).toUpperCase() + opt.label.slice(1)}
-                            </option>
-                        ))}
-                    </select>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'rgba(255,255,255,0.05)', padding: '0.5rem 1rem', borderRadius: '12px', border: '1px solid var(--border-light)', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Calendar size={16} />
+                        <span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Desde:</span>
+                        <input
+                            type="date"
+                            value={dateRange.start}
+                            onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                            style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', fontSize: '0.85rem', outline: 'none', cursor: 'pointer' }}
+                        />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Hasta:</span>
+                        <input
+                            type="date"
+                            value={dateRange.end}
+                            onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                            style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', fontSize: '0.85rem', outline: 'none', cursor: 'pointer' }}
+                        />
+                    </div>
                 </div>
 
                 <div style={{
@@ -200,7 +230,7 @@ export default function AdminDashboard() {
                 }}>
                     <div className="glass-card" style={{ padding: '1.25rem', borderLeft: '4px solid var(--primary)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                            <span style={{ fontSize: '0.85rem', fontWeight: '600', opacity: 0.7 }}>Ingresos ({getMonthOptions().find(o => o.val === selectedMonth)?.label.split(' ')[0]})</span>
+                            <span style={{ fontSize: '0.85rem', fontWeight: '600', opacity: 0.7 }}>Ingresos Periodo</span>
                             <TrendingUp size={18} color="var(--primary)" />
                         </div>
                         <div style={{ fontSize: '1.5rem', fontWeight: '800' }}>${generalStats.monthlyRevenue.toLocaleString()}</div>
@@ -228,7 +258,53 @@ export default function AdminDashboard() {
                     </div>
                 </div>
 
-                <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', maxWidth: '600px' }}>
+                <div className="glass-card" style={{ padding: '1.5rem', width: '100%', marginBottom: '2rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
+                        <BarChart3 size={20} color="var(--primary)" />
+                        <h3 style={{ margin: 0, color: 'var(--text-main)' }}>Evolución de Ingresos</h3>
+                    </div>
+                    <div style={{ width: '100%', height: '300px' }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={generalStats.chartData}>
+                                <defs>
+                                    <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
+                                <XAxis
+                                    dataKey="name"
+                                    stroke="rgba(255,255,255,0.5)"
+                                    fontSize={12}
+                                    tickLine={false}
+                                    axisLine={false}
+                                />
+                                <YAxis
+                                    stroke="rgba(255,255,255,0.5)"
+                                    fontSize={12}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    tickFormatter={(val) => `$${val}`}
+                                />
+                                <Tooltip
+                                    contentStyle={{ background: '#1a1a1a', border: '1px solid var(--glass-border)', borderRadius: '8px' }}
+                                    formatter={(val: any) => [`$${Number(val).toLocaleString()}`, 'Ingresos']}
+                                />
+                                <Area
+                                    type="monotone"
+                                    dataKey="value"
+                                    stroke="var(--primary)"
+                                    strokeWidth={3}
+                                    fillOpacity={1}
+                                    fill="url(#colorValue)"
+                                />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+
+                <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', maxWidth: '1000px', margin: '0 auto 2rem' }}>
                     <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem' }}>Suscripciones</h3>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
@@ -246,7 +322,7 @@ export default function AdminDashboard() {
                                         <input
                                             type="number"
                                             value={prices[tier.id].original}
-                                            onChange={(e) => setPrices(prev => ({ ...prev, [tier.id]: { ...prev[tier.id], original: Number(e.target.value) } }))}
+                                            onChange={(e) => setPrices((prev: any) => ({ ...prev, [tier.id]: { ...prev[tier.id], original: Number(e.target.value) } }))}
                                             className="input-field"
                                             style={{ width: '100px', margin: 0, padding: '4px 8px' }}
                                         />
@@ -256,7 +332,7 @@ export default function AdminDashboard() {
                                         <input
                                             type="number"
                                             value={prices[tier.id].promo}
-                                            onChange={(e) => setPrices(prev => ({ ...prev, [tier.id]: { ...prev[tier.id], promo: Number(e.target.value) } }))}
+                                            onChange={(e) => setPrices((prev: any) => ({ ...prev, [tier.id]: { ...prev[tier.id], promo: Number(e.target.value) } }))}
                                             className="input-field"
                                             style={{ width: '100px', margin: 0, padding: '4px 8px' }}
                                         />
@@ -344,6 +420,19 @@ export default function AdminDashboard() {
                                                         <BarChart3 size={14} /> Stats
                                                     </button>
                                                     <button
+                                                        onClick={() => setSelectedBusinessForTransfer({ id: business.id, name: business.name })}
+                                                        className="btn-primary"
+                                                        style={{
+                                                            padding: '6px 12px',
+                                                            fontSize: '0.8rem',
+                                                            background: 'rgba(255,255,255,0.05)',
+                                                            color: 'var(--text-main)',
+                                                            border: '1px solid var(--border-light)'
+                                                        }}
+                                                    >
+                                                        <UserPlus size={14} /> Transferir
+                                                    </button>
+                                                    <button
                                                         onClick={() => toggleActive(business.id, business.active)}
                                                         className="btn-primary"
                                                         style={{
@@ -371,6 +460,17 @@ export default function AdminDashboard() {
                     businessId={selectedBusinessForStats.id}
                     businessName={selectedBusinessForStats.name}
                     onClose={() => setSelectedBusinessForStats(null)}
+                />
+            )}
+            {selectedBusinessForTransfer && (
+                <TransferBusinessModal
+                    businessId={selectedBusinessForTransfer.id}
+                    businessName={selectedBusinessForTransfer.name}
+                    onClose={() => setSelectedBusinessForTransfer(null)}
+                    onSuccess={() => {
+                        setSelectedBusinessForTransfer(null);
+                        fetchBusinesses();
+                    }}
                 />
             )}
         </div>
