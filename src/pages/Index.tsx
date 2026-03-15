@@ -28,7 +28,7 @@ const Index: React.FC = () => {
                     alt="La Docta Vende"
                     style={{
                         width: '100%',
-                        maxWidth: '280px',
+                        maxWidth: '220px',
                         height: 'auto',
                         filter: 'drop-shadow(0 0 20px rgba(234, 179, 8, 0.3))'
                     }}
@@ -36,9 +36,9 @@ const Index: React.FC = () => {
             </div>
 
             {/* Slogan */}
-            <div className="animate-slide-up" style={{ textAlign: 'center', marginBottom: '1.5rem', animationDelay: '0.3s', opacity: 0 }}>
+            <div className="animate-slide-up" style={{ textAlign: 'center', marginBottom: '0.8rem', animationDelay: '0.3s', opacity: 0 }}>
                 <h1 style={{
-                    fontSize: '1.1rem',
+                    fontSize: '0.95rem',
                     fontWeight: '500',
                     lineHeight: '1.4',
                     maxWidth: '400px',
@@ -54,9 +54,9 @@ const Index: React.FC = () => {
             <div className="animate-slide-up" style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '1rem',
+                gap: '0.7rem',
                 width: '100%',
-                maxWidth: '320px',
+                maxWidth: '300px',
                 animationDelay: '0.6s',
                 opacity: 0
             }}>
