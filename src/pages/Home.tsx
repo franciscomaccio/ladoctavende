@@ -198,7 +198,7 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
                             </div>
                         ))
                     ) : (
-                        <p style={{ textAlign: 'center' }}>No se encontraron negocios.</p>
+                        <p style={{ textAlign: 'center' }}>No se encontraron {type === 'business' ? 'negocios' : 'clasificados'}.</p>
                     )
                 )}
             </div>
