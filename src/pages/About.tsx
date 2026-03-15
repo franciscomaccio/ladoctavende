@@ -1,5 +1,5 @@
 import React from 'react';
-import { Target, TrendingUp, MessageCircle, Mail, Search, Award } from 'lucide-react';
+import { Target, TrendingUp, MessageCircle, Mail, Search, Award, Instagram } from 'lucide-react';
 
 const About: React.FC = () => {
     return (
@@ -102,7 +102,7 @@ const About: React.FC = () => {
                             onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
                             onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
                         >
-                            <TrendingUp size={20} /> @ladoctavende
+                            <Instagram size={20} /> @ladoctavende
                         </a>
                     </div>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: '1.5' }}>
