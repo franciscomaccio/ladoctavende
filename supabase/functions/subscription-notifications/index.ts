@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
             errors: [] as string[]
         };
 
-        // 1. Businesses expiring TODAY (between today 00:00 and tomorrow 00:00)
+        // 1. Businesses expiring TODAY
         const { data: expiringToday, error: err1 } = await supabase
             .from('businesses')
             .select('id, name, owner_id, profiles!businesses_owner_id_fkey(email)')

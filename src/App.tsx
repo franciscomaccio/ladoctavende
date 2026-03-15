@@ -57,7 +57,8 @@ function Navigation() {
 
       <main style={{ paddingBottom: '70px' }}>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Home type="business" />} />
+          <Route path="/clasificados" element={<Home type="classified" />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
@@ -69,7 +70,7 @@ function Navigation() {
       <nav className="bottom-nav">
         <Link to="/" className={`nav-item ${location.pathname === '/' ? 'active' : ''}`}>
           <HomeIcon size={24} />
-          <span>Inicio</span>
+          <span>Negocios</span>
         </Link>
         <Link
           to="/"
@@ -90,6 +91,10 @@ function Navigation() {
         <Link to="/promos" className={`nav-item ${location.pathname === '/promos' ? 'active' : ''}`}>
           <Tag size={24} />
           <span>Promos</span>
+        </Link>
+        <Link to="/clasificados" className={`nav-item ${location.pathname === '/clasificados' ? 'active' : ''}`}>
+          <Search size={24} />
+          <span>Clasificados</span>
         </Link>
       </nav>
     </>

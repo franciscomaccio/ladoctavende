@@ -10,14 +10,22 @@ interface PromotionWithBusiness extends Promotion {
 
 import { useHorizontalScroll } from '../hooks/useHorizontalScroll';
 
-const DAYS = [
-    { id: 0, name: 'Dom' },
-    { id: 1, name: 'Lun' },
-    { id: 2, name: 'Mar' },
-    { id: 3, name: 'Mié' },
-    { id: 4, name: 'Jue' },
-    { id: 5, name: 'Vie' },
-    { id: 6, name: 'Sáb' }
+{ id: 6, name: 'Sáb' }
+];
+
+const CATEGORIES = [
+    { name: 'Belleza', icon: '💄' },
+    { name: 'Deportes', icon: '⚽' },
+    { name: 'Educación', icon: '📚' },
+    { name: 'Gastronomía', icon: '🍔' },
+    { name: 'Hogar', icon: '🏠' },
+    { name: 'Inmobiliaria', icon: '🏢' },
+    { name: 'Mascotas', icon: '🐾' },
+    { name: 'Moda', icon: '👕' },
+    { name: 'Salud', icon: '🏥' },
+    { name: 'Servicios', icon: '🛠️' },
+    { name: 'Tecnología', icon: '💻' },
+    { name: 'Otros', icon: '✨' }
 ];
 
 export default function Promotions() {
@@ -27,6 +35,7 @@ export default function Promotions() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedDay, setSelectedDay] = useState<number | null>(new Date().getDay());
+    const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [selectedPromotion, setSelectedPromotion] = useState<PromotionWithBusiness | null>(null);
 
     useEffect(() => {
@@ -35,7 +44,7 @@ export default function Promotions() {
 
     useEffect(() => {
         filterPromos();
-    }, [searchTerm, promotions, selectedDay]);
+    }, [searchTerm, promotions, selectedDay, selectedCategory]);
 
     function filterPromos() {
         const lowerSearch = searchTerm.toLowerCase();
@@ -47,6 +56,10 @@ export default function Promotions() {
 
         if (selectedDay !== null) {
             filtered = filtered.filter(p => p.days_of_week.includes(selectedDay));
+        }
+
+        if (selectedCategory) {
+            filtered = filtered.filter(p => p.businesses.category === selectedCategory);
         }
 
         setFilteredPromos(filtered);
@@ -114,6 +127,20 @@ export default function Promotions() {
                         style={{ padding: '8px 16px', minWidth: 'auto' }}
                     >
                         <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>{day.name}</span>
+                    </div>
+                ))}
+            </div>
+
+            {/* Category Filter */}
+            <div ref={scrollRef} style={{ display: 'flex', overflowX: 'auto', gap: '0.5rem', marginBottom: '1.5rem', paddingBottom: '0.5rem', scrollbarWidth: 'none' }}>
+                {CATEGORIES.map(cat => (
+                    <div
+                        key={cat.name}
+                        className={`category-pill ${selectedCategory === cat.name ? 'active' : ''}`}
+                        onClick={() => setSelectedCategory(selectedCategory === cat.name ? null : cat.name)}
+                    >
+                        <div className="category-icon">{cat.icon}</div>
+                        <span style={{ fontSize: '0.75rem', fontWeight: '500' }}>{cat.name}</span>
                     </div>
                 ))}
             </div>

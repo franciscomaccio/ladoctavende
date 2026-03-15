@@ -25,7 +25,7 @@ const CATEGORIES = [
     { name: 'Otros', icon: '✨' }
 ];
 
-export default function Home() {
+export default function Home({ type = 'business' }: { type?: 'business' | 'classified' }) {
     const scrollRef = useHorizontalScroll();
     const [businesses, setBusinesses] = useState<Business[]>([]);
     const [filteredBusinesses, setFilteredBusinesses] = useState<Business[]>([]);
@@ -40,11 +40,11 @@ export default function Home() {
     useEffect(() => {
         fetchBusinesses();
         fetchPromotions();
-    }, []);
+    }, [type]);
 
     useEffect(() => {
         filterContent();
-    }, [searchTerm, selectedCategory, selectedDay, businesses, promotions, viewMode]);
+    }, [searchTerm, selectedCategory, selectedDay, businesses, promotions, viewMode, type]);
 
     async function fetchPromotions() {
         try {
@@ -54,6 +54,13 @@ export default function Home() {
                 .returns<PromotionWithBusiness[]>();
 
             if (error) throw error;
+            // Only show promos from active businesses of the current type? 
+            // Actually user asked for "promos" to have category filter, 
+            // but didn't specify if they should be restricted by type.
+            // Usually promos are for businesses, not classifieds.
+            // Let's stick to what was there but maybe filter by type if needed?
+            // "en la sección de promos, a lo que ya está, agregar el filtro por rubros como está en negocios."
+            // For now, let's just make fetchBusinesses filter by type.
             setPromotions(data?.filter(p => p.businesses.active) || []);
         } catch (error) {
             console.error('Error fetching promotions:', error);
@@ -61,11 +68,13 @@ export default function Home() {
     }
 
     async function fetchBusinesses() {
+        setLoading(true);
         try {
             const { data, error } = await supabase
                 .from('businesses')
                 .select('*')
                 .eq('active', true)
+                .eq('type', type)
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
@@ -130,7 +139,7 @@ export default function Home() {
                     type="text"
                     className="input-field"
                     style={{ paddingLeft: '50px', background: '#f3f4f6', border: 'none' }}
-                    placeholder="Buscar negocios..."
+                    placeholder={type === 'business' ? "Buscar negocios..." : "Buscar clasificados..."}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />

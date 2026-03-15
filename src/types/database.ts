@@ -21,6 +21,7 @@ export type Business = {
     subscription_expires_at: string | null;
     created_at: string;
     updated_at: string;
+    type: 'business' | 'classified';
 };
 
 export type Promotion = {

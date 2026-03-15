@@ -59,6 +59,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
         phone: business?.phone || '',
         image_url: business?.image_url || '',
         website_url: business?.website_url || '',
+        type: business?.type || 'business' as 'business' | 'classified',
     });
     const [position, setPosition] = useState<[number, number]>([
         business?.location_lat || 0,
@@ -341,6 +342,46 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                 </div>
 
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    {/* Business Type Selection */}
+                    <div style={{ background: '#f9fafb', padding: '1rem', borderRadius: '12px', border: '1px solid var(--border-light)' }}>
+                        <label style={{ display: 'block', marginBottom: '0.75rem', fontSize: '0.9rem', fontWeight: '800', textAlign: 'center' }}>¿Qué querés publicar?</label>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                            <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, type: 'business' })}
+                                style={{
+                                    padding: '0.75rem',
+                                    borderRadius: '10px',
+                                    border: '2px solid',
+                                    borderColor: formData.type === 'business' ? 'var(--primary)' : 'transparent',
+                                    background: formData.type === 'business' ? 'white' : 'transparent',
+                                    boxShadow: formData.type === 'business' ? '0 4px 6px -1px rgba(0,0,0,0.1)' : 'none',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                <div style={{ fontWeight: '700', fontSize: '0.9rem', color: formData.type === 'business' ? 'var(--primary)' : 'var(--text-main)', marginBottom: '4px' }}>Negocio / Servicio</div>
+                                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', lineHeight: '1.2' }}>Para comercios, profesionales o servicios permanentes.</div>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, type: 'classified' })}
+                                style={{
+                                    padding: '0.75rem',
+                                    borderRadius: '10px',
+                                    border: '2px solid',
+                                    borderColor: formData.type === 'classified' ? 'var(--primary)' : 'transparent',
+                                    background: formData.type === 'classified' ? 'white' : 'transparent',
+                                    boxShadow: formData.type === 'classified' ? '0 4px 6px -1px rgba(0,0,0,0.1)' : 'none',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                <div style={{ fontWeight: '700', fontSize: '0.9rem', color: formData.type === 'classified' ? 'var(--primary)' : 'var(--text-main)', marginBottom: '4px' }}>Clasificado</div>
+                                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', lineHeight: '1.2' }}>Para ventas puntuales y temporales (ej: auto, muebles).</div>
+                            </button>
+                        </div>
+                    </div>
                     <div>
                         <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>Nombre</label>
                         <input
