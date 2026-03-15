@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Search, Tag, MessageCircle, MapPin, X, Globe } from 'lucide-react';
+import { Search, Tag, MessageCircle, MapPin, X, Globe, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Business, Promotion } from '../types/database';
 import { recordBusinessEvent } from '../lib/analytics';
 
@@ -35,7 +35,8 @@ const CATEGORIES = [
 ];
 
 export default function Promotions() {
-    const scrollRef = useHorizontalScroll();
+    const dayScrollRef = useHorizontalScroll();
+    const catScrollRef = useHorizontalScroll();
     const [promotions, setPromotions] = useState<PromotionWithBusiness[]>([]);
     const [filteredPromos, setFilteredPromos] = useState<PromotionWithBusiness[]>([]);
     const [loading, setLoading] = useState(true);
@@ -43,6 +44,52 @@ export default function Promotions() {
     const [selectedDay, setSelectedDay] = useState<number | null>(new Date().getDay());
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [selectedPromotion, setSelectedPromotion] = useState<PromotionWithBusiness | null>(null);
+
+    const [showDayLeft, setShowDayLeft] = useState(false);
+    const [showDayRight, setShowDayRight] = useState(false);
+    const [showCatLeft, setShowCatLeft] = useState(false);
+    const [showCatRight, setShowCatRight] = useState(false);
+
+    const updateDayArrows = () => {
+        const el = dayScrollRef.current;
+        if (el) {
+            setShowDayLeft(el.scrollLeft > 10);
+            setShowDayRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 10);
+        }
+    };
+
+    const updateCatArrows = () => {
+        const el = catScrollRef.current;
+        if (el) {
+            setShowCatLeft(el.scrollLeft > 10);
+            setShowCatRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 10);
+        }
+    };
+
+    useEffect(() => {
+        const dayEl = dayScrollRef.current;
+        const catEl = catScrollRef.current;
+
+        if (dayEl) {
+            updateDayArrows();
+            dayEl.addEventListener('scroll', updateDayArrows);
+        }
+        if (catEl) {
+            updateCatArrows();
+            catEl.addEventListener('scroll', updateCatArrows);
+        }
+        window.addEventListener('resize', () => {
+            updateDayArrows();
+            updateCatArrows();
+        });
+
+        return () => {
+            dayEl?.removeEventListener('scroll', updateDayArrows);
+            catEl?.removeEventListener('scroll', updateCatArrows);
+            window.removeEventListener('resize', updateDayArrows);
+            window.removeEventListener('resize', updateCatArrows);
+        };
+    }, [promotions]);
 
     useEffect(() => {
         fetchPromotions();
@@ -118,9 +165,14 @@ export default function Promotions() {
             <h1 style={{ fontSize: '1.75rem', fontWeight: '800', marginBottom: '1.5rem', color: 'var(--text-main)' }}>Promociones</h1>
 
             {/* Day Filter */}
-            <div className="categories-container" style={{ marginBottom: '1rem' }}>
+            <div className="categories-container" style={{ marginBottom: '1rem', position: 'relative' }}>
+                {showDayLeft && (
+                    <div className="carousel-arrow left" style={{ opacity: 0.6 }}>
+                        <ChevronLeft size={20} />
+                    </div>
+                )}
                 <div
-                    ref={scrollRef}
+                    ref={dayScrollRef}
                     style={{
                         display: 'flex',
                         overflowX: 'auto',
@@ -128,7 +180,7 @@ export default function Promotions() {
                         paddingBottom: '0.5rem',
                         scrollbarWidth: 'none',
                         scrollSnapType: 'x mandatory',
-                        paddingRight: '60px'
+                        paddingRight: '40px'
                     }}
                 >
                     <div
@@ -149,12 +201,22 @@ export default function Promotions() {
                         </div>
                     ))}
                 </div>
+                {showDayRight && (
+                    <div className="carousel-arrow right" style={{ opacity: 0.6 }}>
+                        <ChevronRight size={20} />
+                    </div>
+                )}
             </div>
 
             {/* Category Filter */}
-            <div className="categories-container">
+            <div className="categories-container" style={{ position: 'relative' }}>
+                {showCatLeft && (
+                    <div className="carousel-arrow left" style={{ opacity: 0.6 }}>
+                        <ChevronLeft size={20} />
+                    </div>
+                )}
                 <div
-                    ref={scrollRef}
+                    ref={catScrollRef}
                     style={{
                         display: 'flex',
                         overflowX: 'auto',
@@ -162,7 +224,7 @@ export default function Promotions() {
                         paddingBottom: '0.5rem',
                         scrollbarWidth: 'none',
                         scrollSnapType: 'x mandatory',
-                        paddingRight: '60px'
+                        paddingRight: '40px'
                     }}
                 >
                     {CATEGORIES.map(cat => (
@@ -176,6 +238,11 @@ export default function Promotions() {
                         </div>
                     ))}
                 </div>
+                {showCatRight && (
+                    <div className="carousel-arrow right" style={{ opacity: 0.6 }}>
+                        <ChevronRight size={20} />
+                    </div>
+                )}
             </div>
 
             <div style={{ position: 'relative', margin: '0 0 1.5rem' }}>
