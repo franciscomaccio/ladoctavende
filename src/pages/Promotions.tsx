@@ -9,8 +9,14 @@ interface PromotionWithBusiness extends Promotion {
 }
 
 import { useHorizontalScroll } from '../hooks/useHorizontalScroll';
-
-{ id: 6, name: 'Sáb' }
+const DAYS = [
+    { id: 0, name: 'Dom' },
+    { id: 1, name: 'Lun' },
+    { id: 2, name: 'Mar' },
+    { id: 3, name: 'Mié' },
+    { id: 4, name: 'Jue' },
+    { id: 5, name: 'Vie' },
+    { id: 6, name: 'Sáb' }
 ];
 
 const CATEGORIES = [
