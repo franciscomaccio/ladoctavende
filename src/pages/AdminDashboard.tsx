@@ -40,6 +40,8 @@ export default function AdminDashboard() {
         activeBusinesses: 0,
         monthlyRevenue: 0,
         totalRevenue: 0,
+        totalVisits: 0,
+        periodVisits: 0,
         categoryDistribution: {} as Record<string, number>,
         chartData: [] as any[]
     });
@@ -56,7 +58,7 @@ export default function AdminDashboard() {
         if (isAdmin) {
             fetchBusinesses();
             fetchPrice();
-            fetchPayments();
+            fetchDashboardData();
         }
     }, [isAdmin, dateRange]);
 
@@ -89,7 +91,7 @@ export default function AdminDashboard() {
         }
     };
 
-    const fetchPayments = async () => {
+    const fetchDashboardData = async () => {
         const { data: payments } = await supabase
             .from('payments')
             .select('*') as { data: Payment[] | null };
@@ -98,7 +100,11 @@ export default function AdminDashboard() {
             .from('businesses')
             .select('active, category');
 
-        if (payments && bData) {
+        const { data: vData } = await supabase
+            .from('site_visits')
+            .select('created_at');
+
+        if (payments && bData && vData) {
             const startDate = new Date(dateRange.start);
             startDate.setHours(0, 0, 0, 0);
             const endDate = new Date(dateRange.end);
@@ -109,12 +115,25 @@ export default function AdminDashboard() {
                 return d >= startDate && d <= endDate;
             });
 
+            const filteredVisits = vData.filter((v: any) => {
+                const d = new Date(v.created_at);
+                return d >= startDate && d <= endDate;
+            });
+
             const mRev = filteredPayments.reduce((acc: number, p: Payment) => acc + Number(p.amount), 0);
             const tRev = payments.reduce((acc: number, p: Payment) => acc + Number(p.amount), 0);
 
             // Group data for chart
-            const chartDataMap: Record<string, number> = {};
+            const chartDataMap: Record<string, { revenue: number, visits: number }> = {};
             const isSingleDay = dateRange.start === dateRange.end;
+
+            // Initialize map with empty values
+            if (isSingleDay) {
+                for (let i = 0; i < 24; i++) {
+                    const h = `${String(i).padStart(2, '0')}:00`;
+                    chartDataMap[h] = { revenue: 0, visits: 0 };
+                }
+            }
 
             filteredPayments.forEach((p: Payment) => {
                 const d = new Date(p.created_at);
@@ -124,19 +143,24 @@ export default function AdminDashboard() {
                 } else {
                     key = d.toISOString().split('T')[0];
                 }
-                chartDataMap[key] = (chartDataMap[key] || 0) + Number(p.amount);
+                if (!chartDataMap[key]) chartDataMap[key] = { revenue: 0, visits: 0 };
+                chartDataMap[key].revenue += Number(p.amount);
             });
 
-            // Ensure all hours are present if single day
-            if (isSingleDay) {
-                for (let i = 0; i < 24; i++) {
-                    const h = `${String(i).padStart(2, '0')}:00`;
-                    if (!chartDataMap[h]) chartDataMap[h] = 0;
+            filteredVisits.forEach((v: any) => {
+                const d = new Date(v.created_at);
+                let key: string;
+                if (isSingleDay) {
+                    key = `${String(d.getHours()).padStart(2, '0')}:00`;
+                } else {
+                    key = d.toISOString().split('T')[0];
                 }
-            }
+                if (!chartDataMap[key]) chartDataMap[key] = { revenue: 0, visits: 0 };
+                chartDataMap[key].visits += 1;
+            });
 
             const chartData = Object.entries(chartDataMap)
-                .map(([name, value]) => ({ name, value }))
+                .map(([name, data]) => ({ name, revenue: data.revenue, visits: data.visits }))
                 .sort((a, b) => a.name.localeCompare(b.name));
 
             const cats: Record<string, number> = {};
@@ -149,6 +173,8 @@ export default function AdminDashboard() {
                 activeBusinesses: bData.filter((b: any) => b.active).length,
                 monthlyRevenue: mRev,
                 totalRevenue: tRev,
+                totalVisits: vData.length,
+                periodVisits: filteredVisits.length,
                 categoryDistribution: cats,
                 chartData
             });
@@ -256,12 +282,19 @@ export default function AdminDashboard() {
                         </div>
                         <div style={{ fontSize: '1.5rem', fontWeight: '800' }}>${generalStats.totalRevenue.toLocaleString()}</div>
                     </div>
+                    <div className="glass-card" style={{ padding: '1.25rem', borderLeft: '4px solid #f26522' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                            <span style={{ fontSize: '0.85rem', fontWeight: '600', opacity: 0.7 }}>Visitas (Total / Periodo)</span>
+                            <Users size={18} color="#f26522" />
+                        </div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: '800' }}>{generalStats.totalVisits} / {generalStats.periodVisits}</div>
+                    </div>
                 </div>
 
                 <div className="glass-card" style={{ padding: '1.5rem', width: '100%', marginBottom: '2rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
                         <BarChart3 size={20} color="var(--primary)" />
-                        <h3 style={{ margin: 0, color: 'var(--text-main)' }}>Evolución de Ingresos</h3>
+                        <h3 style={{ margin: 0, color: 'var(--text-main)' }}>Evolución de Ingresos y Tráfico</h3>
                     </div>
                     <div style={{ width: '100%', height: '300px' }}>
                         <ResponsiveContainer width="100%" height="100%">
@@ -270,6 +303,10 @@ export default function AdminDashboard() {
                                     <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3} />
                                         <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
+                                    </linearGradient>
+                                    <linearGradient id="colorVisits" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#f26522" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="#f26522" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
@@ -281,23 +318,45 @@ export default function AdminDashboard() {
                                     axisLine={false}
                                 />
                                 <YAxis
-                                    stroke="rgba(255,255,255,0.5)"
+                                    yAxisId="left"
+                                    stroke="var(--primary)"
                                     fontSize={12}
                                     tickLine={false}
                                     axisLine={false}
                                     tickFormatter={(val) => `$${val}`}
                                 />
+                                <YAxis
+                                    yAxisId="right"
+                                    orientation="right"
+                                    stroke="#f26522"
+                                    fontSize={12}
+                                    tickLine={false}
+                                    axisLine={false}
+                                />
                                 <Tooltip
                                     contentStyle={{ background: '#1a1a1a', border: '1px solid var(--glass-border)', borderRadius: '8px' }}
-                                    formatter={(val: any) => [`$${Number(val).toLocaleString()}`, 'Ingresos']}
+                                    formatter={(val: any, name: any) => [
+                                        name === 'revenue' ? `$${Number(val).toLocaleString()}` : val,
+                                        name === 'revenue' ? 'Ingresos' : 'Visitas'
+                                    ]}
                                 />
                                 <Area
+                                    yAxisId="left"
                                     type="monotone"
-                                    dataKey="value"
+                                    dataKey="revenue"
                                     stroke="var(--primary)"
                                     strokeWidth={3}
                                     fillOpacity={1}
                                     fill="url(#colorValue)"
+                                />
+                                <Area
+                                    yAxisId="right"
+                                    type="monotone"
+                                    dataKey="visits"
+                                    stroke="#f26522"
+                                    strokeWidth={2}
+                                    fillOpacity={1}
+                                    fill="url(#colorVisits)"
                                 />
                             </AreaChart>
                         </ResponsiveContainer>
