@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { CheckCircle, XCircle, Settings, LayoutDashboard, Calendar, Users, TrendingUp, BarChart3, PieChart, UserPlus } from 'lucide-react';
@@ -54,6 +54,55 @@ export default function AdminDashboard() {
         })(),
         end: new Date().toISOString().split('T')[0]
     });
+
+    const [filterOwner, setFilterOwner] = useState('');
+    const [filterStatus, setFilterStatus] = useState('all');
+    const [filterCategory, setFilterCategory] = useState('all');
+    const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' | null }>({ key: '', direction: null });
+
+    const uniqueCategories = useMemo(() => Array.from(new Set(businesses.map(b => b.category))).sort(), [businesses]);
+
+    const processedBusinesses = useMemo(() => {
+        let result = [...businesses];
+
+        if (filterOwner) {
+            const term = filterOwner.toLowerCase();
+            result = result.filter(b => b.profiles?.email?.toLowerCase().includes(term));
+        }
+        if (filterStatus !== 'all') {
+            const isActive = filterStatus === 'active';
+            result = result.filter(b => b.active === isActive);
+        }
+        if (filterCategory !== 'all') {
+            result = result.filter(b => b.category === filterCategory);
+        }
+
+        if (sortConfig.key && sortConfig.direction) {
+            result.sort((a, b) => {
+                let aValue: any = a[sortConfig.key as keyof Business];
+                let bValue: any = b[sortConfig.key as keyof Business];
+
+                if (sortConfig.key === 'owner') {
+                    aValue = a.profiles?.email || '';
+                    bValue = b.profiles?.email || '';
+                }
+
+                if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+                if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+        }
+
+        return result;
+    }, [businesses, filterOwner, filterStatus, filterCategory, sortConfig]);
+
+    const handleSort = (key: string) => {
+        let direction: 'asc' | 'desc' | null = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') direction = 'desc';
+        else if (sortConfig.key === key && sortConfig.direction === 'desc') direction = null;
+
+        setSortConfig({ key, direction });
+    };
 
     useEffect(() => {
         if (isAdmin) {
@@ -424,20 +473,61 @@ export default function AdminDashboard() {
                 <p>Cargando negocios...</p>
             ) : (
                 <div className="glass-card" style={{ padding: '1rem' }}>
+                    <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+                        <input
+                            type="text"
+                            placeholder="Buscar por dueño..."
+                            value={filterOwner}
+                            onChange={(e) => setFilterOwner(e.target.value)}
+                            className="input-field"
+                            style={{ margin: 0, minWidth: '200px', flex: 1 }}
+                        />
+                        <select
+                            value={filterCategory}
+                            onChange={(e) => setFilterCategory(e.target.value)}
+                            className="input-field"
+                            style={{ margin: 0, minWidth: '200px', flex: 1 }}
+                        >
+                            <option value="all">Todas las Categorías</option>
+                            {uniqueCategories.map(c => (
+                                <option key={c} value={c}>{c}</option>
+                            ))}
+                        </select>
+                        <select
+                            value={filterStatus}
+                            onChange={(e) => setFilterStatus(e.target.value)}
+                            className="input-field"
+                            style={{ margin: 0, minWidth: '200px', flex: 1 }}
+                        >
+                            <option value="all">Todos los Estados</option>
+                            <option value="active">Activos</option>
+                            <option value="inactive">Inactivos</option>
+                        </select>
+                    </div>
                     <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', width: '100%' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
                             <thead>
                                 <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
-                                    <th style={{ textAlign: 'left', padding: '1rem' }}>Negocio</th>
-                                    <th style={{ textAlign: 'left', padding: '1rem' }}>Dueño</th>
-                                    <th style={{ textAlign: 'left', padding: '1rem' }}>Categoría</th>
-                                    <th style={{ textAlign: 'left', padding: '1rem' }}>Vencimiento</th>
-                                    <th style={{ textAlign: 'left', padding: '1rem' }}>Estado</th>
+                                    <th onClick={() => handleSort('name')} style={{ textAlign: 'left', padding: '1rem', cursor: 'pointer' }}>
+                                        Negocio {sortConfig.key === 'name' ? (sortConfig.direction === 'asc' ? '↑' : sortConfig.direction === 'desc' ? '↓' : '') : ''}
+                                    </th>
+                                    <th onClick={() => handleSort('owner')} style={{ textAlign: 'left', padding: '1rem', cursor: 'pointer' }}>
+                                        Dueño {sortConfig.key === 'owner' ? (sortConfig.direction === 'asc' ? '↑' : sortConfig.direction === 'desc' ? '↓' : '') : ''}
+                                    </th>
+                                    <th onClick={() => handleSort('category')} style={{ textAlign: 'left', padding: '1rem', cursor: 'pointer' }}>
+                                        Categoría {sortConfig.key === 'category' ? (sortConfig.direction === 'asc' ? '↑' : sortConfig.direction === 'desc' ? '↓' : '') : ''}
+                                    </th>
+                                    <th onClick={() => handleSort('subscription_expires_at')} style={{ textAlign: 'left', padding: '1rem', cursor: 'pointer' }}>
+                                        Vencimiento {sortConfig.key === 'subscription_expires_at' ? (sortConfig.direction === 'asc' ? '↑' : sortConfig.direction === 'desc' ? '↓' : '') : ''}
+                                    </th>
+                                    <th onClick={() => handleSort('active')} style={{ textAlign: 'left', padding: '1rem', cursor: 'pointer' }}>
+                                        Estado {sortConfig.key === 'active' ? (sortConfig.direction === 'asc' ? '↑' : sortConfig.direction === 'desc' ? '↓' : '') : ''}
+                                    </th>
                                     <th style={{ textAlign: 'center', padding: '1rem' }}>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {businesses.map((business) => {
+                                {processedBusinesses.map((business) => {
                                     const isExpired = business.subscription_expires_at
                                         ? new Date(business.subscription_expires_at) < new Date()
                                         : true;
