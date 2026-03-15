@@ -147,17 +147,30 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
             </div>
 
             {/* Categories */}
-            <div ref={scrollRef} style={{ display: 'flex', overflowX: 'auto', gap: '0.5rem', marginBottom: '2rem', paddingBottom: '0.5rem', scrollbarWidth: 'none' }}>
-                {CATEGORIES.map(cat => (
-                    <div
-                        key={cat.name}
-                        className={`category-pill ${selectedCategory === cat.name ? 'active' : ''}`}
-                        onClick={() => setSelectedCategory(selectedCategory === cat.name ? null : cat.name)}
-                    >
-                        <div className="category-icon">{cat.icon}</div>
-                        <span style={{ fontSize: '0.75rem', fontWeight: '500' }}>{cat.name}</span>
-                    </div>
-                ))}
+            <div className="categories-container">
+                <div
+                    ref={scrollRef}
+                    style={{
+                        display: 'flex',
+                        overflowX: 'auto',
+                        gap: '0.2rem',
+                        paddingBottom: '0.5rem',
+                        scrollbarWidth: 'none',
+                        scrollSnapType: 'x mandatory',
+                        paddingRight: '60px' // Space for the fade effect and to ensure peek
+                    }}
+                >
+                    {CATEGORIES.map(cat => (
+                        <div
+                            key={cat.name}
+                            className={`category-pill ${selectedCategory === cat.name ? 'active' : ''}`}
+                            onClick={() => setSelectedCategory(selectedCategory === cat.name ? null : cat.name)}
+                        >
+                            <div className="category-icon">{cat.icon}</div>
+                            <span style={{ fontSize: '0.75rem', fontWeight: '500' }}>{cat.name}</span>
+                        </div>
+                    ))}
+                </div>
             </div>
 
             {/* List */}
