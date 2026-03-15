@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Search, Tag, MessageCircle, MapPin, X, Globe } from 'lucide-react';
+import { Search, Tag, MessageCircle, MapPin, X, Globe, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Business, Promotion } from '../types/database';
 import { recordBusinessEvent } from '../lib/analytics';
 
@@ -36,6 +36,29 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
     const [viewMode] = useState<'businesses' | 'promotions'>('businesses');
     const [promotions, setPromotions] = useState<PromotionWithBusiness[]>([]);
     const [selectedDay] = useState<number | null>(null);
+    const [showLeftArrow, setShowLeftArrow] = useState(false);
+    const [showRightArrow, setShowRightArrow] = useState(false);
+
+    const updateArrowsVisibility = () => {
+        const el = scrollRef.current;
+        if (el) {
+            setShowLeftArrow(el.scrollLeft > 10);
+            setShowRightArrow(el.scrollLeft + el.clientWidth < el.scrollWidth - 10);
+        }
+    };
+
+    useEffect(() => {
+        const el = scrollRef.current;
+        if (el) {
+            updateArrowsVisibility();
+            el.addEventListener('scroll', updateArrowsVisibility);
+            window.addEventListener('resize', updateArrowsVisibility);
+            return () => {
+                el.removeEventListener('scroll', updateArrowsVisibility);
+                window.removeEventListener('resize', updateArrowsVisibility);
+            };
+        }
+    }, [businesses]); // Update when businesses change which might affect categories (though categories are static here, let's keep it safe)
 
     useEffect(() => {
         fetchBusinesses();
@@ -147,7 +170,12 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
             </div>
 
             {/* Categories */}
-            <div className="categories-container">
+            <div className="categories-container" style={{ position: 'relative' }}>
+                {showLeftArrow && (
+                    <div className="carousel-arrow left" style={{ opacity: 0.6 }}>
+                        <ChevronLeft size={20} />
+                    </div>
+                )}
                 <div
                     ref={scrollRef}
                     style={{
@@ -157,7 +185,7 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
                         paddingBottom: '0.5rem',
                         scrollbarWidth: 'none',
                         scrollSnapType: 'x mandatory',
-                        paddingRight: '60px' // Space for the fade effect and to ensure peek
+                        paddingRight: '40px'
                     }}
                 >
                     {CATEGORIES.map(cat => (
@@ -171,6 +199,11 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
                         </div>
                     ))}
                 </div>
+                {showRightArrow && (
+                    <div className="carousel-arrow right" style={{ opacity: 0.6 }}>
+                        <ChevronRight size={20} />
+                    </div>
+                )}
             </div>
 
             {/* List */}

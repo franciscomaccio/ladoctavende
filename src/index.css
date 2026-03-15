@@ -170,10 +170,42 @@ body {
   top: 0;
   right: 0;
   bottom: 0px;
-  width: 60px;
+  width: 40px;
   background: linear-gradient(to right, rgba(248, 249, 250, 0), rgba(248, 249, 250, 1));
   pointer-events: none;
-  z-index: 10;
+  z-index: 5;
+}
+
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--border-light);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-main);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  z-index: 20;
+  transition: opacity 0.3s ease;
+  backdrop-filter: blur(4px);
+}
+
+.carousel-arrow.left {
+  left: 4px;
+}
+
+.carousel-arrow.right {
+  right: 4px;
+}
+
+.carousel-arrow:hover {
+  background: white;
 }
 
 .nav-item.active {
