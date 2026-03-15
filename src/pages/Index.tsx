@@ -13,8 +13,8 @@ const Index: React.FC = () => {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center',
-            padding: '1rem',
+            justifyContent: 'flex-start',
+            padding: '3rem 1rem 1rem 1rem',
             position: 'relative',
             overflow: 'hidden'
         }}>
