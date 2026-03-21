@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
-import { CheckCircle, XCircle, Settings, LayoutDashboard, Calendar, Users, TrendingUp, BarChart3, PieChart, UserPlus } from 'lucide-react';
+import { CheckCircle, XCircle, Settings, LayoutDashboard, Calendar, Users, TrendingUp, BarChart3, PieChart, UserPlus, Trash2 } from 'lucide-react';
 import { BusinessStatsModal } from '../components/BusinessStatsModal';
 import { TransferBusinessModal } from '../components/TransferBusinessModal';
 import { translateError } from '../utils/translateError';
@@ -243,6 +243,34 @@ export default function AdminDashboard() {
             .update({ active: !currentStatus })
             .eq('id', id);
         if (!error) fetchBusinesses();
+    };
+
+    const handleUpdateExpiry = async (id: string, newDate: string) => {
+        const { error } = await supabase
+            .from('businesses')
+            .update({ subscription_expires_at: newDate ? new Date(newDate).toISOString() : null })
+            .eq('id', id);
+
+        if (error) {
+            alert('Error al actualizar fecha: ' + translateError(error.message));
+        } else {
+            fetchBusinesses();
+        }
+    };
+
+    const handleDeleteBusiness = async (id: string, name: string) => {
+        if (window.confirm(`¿Estás seguro de que deseas eliminar DEFINITIVAMENTE el negocio "${name}"?\nEsta acción no se puede deshacer y borrará permanentemente sus estadísticas y registros de pago.`)) {
+            const { error } = await supabase
+                .from('businesses')
+                .delete()
+                .eq('id', id);
+
+            if (error) {
+                alert('Error al eliminar negocio: ' + translateError(error.message));
+            } else {
+                fetchBusinesses();
+            }
+        }
     };
 
     const updatePrice = async () => {
@@ -561,9 +589,12 @@ export default function AdminDashboard() {
                                             <td style={{ padding: '1rem' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: isExpired ? 'var(--error)' : 'var(--text-main)' }}>
                                                     <Calendar size={14} />
-                                                    {business.subscription_expires_at
-                                                        ? new Date(business.subscription_expires_at).toLocaleDateString()
-                                                        : 'Sin fecha'}
+                                                    <input
+                                                        type="date"
+                                                        defaultValue={business.subscription_expires_at ? business.subscription_expires_at.split('T')[0] : ''}
+                                                        onChange={(e) => handleUpdateExpiry(business.id, e.target.value)}
+                                                        style={{ background: 'transparent', border: 'none', color: 'inherit', outline: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.9rem' }}
+                                                    />
                                                 </div>
                                             </td>
                                             <td style={{ padding: '1rem' }}>
@@ -616,6 +647,22 @@ export default function AdminDashboard() {
                                                     >
                                                         {business.active ? <XCircle size={14} /> : <CheckCircle size={14} />}
                                                         {business.active ? ' Desactivar' : ' Activar'}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteBusiness(business.id, business.name)}
+                                                        className="btn-primary"
+                                                        style={{
+                                                            padding: '6px 12px',
+                                                            fontSize: '0.8rem',
+                                                            background: 'rgba(239, 68, 68, 0.1)',
+                                                            color: '#ef4444',
+                                                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '4px'
+                                                        }}
+                                                    >
+                                                        <Trash2 size={14} /> Eliminar
                                                     </button>
                                                 </div>
                                             </td>
