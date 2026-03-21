@@ -27,11 +27,11 @@ export default function AdminDashboard() {
     const { isAdmin } = useAuth();
     const [businesses, setBusinesses] = useState<Business[]>([]);
     const [loading, setLoading] = useState(true);
-    const [prices, setPrices] = useState<Record<string, { original: number, promo: number }>>({
-        '1m': { original: 0, promo: 0 },
-        '3m': { original: 0, promo: 0 },
-        '6m': { original: 0, promo: 0 },
-        '12m': { original: 0, promo: 0 },
+    const [prices, setPrices] = useState<Record<string, { original: number, promo: number, active: boolean }>>({
+        '1m': { original: 0, promo: 0, active: true },
+        '3m': { original: 0, promo: 0, active: true },
+        '6m': { original: 0, promo: 0, active: true },
+        '12m': { original: 0, promo: 0, active: true },
     });
     const [promoDescription, setPromoDescription] = useState<string>('');
     const [selectedBusinessForStats, setSelectedBusinessForStats] = useState<{ id: string, name: string } | null>(null);
@@ -135,8 +135,10 @@ export default function AdminDashboard() {
             ['1m', '3m', '6m', '12m'].forEach(tier => {
                 const pVal = data.find((c: any) => c.key === `subscription_price_${tier}`)?.value;
                 const oVal = data.find((c: any) => c.key === `original_price_${tier}`)?.value;
+                const aVal = data.find((c: any) => c.key === `subscription_active_${tier}`)?.value;
                 if (pVal !== undefined) newPrices[tier as keyof typeof prices].promo = Number(pVal);
                 if (oVal !== undefined) newPrices[tier as keyof typeof prices].original = Number(oVal);
+                if (aVal !== undefined) newPrices[tier as keyof typeof prices].active = aVal === 'true';
             });
             setPrices(newPrices);
 
@@ -252,6 +254,7 @@ export default function AdminDashboard() {
             ['1m', '3m', '6m', '12m'].forEach(tier => {
                 updates.push({ key: `subscription_price_${tier}`, value: prices[tier].promo.toString() });
                 updates.push({ key: `original_price_${tier}`, value: prices[tier].original.toString() });
+                updates.push({ key: `subscription_active_${tier}`, value: prices[tier].active.toString() });
             });
 
             for (const update of updates) {
@@ -431,8 +434,18 @@ export default function AdminDashboard() {
                             { id: '6m', label: '6 Meses' },
                             { id: '12m', label: '12 Meses' }
                         ].map((tier) => (
-                            <div key={tier.id} style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '12px' }}>
-                                <h4 style={{ margin: '0 0 1rem', color: 'var(--accent)' }}>{tier.label}</h4>
+                            <div key={tier.id} style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '12px', opacity: prices[tier.id].active ? 1 : 0.6 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                                    <h4 style={{ margin: 0, color: 'var(--accent)' }}>{tier.label}</h4>
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                                        <input
+                                            type="checkbox"
+                                            checked={prices[tier.id].active}
+                                            onChange={(e) => setPrices((prev: any) => ({ ...prev, [tier.id]: { ...prev[tier.id], active: e.target.checked } }))}
+                                        />
+                                        <span style={{ fontSize: '0.85rem' }}>Visible</span>
+                                    </label>
+                                </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                         <span style={{ fontSize: '0.85rem' }}>Precio Real ($):</span>

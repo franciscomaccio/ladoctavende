@@ -72,11 +72,11 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
     const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
     const [isCropping, setIsCropping] = useState(false);
 
-    const [tierPrices, setTierPrices] = useState<Record<string, { original: number, promo: number }>>({
-        '1m': { original: 0, promo: 0 },
-        '3m': { original: 0, promo: 0 },
-        '6m': { original: 0, promo: 0 },
-        '12m': { original: 0, promo: 0 },
+    const [tierPrices, setTierPrices] = useState<Record<string, { original: number, promo: number, active: boolean }>>({
+        '1m': { original: 0, promo: 0, active: false },
+        '3m': { original: 0, promo: 0, active: false },
+        '6m': { original: 0, promo: 0, active: false },
+        '12m': { original: 0, promo: 0, active: false },
     });
     const [selectedTier, setSelectedTier] = useState<string>('1m');
     const [promoDescription, setPromoDescription] = useState<string>('');
@@ -118,10 +118,17 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                 ['1m', '3m', '6m', '12m'].forEach(tier => {
                     const p = data.find(c => c.key === `subscription_price_${tier}`)?.value;
                     const o = data.find(c => c.key === `original_price_${tier}`)?.value;
+                    const a = data.find(c => c.key === `subscription_active_${tier}`)?.value;
                     if (p !== undefined) newPrices[tier].promo = Number(p);
                     if (o !== undefined) newPrices[tier].original = Number(o);
+                    if (a !== undefined) newPrices[tier].active = a === 'true';
                 });
                 setTierPrices(newPrices);
+
+                const activeTiers = ['1m', '3m', '6m', '12m'].filter(t => newPrices[t].active);
+                if (activeTiers.length > 0 && !activeTiers.includes(selectedTier)) {
+                    setSelectedTier(activeTiers[0]);
+                }
 
                 const d = data.find(c => c.key === 'promo_description')?.value;
                 if (d) setPromoDescription(d);
@@ -311,7 +318,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
             const { data, error: funcError } = await supabase.functions.invoke('mercadopago-payment', {
                 body: {
                     businessId: businessId,
-                    businessName: formData.name,
+                    businessName: `${formData.name} - Suscripción ${selectedTier === '1m' ? '1 Mes' : selectedTier.replace('m', ' Meses')}`,
                     amount: tierPrices[selectedTier].promo,
                     months: parseInt(selectedTier.replace('m', '')),
                     email: (await supabase.auth.getUser()).data.user?.email,
@@ -498,7 +505,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                                     { id: '3m', label: '3 Meses' },
                                     { id: '6m', label: '6 Meses' },
                                     { id: '12m', label: '12 Meses' }
-                                ].map((tier) => (
+                                ].filter(tier => tierPrices[tier.id].active).map((tier) => (
                                     <button
                                         key={tier.id}
                                         type="button"
@@ -541,6 +548,9 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                                         ${tierPrices[selectedTier].promo.toLocaleString()}
                                     </span>
                                 </div>
+                                {['1m', '3m', '6m', '12m'].filter(t => tierPrices[t].active).length === 0 && (
+                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>No hay planes disponibles por el momento.</p>
+                                )}
                                 {promoDescription && (
                                     <p style={{
                                         fontSize: '0.85rem',
