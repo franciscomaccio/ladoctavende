@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
         const supabaseUrl = Deno.env.get("SUPABASE_URL");
         if (!supabaseUrl) throw new Error("Missing SUPABASE_URL");
 
-        const confirmationUrl = `\${supabaseUrl}/auth/v1/verify?token=\${token_hash}&type=\${email_action_type}&redirect_to=\${encodeURIComponent(redirect_to)}`;
+        const confirmationUrl = `${supabaseUrl}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(redirect_to)}`;
         console.log("Confirmation URL generated:", confirmationUrl);
 
         let subject = "";
@@ -93,9 +93,9 @@ Deno.serve(async (req) => {
                         <h1>La Docta Vende</h1>
                     </div>
                     <div class="content">
-                        <h2>\${title}</h2>
-                        <p>\${message}</p>
-                        <a href="\${confirmationUrl}" class="button">\${buttonText}</a>
+                        <h2>${title}</h2>
+                        <p>${message}</p>
+                        <a href="${confirmationUrl}" class="button">${buttonText}</a>
                     </div>
                     <div class="footer">
                         <p><strong>La Docta Vende</strong> - Córdoba, Argentina</p>
