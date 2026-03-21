@@ -601,8 +601,8 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
 
                 {
                     isCropping && imageSrc && (
-                        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'white', zIndex: 3000, display: 'flex', flexDirection: 'column' }}>
-                            <div style={{ position: 'relative', flex: 1, width: '100%' }}>
+                        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100dvh', background: '#111', zIndex: 3000, display: 'flex', flexDirection: 'column' }}>
+                            <div style={{ position: 'relative', flex: 1, width: '100%', minHeight: 0 }}>
                                 <Cropper
                                     image={imageSrc}
                                     crop={crop}
@@ -613,8 +613,8 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                                     onZoomChange={setZoom}
                                 />
                             </div>
-                            <div style={{ padding: '2rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
-                                <button type="button" className="btn-primary" style={{ background: '#f3f4f6', color: 'black' }} onClick={() => setIsCropping(false)}>Cancelar</button>
+                            <div style={{ padding: '1rem', display: 'flex', justifyContent: 'center', gap: '1rem', background: '#111', borderTop: '1px solid #333' }}>
+                                <button type="button" className="btn-primary" style={{ background: '#333', color: 'white' }} onClick={() => setIsCropping(false)}>Cancelar</button>
                                 <button type="button" className="btn-primary" onClick={applyCrop}>Confirmar</button>
                             </div>
                         </div>
