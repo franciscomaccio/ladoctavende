@@ -526,7 +526,12 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                                         }}
                                     >
                                         <span style={{ fontWeight: '700', fontSize: '1rem' }}>{tier.label}</span>
-                                        <span style={{ fontSize: '0.8rem', opacity: 0.8 }}>
+                                        {tierPrices[tier.id].original > tierPrices[tier.id].promo && (
+                                            <span style={{ textDecoration: 'line-through', fontSize: '0.85rem', opacity: 0.6 }}>
+                                                ${tierPrices[tier.id].original.toLocaleString()}
+                                            </span>
+                                        )}
+                                        <span style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
                                             ${tierPrices[tier.id].promo.toLocaleString()}
                                         </span>
                                     </button>
