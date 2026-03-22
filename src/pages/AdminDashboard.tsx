@@ -651,18 +651,18 @@ export default function AdminDashboard() {
                                                     <button
                                                         onClick={() => handleDeleteBusiness(business.id, business.name)}
                                                         className="btn-primary"
+                                                        title="Eliminar"
                                                         style={{
-                                                            padding: '6px 12px',
-                                                            fontSize: '0.8rem',
+                                                            padding: '6px 10px',
                                                             background: 'rgba(239, 68, 68, 0.1)',
                                                             color: '#ef4444',
                                                             border: '1px solid rgba(239, 68, 68, 0.3)',
                                                             display: 'flex',
                                                             alignItems: 'center',
-                                                            gap: '4px'
+                                                            justifyContent: 'center'
                                                         }}
                                                     >
-                                                        <Trash2 size={14} /> Eliminar
+                                                        <Trash2 size={16} />
                                                     </button>
                                                 </div>
                                             </td>
