@@ -451,7 +451,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                             className="input-field"
                             value={formData.phone}
                             onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                            placeholder="54911..."
+                            placeholder="549351..."
                         />
                     </div>
 
