@@ -330,13 +330,15 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
                                 <Globe size={20} /> Web
                             </button>
 
-                            <button
-                                className="btn-map"
-                                style={{ flex: 1, padding: '12px', justifyContent: 'center' }}
-                                onClick={(e) => openMaps(e, selectedBusiness.id, selectedBusiness.location_lat || 0, selectedBusiness.location_lng || 0)}
-                            >
-                                <MapPin size={20} /> Mapa
-                            </button>
+                            {selectedBusiness.location_lat && selectedBusiness.location_lng && (
+                                <button
+                                    className="btn-map"
+                                    style={{ flex: 1, padding: '12px', justifyContent: 'center' }}
+                                    onClick={(e) => openMaps(e, selectedBusiness.id, selectedBusiness.location_lat || 0, selectedBusiness.location_lng || 0)}
+                                >
+                                    <MapPin size={20} /> Mapa
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>

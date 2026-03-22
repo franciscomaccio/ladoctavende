@@ -29,7 +29,7 @@ interface BusinessFormProps {
     userId: string;
 }
 
-function LocationPicker({ position, setPosition }: { position: [number, number], setPosition: (pos: [number, number]) => void }) {
+function LocationPicker({ position, setPosition }: { position: [number | null, number | null], setPosition: (pos: [number | null, number | null]) => void }) {
     const map = useMap();
 
     useEffect(() => {
@@ -47,7 +47,7 @@ function LocationPicker({ position, setPosition }: { position: [number, number],
         },
     });
 
-    return position[0] ? <Marker position={position} /> : null;
+    return position[0] !== null ? <Marker position={position as [number, number]} /> : null;
 }
 
 export default function BusinessForm({ business, onClose, onSave, userId }: BusinessFormProps) {
@@ -61,9 +61,9 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
         website_url: business?.website_url || '',
         type: business?.type || 'business' as 'business' | 'classified',
     });
-    const [position, setPosition] = useState<[number, number]>([
-        business?.location_lat || 0,
-        business?.location_lng || 0
+    const [position, setPosition] = useState<[number | null, number | null]>([
+        business?.location_lat ?? null,
+        business?.location_lng ?? null
     ]);
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imageSrc, setImageSrc] = useState<string | null>(null);
@@ -482,10 +482,26 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600' }}>Ubicación</label>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600' }}>Ubicación</label>
+                            <button
+                                type="button"
+                                onClick={() => setPosition([null, null])}
+                                style={{
+                                    fontSize: '0.75rem',
+                                    color: 'var(--primary)',
+                                    background: 'none',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    fontWeight: '600'
+                                }}
+                            >
+                                Sin ubicación
+                            </button>
+                        </div>
                         <div style={{ height: '200px', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-light)' }}>
                             <MapContainer
-                                center={position[0] ? position : [-31.4201, -64.1888]} // Coordinates center
+                                center={(position[0] !== null ? position : [-31.4201, -64.1888]) as [number, number]} // Coordinates center
                                 zoom={15}
                                 style={{ height: '100%', width: '100%' }}
                             >

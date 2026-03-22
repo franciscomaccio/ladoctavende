@@ -388,13 +388,15 @@ export default function Promotions() {
                                 <Globe size={20} /> Web
                             </button>
 
-                            <button
-                                className="btn-map"
-                                style={{ flex: 1, padding: '12px', justifyContent: 'center' }}
-                                onClick={(e) => openMaps(e, selectedPromotion.businesses.id, selectedPromotion.businesses.location_lat || 0, selectedPromotion.businesses.location_lng || 0, selectedPromotion.id)}
-                            >
-                                <MapPin size={20} /> Mapa
-                            </button>
+                            {selectedPromotion.businesses.location_lat && selectedPromotion.businesses.location_lng && (
+                                <button
+                                    className="btn-map"
+                                    style={{ flex: 1, padding: '12px', justifyContent: 'center' }}
+                                    onClick={(e) => openMaps(e, selectedPromotion.businesses.id, selectedPromotion.businesses.location_lat || 0, selectedPromotion.businesses.location_lng || 0, selectedPromotion.id)}
+                                >
+                                    <MapPin size={20} /> Mapa
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
