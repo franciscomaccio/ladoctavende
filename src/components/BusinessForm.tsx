@@ -405,62 +405,61 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                         />
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                        <div style={{ flex: 1 }}>
-                            <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>
-                                Categorías <span style={{ fontWeight: '400', fontSize: '0.75rem', color: 'var(--text-muted)' }}>(Máximo 2)</span>
-                            </label>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                                {CATEGORIES.map(c => {
-                                    const isSelected = selectedCategories.includes(c);
-                                    return (
-                                        <button
-                                            key={c}
-                                            type="button"
-                                            onClick={() => {
-                                                if (isSelected) {
-                                                    setSelectedCategories(selectedCategories.filter(cat => cat !== c));
-                                                } else if (selectedCategories.length < 2) {
-                                                    setSelectedCategories([...selectedCategories, c]);
-                                                } else {
-                                                    alert('El límite es de 2 categorías.');
-                                                }
-                                            }}
-                                            style={{
-                                                padding: '6px 12px',
-                                                borderRadius: '20px',
-                                                fontSize: '0.8rem',
-                                                fontWeight: '600',
-                                                cursor: 'pointer',
-                                                transition: 'all 0.2s',
-                                                border: '1px solid',
-                                                background: isSelected ? 'var(--primary)' : 'transparent',
-                                                color: isSelected ? 'white' : 'var(--text-main)',
-                                                borderColor: isSelected ? 'var(--primary)' : 'var(--border-light)',
-                                            }}
-                                        >
-                                            {c}
-                                        </button>
-                                    );
-                                })}
-                            </div>
+                    <div>
+                        <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>
+                            Categorías <span style={{ fontWeight: '400', fontSize: '0.75rem', color: 'var(--text-muted)' }}>(Máximo 2)</span>
+                        </label>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                            {CATEGORIES.map(c => {
+                                const isSelected = selectedCategories.includes(c);
+                                return (
+                                    <button
+                                        key={c}
+                                        type="button"
+                                        onClick={() => {
+                                            if (isSelected) {
+                                                setSelectedCategories(selectedCategories.filter(cat => cat !== c));
+                                            } else if (selectedCategories.length < 2) {
+                                                setSelectedCategories([...selectedCategories, c]);
+                                            } else {
+                                                alert('El límite es de 2 categorías.');
+                                            }
+                                        }}
+                                        style={{
+                                            padding: '6px 12px',
+                                            borderRadius: '20px',
+                                            fontSize: '0.8rem',
+                                            fontWeight: '600',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                            border: '1px solid',
+                                            background: isSelected ? 'var(--primary)' : 'transparent',
+                                            color: isSelected ? 'white' : 'var(--text-main)',
+                                            borderColor: isSelected ? 'var(--primary)' : 'var(--border-light)',
+                                        }}
+                                    >
+                                        {c}
+                                    </button>
+                                );
+                            })}
                         </div>
-                        <div style={{ flex: 1 }}>
-                            <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>WhatsApp</label>
-                            <input
-                                className="input-field"
-                                value={formData.phone}
-                                onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                                placeholder="54911..."
-                            />
-                        </div>
+                    </div>
+
+                    <div>
+                        <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>WhatsApp</label>
+                        <input
+                            className="input-field"
+                            value={formData.phone}
+                            onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                            placeholder="54911..."
+                        />
                     </div>
 
                     <div>
                         <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>Descripción</label>
                         <textarea
                             className="input-field"
-                            style={{ height: '80px', resize: 'none' }}
+                            style={{ height: '110px', resize: 'none' }}
                             value={formData.description}
                             onChange={e => setFormData({ ...formData, description: e.target.value })}
                             placeholder="Contanos qué haces..."
