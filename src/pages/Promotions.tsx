@@ -123,7 +123,7 @@ export default function Promotions() {
         }
 
         if (selectedCategory) {
-            filtered = filtered.filter(p => p.businesses.category === selectedCategory);
+            filtered = filtered.filter(p => p.businesses.category?.split(',').map(s => s.trim()).includes(selectedCategory));
         }
 
         setFilteredPromos(filtered);

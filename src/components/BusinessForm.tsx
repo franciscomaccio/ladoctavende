@@ -4,7 +4,7 @@ import type { Business } from '../types/database';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { Save, X, Upload, Scissors, Globe, CreditCard, CheckCircle } from 'lucide-react';
+import { Save, X, Upload, Scissors, Globe, CreditCard, CheckCircle, MapPinOff } from 'lucide-react';
 import Cropper from 'react-easy-crop';
 import { getCroppedImg } from '../utils/imageUtils';
 import { translateError } from '../utils/translateError';
@@ -55,12 +55,14 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
     const [formData, setFormData] = useState({
         name: business?.name || '',
         description: business?.description || '',
-        category: business?.category || CATEGORIES[0],
         phone: business?.phone || '',
         image_url: business?.image_url || '',
         website_url: business?.website_url || '',
         type: business?.type || 'business' as 'business' | 'classified',
     });
+    const [selectedCategories, setSelectedCategories] = useState<string[]>(
+        business?.category ? business.category.split(',').map(s => s.trim()) : []
+    );
     const [position, setPosition] = useState<[number | null, number | null]>([
         business?.location_lat ?? null,
         business?.location_lng ?? null
@@ -160,6 +162,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
 
             const businessData = {
                 ...formData,
+                category: selectedCategories.join(', '),
                 image_url: finalImageUrl,
                 location_lat: position[0],
                 location_lng: position[1],
@@ -198,6 +201,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
         if (!businessId) {
             const businessData = {
                 ...formData,
+                category: selectedCategories.join(', '),
                 image_url: finalImageUrl,
                 location_lat: position[0],
                 location_lng: position[1],
@@ -218,6 +222,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                 .from('businesses')
                 .update({
                     ...formData,
+                    category: selectedCategories.join(', '),
                     image_url: finalImageUrl,
                     location_lat: position[0],
                     location_lng: position[1],
@@ -235,8 +240,8 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
             alert('Por favor, ingresá el nombre del negocio.');
             return false;
         }
-        if (!formData.category) {
-            alert('Por favor, seleccioná una categoría.');
+        if (selectedCategories.length === 0) {
+            alert('Por favor, seleccioná al menos una categoría.');
             return false;
         }
         if (!formData.phone.trim()) {
@@ -401,15 +406,44 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                        <div>
-                            <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>Categoría</label>
-                            <select
-                                className="input-field"
-                                value={formData.category}
-                                onChange={e => setFormData({ ...formData, category: e.target.value })}
-                            >
-                                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                            </select>
+                        <div style={{ flex: 1 }}>
+                            <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>
+                                Categorías <span style={{ fontWeight: '400', fontSize: '0.75rem', color: 'var(--text-muted)' }}>(Máximo 2)</span>
+                            </label>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                {CATEGORIES.map(c => {
+                                    const isSelected = selectedCategories.includes(c);
+                                    return (
+                                        <button
+                                            key={c}
+                                            type="button"
+                                            onClick={() => {
+                                                if (isSelected) {
+                                                    setSelectedCategories(selectedCategories.filter(cat => cat !== c));
+                                                } else if (selectedCategories.length < 2) {
+                                                    setSelectedCategories([...selectedCategories, c]);
+                                                } else {
+                                                    alert('El límite es de 2 categorías.');
+                                                }
+                                            }}
+                                            style={{
+                                                padding: '6px 12px',
+                                                borderRadius: '20px',
+                                                fontSize: '0.8rem',
+                                                fontWeight: '600',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s',
+                                                border: '1px solid',
+                                                background: isSelected ? 'var(--primary)' : 'transparent',
+                                                color: isSelected ? 'white' : 'var(--text-main)',
+                                                borderColor: isSelected ? 'var(--primary)' : 'var(--border-light)',
+                                            }}
+                                        >
+                                            {c}
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
                         <div style={{ flex: 1 }}>
                             <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>WhatsApp</label>
@@ -482,24 +516,41 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600' }}>Ubicación</label>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '8px 12px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <div style={{ background: 'var(--primary)', color: 'white', padding: '4px', borderRadius: '6px', display: 'flex' }}>
+                                    <Globe size={14} />
+                                </div>
+                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '700', color: '#1e293b' }}>Ubicación en Mapa</label>
+                            </div>
                             <button
                                 type="button"
                                 onClick={() => setPosition([null, null])}
                                 style={{
-                                    fontSize: '0.75rem',
-                                    color: 'var(--primary)',
-                                    background: 'none',
-                                    border: 'none',
+                                    fontSize: '0.8rem',
+                                    color: '#ef4444',
+                                    background: '#fef2f2',
+                                    border: '1px solid #fee2e2',
+                                    padding: '6px 12px',
+                                    borderRadius: '8px',
                                     cursor: 'pointer',
-                                    fontWeight: '600'
+                                    fontWeight: '700',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    transition: 'all 0.2s'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.background = '#fee2e2';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.background = '#fef2f2';
                                 }}
                             >
-                                Sin ubicación
+                                <MapPinOff size={14} /> Sin ubicación
                             </button>
                         </div>
-                        <div style={{ height: '200px', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-light)' }}>
+                        <div style={{ height: '200px', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-light)', marginTop: '0.25rem' }}>
                             <MapContainer
                                 center={(position[0] !== null ? position : [-31.4201, -64.1888]) as [number, number]} // Coordinates center
                                 zoom={15}

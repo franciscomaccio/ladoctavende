@@ -132,7 +132,7 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
                 );
             }
             if (selectedCategory) {
-                filtered = filtered.filter(b => b.category === selectedCategory);
+                filtered = filtered.filter(b => b.category?.split(',').map(s => s.trim()).includes(selectedCategory));
             }
             setFilteredBusinesses(filtered);
         }
