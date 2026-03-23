@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { CheckCircle, XCircle, Settings, LayoutDashboard, Calendar, Users, TrendingUp, BarChart3, PieChart, UserPlus, Trash2 } from 'lucide-react';
 import { BusinessStatsModal } from '../components/BusinessStatsModal';
 import { TransferBusinessModal } from '../components/TransferBusinessModal';
+import { RegisteredUsersModal } from '../components/RegisteredUsersModal';
 import { translateError } from '../utils/translateError';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { isSubscriptionExpired, toEndOfDayISO } from '../utils/dateUtils';
@@ -40,6 +41,7 @@ export default function AdminDashboard() {
     const [generalStats, setGeneralStats] = useState({
         totalBusinesses: 0,
         activeBusinesses: 0,
+        totalUsers: 0,
         monthlyRevenue: 0,
         totalRevenue: 0,
         totalVisits: 0,
@@ -47,6 +49,7 @@ export default function AdminDashboard() {
         categoryDistribution: {} as Record<string, number>,
         chartData: [] as any[]
     });
+    const [isUsersModalOpen, setIsUsersModalOpen] = useState(false);
     const [dateRange, setDateRange] = useState({
         start: (() => {
             const d = new Date();
@@ -161,6 +164,10 @@ export default function AdminDashboard() {
             .from('site_visits')
             .select('created_at');
 
+        const { count: usersCount } = await supabase
+            .from('profiles')
+            .select('*', { count: 'exact', head: true });
+
         if (payments && bData && vData) {
             const startDate = new Date(dateRange.start);
             startDate.setHours(0, 0, 0, 0);
@@ -228,6 +235,7 @@ export default function AdminDashboard() {
             setGeneralStats({
                 totalBusinesses: bData.length,
                 activeBusinesses: bData.filter((b: any) => b.active).length,
+                totalUsers: usersCount || 0,
                 monthlyRevenue: mRev,
                 totalRevenue: tRev,
                 totalVisits: vData.length,
@@ -371,6 +379,19 @@ export default function AdminDashboard() {
                             <PieChart size={18} color="#cb7f00" />
                         </div>
                         <div style={{ fontSize: '1.5rem', fontWeight: '800' }}>${generalStats.totalRevenue.toLocaleString()}</div>
+                    </div>
+                    <div 
+                        className="glass-card" 
+                        style={{ padding: '1.25rem', borderLeft: '4px solid var(--accent)', cursor: 'pointer', transition: 'transform 0.2s' }}
+                        onClick={() => setIsUsersModalOpen(true)}
+                        onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                        onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                    >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                            <span style={{ fontSize: '0.85rem', fontWeight: '600', opacity: 0.7 }}>Usuarios Registrados</span>
+                            <UserPlus size={18} color="var(--accent)" />
+                        </div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: '800' }}>{generalStats.totalUsers}</div>
                     </div>
                     <div className="glass-card" style={{ padding: '1.25rem', borderLeft: '4px solid #f26522' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
@@ -691,6 +712,9 @@ export default function AdminDashboard() {
                         fetchBusinesses();
                     }}
                 />
+            )}
+            {isUsersModalOpen && (
+                <RegisteredUsersModal onClose={() => setIsUsersModalOpen(false)} />
             )}
         </div>
     );
