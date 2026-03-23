@@ -145,7 +145,9 @@ export const RegisteredUsersModal = ({ onClose }: RegisteredUsersModalProps) => 
                                             {user.activeBusinesses === 0 && user.totalBusinesses > 0 ? (
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--error)' }}>
                                                     <Calendar size={14} />
-                                                    <span style={{ fontSize: '0.85rem' }}>{user.lastExpiration ? formatDate(user.lastExpiration) : 'Sin vencimiento'}</span>
+                                                    <span style={{ fontSize: '0.85rem' }}>
+                                                        {user.lastExpiration ? `Expiró: ${formatDate(user.lastExpiration)}` : 'Sin vencimiento'}
+                                                    </span>
                                                 </div>
                                             ) : user.activeBusinesses > 0 ? (
                                                 <span style={{ fontSize: '0.85rem', color: 'var(--success)', fontStyle: 'italic' }}>Cuenta Activa</span>

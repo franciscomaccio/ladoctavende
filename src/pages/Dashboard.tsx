@@ -164,7 +164,10 @@ export default function Dashboard() {
                                 <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                                         {business.subscription_expires_at && (
-                                            <div>Expira: {formatDate(business.subscription_expires_at)}</div>
+                                            <div>
+                                                {isSubscriptionExpired(business.subscription_expires_at) ? 'Expiró: ' : 'Expira: '}
+                                                {formatDate(business.subscription_expires_at)}
+                                            </div>
                                         )}
                                     </div>
                                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end', flex: 1 }}>

@@ -33,13 +33,19 @@ export const isSubscriptionExpired = (dateString: string | null | undefined): bo
     if (!dateString) return true; // No date means expired or no subscription
     
     try {
-        const expiryDate = new Date(dateString);
-        const now = new Date();
+        // We compare only the date part (YYYY-MM-DD) to ensure users have
+        // access until the end of their expiration day locally.
+        const expiryDatePart = dateString.split('T')[0];
         
-        // If it was saved as UTC midnight, we should probably check against UTC "now"
-        // or just compare the day parts.
-        // For safety, we compare the absolute timestamp.
-        return expiryDate < now;
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const todayPart = `${year}-${month}-${day}`;
+        
+        // It is only expired if today's date is strictly GREATER than the expiry date.
+        // If today matches the expiry date, they still have access.
+        return todayPart > expiryDatePart;
     } catch (error) {
         return true;
     }
