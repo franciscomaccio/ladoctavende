@@ -10,6 +10,7 @@ import BusinessStats from '../components/BusinessStats';
 import UpdatePasswordForm from '../components/UpdatePasswordForm';
 import { BarChart2, Key } from 'lucide-react';
 import { translateError } from '../utils/translateError';
+import { formatDate, isSubscriptionExpired } from '../utils/dateUtils';
 
 interface BusinessWithPromos extends Business {
     promotions: Promotion[];
@@ -149,7 +150,7 @@ export default function Dashboard() {
                                         <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{business.category}</span>
                                     </div>
                                     {(() => {
-                                        const isExpired = business.subscription_expires_at ? new Date(business.subscription_expires_at) < new Date() : false;
+                                        const isExpired = isSubscriptionExpired(business.subscription_expires_at);
                                         const status = !business.active ? 'Oculto' : isExpired ? 'Vencido' : 'Visible';
                                         const color = status === 'Visible' ? 'var(--success)' : 'var(--error)';
                                         return (
@@ -163,7 +164,7 @@ export default function Dashboard() {
                                 <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                                         {business.subscription_expires_at && (
-                                            <div>Expira: {new Date(business.subscription_expires_at).toLocaleDateString()}</div>
+                                            <div>Expira: {formatDate(business.subscription_expires_at)}</div>
                                         )}
                                     </div>
                                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end', flex: 1 }}>

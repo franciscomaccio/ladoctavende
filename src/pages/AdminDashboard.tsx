@@ -6,6 +6,7 @@ import { BusinessStatsModal } from '../components/BusinessStatsModal';
 import { TransferBusinessModal } from '../components/TransferBusinessModal';
 import { translateError } from '../utils/translateError';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { isSubscriptionExpired, toEndOfDayISO } from '../utils/dateUtils';
 
 interface Business {
     id: string;
@@ -248,7 +249,7 @@ export default function AdminDashboard() {
     const handleUpdateExpiry = async (id: string, newDate: string) => {
         const { error } = await supabase
             .from('businesses')
-            .update({ subscription_expires_at: newDate ? new Date(newDate).toISOString() : null })
+            .update({ subscription_expires_at: newDate ? toEndOfDayISO(newDate) : null })
             .eq('id', id);
 
         if (error) {
@@ -577,9 +578,7 @@ export default function AdminDashboard() {
                             </thead>
                             <tbody>
                                 {processedBusinesses.map((business) => {
-                                    const isExpired = business.subscription_expires_at
-                                        ? new Date(business.subscription_expires_at) < new Date()
-                                        : true;
+                                    const isExpired = isSubscriptionExpired(business.subscription_expires_at);
 
                                     return (
                                         <tr key={business.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>

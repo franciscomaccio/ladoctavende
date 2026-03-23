@@ -8,6 +8,7 @@ import { Save, X, Upload, Scissors, Globe, CreditCard, CheckCircle, MapPinOff } 
 import Cropper from 'react-easy-crop';
 import { getCroppedImg } from '../utils/imageUtils';
 import { translateError } from '../utils/translateError';
+import { isSubscriptionExpired } from '../utils/dateUtils';
 
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
@@ -183,7 +184,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
         }
     };
 
-    const isExpired = business?.subscription_expires_at ? new Date(business.subscription_expires_at) < new Date() : false;
+    const isExpired = isSubscriptionExpired(business?.subscription_expires_at);
     const needsPayment = !business || !business.active || isExpired;
 
     const saveOrCreateBusiness = async () => {
