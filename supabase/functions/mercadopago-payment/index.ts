@@ -31,19 +31,31 @@ Deno.serve(async (req) => {
 
         const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
         const body = await req.json();
+        console.log("Receiving event:", JSON.stringify(body));
 
         // 1. Webhook logic (Mercado Pago notifying us)
-        if (body.type === 'payment' || body.action?.includes('payment')) {
-            const paymentId = body.data?.id || body.resource?.split('/').pop();
-            if (!paymentId) return new Response(JSON.stringify({ error: 'No ID found' }), { status: 400 });
+        // Mercado Pago sends webhooks either with body.type or with topic query param
+        const urlParams = new URL(req.url).searchParams;
+        const topic = body.type || body.topic || urlParams.get('topic');
+        const paymentId = body.data?.id || (topic === 'payment' ? urlParams.get('id') : null) || body.resource?.split('/').pop();
+
+        if (topic === 'payment' || topic === 'payment.created' || topic === 'payment.updated' || (body.action && body.action.includes('payment'))) {
+            if (!paymentId) {
+                console.error('No ID found in payment event');
+                return new Response(JSON.stringify({ error: 'No ID found' }), { status: 400 });
+            }
 
             console.log(`Processing Webhook for Payment ID: ${paymentId}`);
-
+            // ... (keep the rest of the payment logic)
             const paymentResponse = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
                 headers: { 'Authorization': `Bearer ${MP_ACCESS_TOKEN}` }
             });
 
-            if (!paymentResponse.ok) throw new Error("Error fetching payment details from MP");
+            if (!paymentResponse.ok) {
+                const errorText = await paymentResponse.text();
+                console.error(`Error fetching payment details from MP: ${errorText}`);
+                throw new Error("Error fetching payment details from MP");
+            }
             const payment = await paymentResponse.json();
 
             if (payment.status === 'approved') {
@@ -98,6 +110,12 @@ Deno.serve(async (req) => {
                 }
             }
             return new Response(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders });
+        }
+
+        // Handle other types of notifications (merchant_order, etc.) by returning 200
+        if (urlParams.get('topic') || body.type) {
+            console.log(`Acknowledging non-handled event: ${topic}`);
+            return new Response(JSON.stringify({ success: true, ignored: true }), { status: 200, headers: corsHeaders });
         }
 
         // 2. Preference creation (Frontend calling us)
