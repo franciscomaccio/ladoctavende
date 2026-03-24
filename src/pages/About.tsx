@@ -83,6 +83,28 @@ const About: React.FC = () => {
                             <Mail size={20} /> administracion@ladoctavende.com.ar
                         </a>
                         <a
+                            href="https://wa.me/5493512117700"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.75rem',
+                                background: '#25D366',
+                                color: 'white',
+                                padding: '1rem 2rem',
+                                borderRadius: '16px',
+                                textDecoration: 'none',
+                                fontWeight: 'bold',
+                                boxShadow: '0 10px 15px -3px rgba(37, 211, 102, 0.2)',
+                                transition: 'transform 0.2s'
+                            }}
+                            onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+                            onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                        >
+                            <MessageCircle size={20} /> 3512117700
+                        </a>
+                        <a
                             href="https://www.instagram.com/ladoctavende"
                             target="_blank"
                             rel="noopener noreferrer"
