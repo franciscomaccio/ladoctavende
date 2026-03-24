@@ -68,13 +68,13 @@ const About: React.FC = () => {
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '0.75rem',
-                                background: 'var(--primary)',
+                                background: '#3b82f6',
                                 color: 'white',
                                 padding: '1rem 2rem',
                                 borderRadius: '16px',
                                 textDecoration: 'none',
                                 fontWeight: 'bold',
-                                boxShadow: '0 10px 15px -3px rgba(0, 155, 58, 0.2)',
+                                boxShadow: '0 10px 15px -3px rgba(59, 130, 246, 0.2)',
                                 transition: 'transform 0.2s'
                             }}
                             onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
@@ -90,13 +90,13 @@ const About: React.FC = () => {
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '0.75rem',
-                                background: '#25D366',
+                                background: 'var(--primary)',
                                 color: 'white',
                                 padding: '1rem 2rem',
                                 borderRadius: '16px',
                                 textDecoration: 'none',
                                 fontWeight: 'bold',
-                                boxShadow: '0 10px 15px -3px rgba(37, 211, 102, 0.2)',
+                                boxShadow: '0 10px 15px -3px rgba(0, 155, 58, 0.2)',
                                 transition: 'transform 0.2s'
                             }}
                             onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
