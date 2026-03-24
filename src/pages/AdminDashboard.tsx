@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
-import { CheckCircle, XCircle, Settings, LayoutDashboard, Calendar, Users, TrendingUp, BarChart3, PieChart, UserPlus, Trash2 } from 'lucide-react';
+import { CheckCircle, XCircle, Settings, LayoutDashboard, Calendar, Users, TrendingUp, BarChart3, PieChart, UserPlus, Trash2, RotateCw } from 'lucide-react';
 import { BusinessStatsModal } from '../components/BusinessStatsModal';
 import { TransferBusinessModal } from '../components/TransferBusinessModal';
 import { RegisteredUsersModal } from '../components/RegisteredUsersModal';
@@ -124,7 +124,8 @@ export default function AdminDashboard() {
         const { data } = await supabase
             .from('businesses')
             .select('id, name, active, subscription_expires_at, category, profiles(email)')
-            .order('created_at', { ascending: false });
+            .order('created_at', { ascending: false })
+            .order('id', { ascending: false });
         if (data) setBusinesses(data as unknown as Business[]);
         setLoading(false);
     };
@@ -251,19 +252,26 @@ export default function AdminDashboard() {
             .from('businesses')
             .update({ active: !currentStatus })
             .eq('id', id);
-        if (!error) fetchBusinesses();
+        if (!error) {
+            setBusinesses(prev => prev.map(b => b.id === id ? { ...b, active: !currentStatus } : b));
+            setGeneralStats(prev => ({
+                ...prev,
+                activeBusinesses: prev.activeBusinesses + (!currentStatus ? 1 : -1)
+            }));
+        }
     };
 
     const handleUpdateExpiry = async (id: string, newDate: string) => {
+        const isoDate = newDate ? toEndOfDayISO(newDate) : null;
         const { error } = await supabase
             .from('businesses')
-            .update({ subscription_expires_at: newDate ? toEndOfDayISO(newDate) : null })
+            .update({ subscription_expires_at: isoDate })
             .eq('id', id);
 
         if (error) {
             alert('Error al actualizar fecha: ' + translateError(error.message));
         } else {
-            fetchBusinesses();
+            setBusinesses(prev => prev.map(b => b.id === id ? { ...b, subscription_expires_at: isoDate } : b));
         }
     };
 
@@ -574,6 +582,26 @@ export default function AdminDashboard() {
                             <option value="active">Activos</option>
                             <option value="inactive">Inactivos</option>
                         </select>
+                        <button
+                            onClick={() => {
+                                fetchBusinesses();
+                                fetchDashboardData();
+                            }}
+                            className="btn-primary"
+                            title="Actualizar lista"
+                            style={{
+                                margin: 0,
+                                padding: '0 1rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                background: 'rgba(255,255,255,0.05)',
+                                color: 'var(--text-main)',
+                                border: '1px solid var(--border-light)'
+                            }}
+                        >
+                            <RotateCw size={18} />
+                        </button>
                     </div>
                     <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', width: '100%' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
