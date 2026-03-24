@@ -46,7 +46,19 @@ Deno.serve(async (req) => {
             }
 
             console.log(`Processing Webhook for Payment ID: ${paymentId}`);
-            // ... (keep the rest of the payment logic)
+
+            // Check if already processed to avoid double counting and SQL errors (due to unique index)
+            const { data: existing } = await supabaseAdmin
+                .from('payments')
+                .select('id')
+                .eq('payment_id', paymentId)
+                .maybeSingle();
+
+            if (existing) {
+                console.log(`Payment ${paymentId} already processed.`);
+                return new Response(JSON.stringify({ success: true, duplicated: true }), { status: 200, headers: corsHeaders });
+            }
+
             const paymentResponse = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
                 headers: { 'Authorization': `Bearer ${MP_ACCESS_TOKEN}` }
             });
