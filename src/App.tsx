@@ -1,4 +1,5 @@
 import { HashRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import Home from './pages/Home';
 import Index from './pages/Index';
 import Auth from './pages/Auth';
@@ -99,9 +100,11 @@ function Navigation() {
 
 function App() {
   return (
-    <Router>
-      <Navigation />
-    </Router>
+    <HelmetProvider>
+      <Router>
+        <Navigation />
+      </Router>
+    </HelmetProvider>
   );
 }
 

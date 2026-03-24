@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { supabase } from '../lib/supabase';
 import { Search, Tag, MessageCircle, MapPin, X, Globe, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Business, Promotion } from '../types/database';
@@ -166,6 +167,10 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
 
     return (
         <div className="container-wide">
+            <Helmet>
+                <title>{type === 'business' ? 'Negocios en Córdoba - La Docta Vende' : 'Clasificados en Córdoba - La Docta Vende'}</title>
+                <meta name="description" content={type === 'business' ? 'Explorá los mejores comercios y servicios de Córdoba en un solo lugar.' : 'Encontrá avisos clasificados y productos en Córdoba, Argentina.'} />
+            </Helmet>
             {/* Search Bar */}
             <div style={{ position: 'relative', margin: '1rem 0 1.5rem' }}>
                 <Search size={20} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />

@@ -1,9 +1,14 @@
 import React from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Target, TrendingUp, MessageCircle, Mail, Search, Award, Instagram } from 'lucide-react';
 
 const About: React.FC = () => {
     return (
         <div style={{ minHeight: '100vh', background: 'var(--bg-main)', color: 'var(--text-main)', padding: '2rem 1rem 5rem' }}>
+            <Helmet>
+                <title>Información | La Docta Vende</title>
+                <meta name="description" content="Conocé más sobre La Docta Vende, la plataforma líder de comercios locales en Córdoba." />
+            </Helmet>
             <div style={{ maxWidth: '800px', margin: '0 auto' }}>
 
                 {/* Hero Section */}

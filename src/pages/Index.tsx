@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { supabase } from '../lib/supabase';
 import { Home, Tag, ShoppingBag, PlusCircle } from 'lucide-react';
 
@@ -30,6 +31,10 @@ const Index: React.FC = () => {
             position: 'relative',
             overflow: 'hidden'
         }}>
+            <Helmet>
+                <title>La Docta Vende | Publicá tu negocio en Córdoba</title>
+                <meta name="description" content="La plataforma para potenciar tu comercio o servicio en Córdoba. Registrate gratis y empezá a vender hoy mismo." />
+            </Helmet>
             {/* Glow effect matching the image */}
             <div className="landing-glow" style={{ top: '20%', left: '50%', transform: 'translate(-50%, -50%)' }} />
 
