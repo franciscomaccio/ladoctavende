@@ -20,7 +20,7 @@ export default function Dashboard() {
     const { user, loading: authLoading } = useAuth();
     const navigate = useNavigate();
     const [businesses, setBusinesses] = useState<BusinessWithPromos[]>([]);
-    const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
+    const [paymentDetails, setPaymentDetails] = useState<{ status: string, businessId?: string } | null>(null);
     const [loading, setLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
@@ -41,9 +41,16 @@ export default function Dashboard() {
         if (hash.includes('?')) {
             const params = new URLSearchParams(hash.split('?')[1]);
             const status = params.get('status');
+            const businessId = params.get('external_reference');
             if (status) {
-                setPaymentStatus(status);
+                setPaymentDetails({ status, businessId: businessId || undefined });
                 window.history.replaceState(null, '', hash.split('?')[0]);
+
+                if (status === 'success') {
+                    // Refresh multiple times to ensure we catch the webhook update
+                    setTimeout(() => fetchUserBusinesses(), 2000);
+                    setTimeout(() => fetchUserBusinesses(), 5000);
+                }
             }
         }
         if (user) fetchUserBusinesses();
@@ -124,9 +131,38 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {paymentStatus === 'success' && (
-                <div style={{ padding: '1rem', background: '#dcfce7', color: '#166534', borderRadius: '12px', marginBottom: '1.5rem', textAlign: 'center', fontSize: '0.9rem' }}>
-                    ¡Tu pago fue procesado con éxito!
+            {paymentDetails && (
+                <div style={{
+                    padding: '1.5rem',
+                    background: paymentDetails.status === 'success' ? '#dcfce7' : paymentDetails.status === 'pending' ? '#fef9c3' : '#fee2e2',
+                    color: paymentDetails.status === 'success' ? '#166534' : paymentDetails.status === 'pending' ? '#854d0e' : '#991b1b',
+                    borderRadius: '16px',
+                    marginBottom: '1.5rem',
+                    textAlign: 'center',
+                    border: '1px solid',
+                    borderColor: paymentDetails.status === 'success' ? '#bbf7d0' : paymentDetails.status === 'pending' ? '#fef08a' : '#fecaca',
+                    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
+                }}>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: '800', marginBottom: '0.5rem' }}>
+                        {paymentDetails.status === 'success' ? '¡Pago Aprobado!' :
+                            paymentDetails.status === 'pending' ? 'Pago Pendiente' : 'Hubo un error con el pago'}
+                    </h3>
+                    <p style={{ fontSize: '0.9rem', opacity: 0.9 }}>
+                        {paymentDetails.status === 'success' ? 'Tu suscripción ha sido activada/renovada exitosamente.' :
+                            paymentDetails.status === 'pending' ? 'Estamos esperando la confirmación de Mercado Pago. El negocio se activará automáticamente en unos minutos.' :
+                            'No pudimos procesar tu pago. Por favor, intentá nuevamente o contactanos si el problema persiste.'}
+                    </p>
+                    {paymentDetails.status === 'success' && paymentDetails.businessId && (
+                        <div style={{ marginTop: '0.75rem', fontWeight: '700', fontSize: '0.9rem' }}>
+                            {(() => {
+                                const b = businesses.find(bus => bus.id === paymentDetails.businessId);
+                                if (b?.subscription_expires_at) {
+                                    return `Nueva fecha de vencimiento: ${formatDate(b.subscription_expires_at)}`;
+                                }
+                                return 'Actualizando fecha de vencimiento...';
+                            })()}
+                        </div>
+                    )}
                 </div>
             )}
 

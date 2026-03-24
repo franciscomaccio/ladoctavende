@@ -91,12 +91,9 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.addEventListener('load', () => {
-                setImageSrc(reader.result as string);
-                setIsCropping(true);
-            });
-            reader.readAsDataURL(file);
+            const url = URL.createObjectURL(file);
+            setImageSrc(url);
+            setIsCropping(true);
         }
     };
 

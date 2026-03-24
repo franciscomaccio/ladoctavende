@@ -127,9 +127,9 @@ Deno.serve(async (req) => {
                 external_reference: businessId,
                 notification_url: notificationUrl,
                 back_urls: {
-                    success: `https://franciscomaccio.github.io/ladoctavende/#/dashboard?status=success`,
-                    failure: `https://franciscomaccio.github.io/ladoctavende/#/dashboard?status=failure`,
-                    pending: `https://franciscomaccio.github.io/ladoctavende/#/dashboard?status=pending`,
+                    success: `https://ladoctavende.com.ar/#/dashboard?status=success&external_reference=${businessId}`,
+                    failure: `https://ladoctavende.com.ar/#/dashboard?status=failure&external_reference=${businessId}`,
+                    pending: `https://ladoctavende.com.ar/#/dashboard?status=pending&external_reference=${businessId}`,
                 },
                 auto_return: 'approved',
             })
