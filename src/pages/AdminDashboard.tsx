@@ -497,9 +497,9 @@ export default function AdminDashboard() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
                     {[
                         { id: 'signup', label: 'Registros (Welcome)', key: 'signup' },
-                        { id: 'payment', label: 'Confirmación Pago', key: 'payment' },
-                        { id: 'expiry', label: 'Aviso Vencimiento', key: 'expiry' },
-                        { id: 'deactivation', label: 'Aviso Desactivación', key: 'deactivation' }
+                        { id: 'payment_confirmation', label: 'Confirmación Pago', key: 'payment' },
+                        { id: 'expiry_reminder', label: 'Aviso Vencimiento', key: 'expiry' },
+                        { id: 'deactivation_notice', label: 'Aviso Desactivación', key: 'deactivation' }
                     ].map((type) => (
                         <div key={type.id} style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '12px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
