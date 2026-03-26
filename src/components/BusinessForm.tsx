@@ -345,7 +345,28 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
 
     return (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', zIndex: 2000, display: 'flex', justifyContent: 'center', padding: '1rem', overflowY: 'auto' }}>
-            <div className="card" style={{ maxWidth: '600px', width: '100%', padding: '1.5rem', height: 'fit-content', margin: 'auto' }}>
+            {
+                isCropping && imageSrc && (
+                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: '#111', zIndex: 3000, display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ position: 'relative', flex: 1, width: '100%', minHeight: 0 }}>
+                            <Cropper
+                                image={imageSrc}
+                                crop={crop}
+                                zoom={zoom}
+                                aspect={1 / 1}
+                                onCropChange={setCrop}
+                                onCropComplete={onCropComplete}
+                                onZoomChange={setZoom}
+                            />
+                        </div>
+                        <div style={{ padding: '1rem', display: 'flex', justifyContent: 'center', gap: '1rem', background: '#111', borderTop: '1px solid #333' }}>
+                            <button type="button" className="btn-primary" style={{ background: '#333', color: 'white' }} onClick={() => setIsCropping(false)}>Cancelar</button>
+                            <button type="button" className="btn-primary" onClick={applyCrop}>Confirmar</button>
+                        </div>
+                    </div>
+                )
+            }
+            <div className="card" style={{ maxWidth: '600px', width: '100%', padding: '1.5rem', height: 'fit-content', margin: 'auto', display: isCropping ? 'none' : 'block' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', alignItems: 'center' }}>
                     <h2 style={{ fontSize: '1.25rem', fontWeight: '800' }}>{business ? 'Editar Negocio' : 'Nuevo Negocio'}</h2>
                     <button onClick={onClose} style={{ background: '#f3f4f6', border: 'none', borderRadius: '50%', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><X size={20} /></button>
@@ -662,28 +683,6 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                         </button>
                     )}
                 </form>
-
-                {
-                    isCropping && imageSrc && (
-                        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100dvh', background: '#111', zIndex: 3000, display: 'flex', flexDirection: 'column' }}>
-                            <div style={{ position: 'relative', flex: 1, width: '100%', minHeight: 0 }}>
-                                <Cropper
-                                    image={imageSrc}
-                                    crop={crop}
-                                    zoom={zoom}
-                                    aspect={1 / 1}
-                                    onCropChange={setCrop}
-                                    onCropComplete={onCropComplete}
-                                    onZoomChange={setZoom}
-                                />
-                            </div>
-                            <div style={{ padding: '1rem', display: 'flex', justifyContent: 'center', gap: '1rem', background: '#111', borderTop: '1px solid #333' }}>
-                                <button type="button" className="btn-primary" style={{ background: '#333', color: 'white' }} onClick={() => setIsCropping(false)}>Cancelar</button>
-                                <button type="button" className="btn-primary" onClick={applyCrop}>Confirmar</button>
-                            </div>
-                        </div>
-                    )
-                }
             </div >
         </div >
     );
