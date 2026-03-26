@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Mail, Lock, UserPlus, LogIn, CheckCircle } from 'lucide-react';
 import { translateError } from '../utils/translateError';
+import PromoPopup from '../components/PromoPopup';
 
 export default function Auth() {
     const navigate = useNavigate();
@@ -181,6 +182,7 @@ export default function Auth() {
                     )}
                 </p>
             </div>
+            <PromoPopup />
         </div>
     );
 }
