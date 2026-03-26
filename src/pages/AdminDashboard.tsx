@@ -1,13 +1,15 @@
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
-import { CheckCircle, XCircle, Settings, LayoutDashboard, Calendar, Users, TrendingUp, BarChart3, PieChart, UserPlus, Trash2, RotateCw } from 'lucide-react';
+import { CheckCircle, XCircle, Settings, LayoutDashboard, Calendar, Users, TrendingUp, BarChart3, PieChart, UserPlus, Trash2, RotateCw, Upload, Scissors } from 'lucide-react';
 import { BusinessStatsModal } from '../components/BusinessStatsModal';
 import { TransferBusinessModal } from '../components/TransferBusinessModal';
 import { RegisteredUsersModal } from '../components/RegisteredUsersModal';
 import { translateError } from '../utils/translateError';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { isSubscriptionExpired, toEndOfDayISO } from '../utils/dateUtils';
+import Cropper from 'react-easy-crop';
+import { getCroppedImg } from '../utils/imageUtils';
 
 interface Business {
     id: string;
@@ -36,6 +38,16 @@ export default function AdminDashboard() {
         '12m': { original: 0, promo: 0, active: true },
     });
     const [promoDescription, setPromoDescription] = useState<string>('');
+    const [promoPopupEnabled, setPromoPopupEnabled] = useState(false);
+    const [promoPopupText, setPromoPopupText] = useState('');
+    const [promoPopupImageUrl, setPromoPopupImageUrl] = useState('');
+    const [promoImageFile, setPromoImageFile] = useState<File | null>(null);
+    const [promoImageSrc, setPromoImageSrc] = useState<string | null>(null);
+    const [promoCrop, setPromoCrop] = useState({ x: 0, y: 0 });
+    const [promoZoom, setPromoZoom] = useState(1);
+    const [promoCroppedAreaPixels, setPromoCroppedAreaPixels] = useState<any>(null);
+    const [isPromoCropping, setIsPromoCropping] = useState(false);
+
     const [selectedBusinessForStats, setSelectedBusinessForStats] = useState<{ id: string, name: string } | null>(null);
     const [selectedBusinessForTransfer, setSelectedBusinessForTransfer] = useState<{ id: string, name: string } | null>(null);
     const [generalStats, setGeneralStats] = useState({
@@ -49,6 +61,7 @@ export default function AdminDashboard() {
         categoryDistribution: {} as Record<string, number>,
         chartData: [] as any[]
     });
+    const { user } = useAuth();
     const [isUsersModalOpen, setIsUsersModalOpen] = useState(false);
     const [dateRange, setDateRange] = useState({
         start: (() => {
@@ -149,6 +162,14 @@ export default function AdminDashboard() {
 
             const descVal = data.find((c: any) => c.key === 'promo_description')?.value;
             if (descVal !== undefined) setPromoDescription(descVal);
+
+            const promoEnabled = data.find((c: any) => c.key === 'promo_popup_enabled')?.value;
+            const promoText = data.find((c: any) => c.key === 'promo_popup_text')?.value;
+            const promoUrl = data.find((c: any) => c.key === 'promo_popup_image_url')?.value;
+
+            setPromoPopupEnabled(promoEnabled === 'true');
+            if (promoText !== undefined) setPromoPopupText(promoText);
+            if (promoUrl !== undefined) setPromoPopupImageUrl(promoUrl);
         }
     };
 
@@ -290,10 +311,56 @@ export default function AdminDashboard() {
         }
     };
 
+    const handlePromoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            const file = e.target.files[0];
+            const url = URL.createObjectURL(file);
+            setPromoImageSrc(url);
+            setIsPromoCropping(true);
+        }
+    };
+
+    const applyPromoCrop = async () => {
+        try {
+            if (promoImageSrc && promoCroppedAreaPixels) {
+                const croppedImageBlob = await getCroppedImg(promoImageSrc, promoCroppedAreaPixels);
+                const file = new File([croppedImageBlob], 'promo-popup.jpg', { type: 'image/jpeg' });
+                setPromoImageFile(file);
+                setIsPromoCropping(false);
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const onPromoCropComplete = (_croppedArea: any, croppedAreaPixels: any) => {
+        setPromoCroppedAreaPixels(croppedAreaPixels);
+    };
+
     const updatePrice = async () => {
         try {
+            setLoading(true);
+            let finalImageUrl = promoPopupImageUrl;
+
+            if (promoImageFile && user) {
+                const fileExt = promoImageFile.name.split('.').pop();
+                const fileName = `system/promo_${Math.random()}.${fileExt}`;
+                const { error: uploadError } = await supabase.storage
+                    .from('flyers')
+                    .upload(fileName, promoImageFile);
+
+                if (uploadError) throw uploadError;
+
+                const { data: { publicUrl } } = supabase.storage.from('flyers').getPublicUrl(fileName);
+                finalImageUrl = publicUrl;
+                setPromoPopupImageUrl(finalImageUrl);
+            }
+
             const updates = [
-                { key: 'promo_description', value: promoDescription }
+                { key: 'promo_description', value: promoDescription },
+                { key: 'promo_popup_enabled', value: promoPopupEnabled.toString() },
+                { key: 'promo_popup_text', value: promoPopupText },
+                { key: 'promo_popup_image_url', value: finalImageUrl }
             ];
 
             ['1m', '3m', '6m', '12m'].forEach(tier => {
@@ -309,9 +376,12 @@ export default function AdminDashboard() {
                 if (error) throw error;
             }
 
-            alert('Precios y promociones actualizados con éxito');
+            alert('Configuración actualizada con éxito');
+            setPromoImageFile(null);
         } catch (error: any) {
-            alert('Error al actualizar precios: ' + translateError(error.message));
+            alert('Error al actualizar: ' + translateError(error.message));
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -546,7 +616,103 @@ export default function AdminDashboard() {
                         <Settings size={18} /> Actualizar Precios
                     </button>
                 </div>
+
+                {/* Promo Pop-up Config */}
+                <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', maxWidth: '1000px', margin: '0 auto 2rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <BarChart3 size={24} color="var(--primary)" />
+                        <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem' }}>Pop-up Promocional</h3>
+                    </div>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>Configurá el anuncio que verán los usuarios al ingresar a su panel.</p>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '12px', cursor: 'pointer' }}>
+                            <input
+                                type="checkbox"
+                                checked={promoPopupEnabled}
+                                onChange={(e) => setPromoPopupEnabled(e.target.checked)}
+                                style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+                            />
+                            <span style={{ fontWeight: '700' }}>Activar Pop-up Promocional</span>
+                        </label>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                            <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>Mensaje del Anuncio:</span>
+                            <textarea
+                                className="input-field"
+                                value={promoPopupText}
+                                onChange={(e) => setPromoPopupText(e.target.value)}
+                                placeholder="Ej: ¡Publicá tu negocio hoy y obtené un mes gratis!"
+                                style={{ height: '80px', resize: 'none', margin: 0 }}
+                            />
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                            <span style={{ fontSize: '0.9rem', fontWeight: '600' }}>Imagen Promocional (1:1):</span>
+                            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                                <label className="btn-primary" style={{ fontSize: '0.85rem', cursor: 'pointer', background: 'rgba(255,255,255,0.05)', color: 'var(--text-main)', border: '1px solid var(--border-light)', margin: 0 }}>
+                                    <Upload size={18} /> {promoImageFile || promoPopupImageUrl ? 'Cambiar Imagen' : 'Subir Imagen'}
+                                    <input type="file" hidden accept="image/*" onChange={handlePromoFileChange} />
+                                </label>
+
+                                {(promoImageFile || promoPopupImageUrl) && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setPromoImageSrc(promoImageFile ? URL.createObjectURL(promoImageFile) : promoPopupImageUrl);
+                                            setIsPromoCropping(true);
+                                        }}
+                                        className="btn-primary"
+                                        style={{ fontSize: '0.85rem', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', border: '1px solid rgba(59, 130, 246, 0.3)' }}
+                                    >
+                                        <Scissors size={18} /> Recortar
+                                    </button>
+                                )}
+
+                                {(promoImageFile || promoPopupImageUrl) && (
+                                    <div style={{ width: '80px', height: '80px', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-light)', background: 'rgba(0,0,0,0.2)' }}>
+                                        <img
+                                            src={promoImageFile ? URL.createObjectURL(promoImageFile) : promoPopupImageUrl}
+                                            alt="Promo Preview"
+                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={updatePrice}
+                            className="btn-primary"
+                            style={{ width: '100%' }}
+                            disabled={loading}
+                        >
+                            <Settings size={18} /> {loading ? 'Guardando...' : 'Guardar Configuración Pop-up'}
+                        </button>
+                    </div>
+                </div>
             </div>
+
+            {/* Cropper Modal for Promo Image */}
+            {isPromoCropping && promoImageSrc && (
+                <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100dvh', background: '#111', zIndex: 10000, display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ position: 'relative', flex: 1, width: '100%', minHeight: 0 }}>
+                        <Cropper
+                            image={promoImageSrc}
+                            crop={promoCrop}
+                            zoom={promoZoom}
+                            aspect={1 / 1}
+                            onCropChange={setPromoCrop}
+                            onCropComplete={onPromoCropComplete}
+                            onZoomChange={setPromoZoom}
+                        />
+                    </div>
+                    <div style={{ padding: '1rem', display: 'flex', justifyContent: 'center', gap: '1rem', background: '#111', borderTop: '1px solid #333' }}>
+                        <button type="button" className="btn-primary" style={{ background: '#333', color: 'white' }} onClick={() => setIsPromoCropping(false)}>Cancelar</button>
+                        <button type="button" className="btn-primary" onClick={applyPromoCrop}>Confirmar Recorte</button>
+                    </div>
+                </div>
+            )}
 
             {loading ? (
                 <p>Cargando negocios...</p>
