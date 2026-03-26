@@ -19,7 +19,7 @@ export default function Auth() {
 
     React.useEffect(() => {
         // Manual check for recovery tokens in the hash (fail-safe for HashRouter)
-        const checkRecovery = () => {
+        const checkRecovery = async () => {
             const hash = window.location.hash;
             console.log('Current Hash:', hash);
             if (hash.includes('type=recovery') || hash.includes('access_token=')) {
@@ -27,6 +27,31 @@ export default function Auth() {
                 setIsResettingPassword(true);
                 setIsForgotPassword(false);
                 setIsSignUp(false);
+
+                try {
+                    const paramsStr = hash.substring(hash.indexOf('access_token='));
+                    const params = new URLSearchParams(paramsStr);
+                    const access_token = params.get('access_token');
+                    const refresh_token = params.get('refresh_token');
+
+                    if (access_token && refresh_token) {
+                        console.log('Configurando sesión manual para recuperación...');
+                        const { error } = await supabase.auth.setSession({
+                            access_token,
+                            refresh_token
+                        });
+                        
+                        if (error) {
+                            console.error('Error configurando sesión:', error.message);
+                        } else {
+                            console.log('Sesión recuperación configurada correctamente');
+                        }
+                    } else {
+                        console.log('No se encontraron tokens completos en el hash');
+                    }
+                } catch (err) {
+                    console.error('Error parseando tokens del hash:', err);
+                }
             }
         };
 
