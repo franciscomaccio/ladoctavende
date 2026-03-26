@@ -18,16 +18,35 @@ export default function Auth() {
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
     React.useEffect(() => {
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, _session) => {
-            if (event === 'PASSWORD_RECOVERY') {
+        // Manual check for recovery tokens in the hash (fail-safe for HashRouter)
+        const checkRecovery = () => {
+            const hash = window.location.hash;
+            console.log('Current Hash:', hash);
+            if (hash.includes('type=recovery') || hash.includes('access_token=')) {
+                console.log('Recovery tokens detected in hash');
                 setIsResettingPassword(true);
                 setIsForgotPassword(false);
                 setIsSignUp(false);
             }
+        };
+
+        checkRecovery();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            console.log('Auth Event:', event);
+            if (event === 'PASSWORD_RECOVERY') {
+                console.log('PASSWORD_RECOVERY event received');
+                setIsResettingPassword(true);
+                setIsForgotPassword(false);
+                setIsSignUp(false);
+            } else if (event === 'SIGNED_IN' && isResettingPassword) {
+                // If we are already in resetting mode, stay there
+                console.log('Signed in during reset mode');
+            }
         });
 
         return () => subscription.unsubscribe();
-    }, []);
+    }, [isResettingPassword]);
 
     const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
