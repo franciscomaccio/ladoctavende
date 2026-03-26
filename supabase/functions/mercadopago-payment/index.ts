@@ -95,7 +95,7 @@ Deno.serve(async (req) => {
                     // Send confirmation email
                     const { data: business } = await supabaseAdmin
                         .from('businesses')
-                        .select('name, profiles!businesses_owner_id_fkey(email)')
+                        .select('name, type, profiles!businesses_owner_id_fkey(email)')
                         .eq('id', businessId)
                         .single();
 
@@ -110,7 +110,8 @@ Deno.serve(async (req) => {
                                 body: JSON.stringify({
                                     email: (business as any).profiles.email,
                                     businessName: business.name,
-                                    expiryDate: expiryDate.toISOString()
+                                    expiryDate: expiryDate.toISOString(),
+                                    type: (business as any).type || 'business'
                                 })
                             });
                         } catch (emailErr) {

@@ -14,7 +14,11 @@ Deno.serve(async (req) => {
     }
 
     try {
-        const { email, businessName, expiryDate } = await req.json();
+        const { email, businessName, expiryDate, type = 'business' } = await req.json();
+
+        const entityLabelCap = type === 'classified' ? 'Clasificado' : 'Negocio';
+        const entityLabelLower = type === 'classified' ? 'clasificado' : 'negocio';
+        const activeLabelCap = type === 'classified' ? '¡Clasificado Activo!' : '¡Negocio Activo!';
 
         const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
         const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -42,11 +46,11 @@ Deno.serve(async (req) => {
         const html = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
                 <div style="background-color: #7f1d1d; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
-                    <h1 style="margin: 0;">¡Negocio Activo!</h1>
+                    <h1 style="margin: 0;">${activeLabelCap}</h1>
                 </div>
                 <div style="padding: 20px; border: 1px solid #ddd; border-top: none; border-radius: 0 0 8px 8px;">
                     <p>Hola,</p>
-                    <p>¡Buenas noticias! Tu negocio <strong>${businessName}</strong> ha sido activado correctamente en <strong>La Docta Vende</strong>.</p>
+                    <p>¡Buenas noticias! Tu ${entityLabelLower} <strong>${businessName}</strong> ha sido activado correctamente en <strong>La Docta Vende</strong>.</p>
                     <p>Tu suscripción está vigente hasta el <strong>${formattedDate}</strong>.</p>
                     <p>Gracias por confiar en nosotros para conectar tu negocio con los vecinos de Córdoba.</p>
                     <div style="text-align: center; margin-top: 30px;">
@@ -65,7 +69,7 @@ Deno.serve(async (req) => {
             body: JSON.stringify({
                 from: RESEND_FROM_EMAIL,
                 to: [email],
-                subject: `✅ ¡Tu negocio ${businessName} ya está activo!`,
+                subject: `✅ ¡Tu ${entityLabelLower} ${businessName} ya está activo!`,
                 html: html,
             }),
         });

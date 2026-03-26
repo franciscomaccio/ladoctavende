@@ -257,10 +257,10 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
         return true;
     };
 
-    const sendConfirmation = async (email: string, businessName: string, expiryDate: string) => {
+    const sendConfirmation = async (email: string, businessName: string, expiryDate: string, type: string) => {
         try {
             await supabase.functions.invoke('send-confirmation-email', {
-                body: { email, businessName, expiryDate }
+                body: { email, businessName, expiryDate, type }
             });
         } catch (err) {
             console.error('Error sending confirmation email:', err);
@@ -301,7 +301,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
             // Send confirmation email
             const user = (await supabase.auth.getUser()).data.user;
             if (user?.email) {
-                await sendConfirmation(user.email, formData.name, expiryDate.toISOString());
+                await sendConfirmation(user.email, formData.name, expiryDate.toISOString(), formData.type);
             }
 
             onSave();
