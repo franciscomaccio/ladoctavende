@@ -4,16 +4,30 @@ import { supabase } from '../lib/supabase';
 import { Mail, Lock, UserPlus, LogIn, CheckCircle } from 'lucide-react';
 import { translateError } from '../utils/translateError';
 import PromoPopup from '../components/PromoPopup';
+import ResetPasswordForm from '../components/ResetPasswordForm';
 
 export default function Auth() {
     const navigate = useNavigate();
     const [isSignUp, setIsSignUp] = useState(false);
     const [isForgotPassword, setIsForgotPassword] = useState(false);
+    const [isResettingPassword, setIsResettingPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
+    React.useEffect(() => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, _session) => {
+            if (event === 'PASSWORD_RECOVERY') {
+                setIsResettingPassword(true);
+                setIsForgotPassword(false);
+                setIsSignUp(false);
+            }
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
 
     const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -59,10 +73,16 @@ export default function Auth() {
         <div className="container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
             <div className="card" style={{ padding: '2rem', maxWidth: '400px', width: '100%' }}>
                 <h1 style={{ marginBottom: '1.5rem', textAlign: 'center', fontSize: '1.5rem', fontWeight: '800' }}>
-                    {isForgotPassword ? 'Recuperar Contraseña' : isSignUp ? 'Crea tu cuenta' : 'Iniciar Sesión'}
+                    {isResettingPassword ? 'Nueva Contraseña' : isForgotPassword ? 'Recuperar Contraseña' : isSignUp ? 'Crea tu cuenta' : 'Iniciar Sesión'}
                 </h1>
 
-                <form onSubmit={handleAuth} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                {isResettingPassword ? (
+                    <ResetPasswordForm onSuccess={() => {
+                        setIsResettingPassword(false);
+                        setMessage({ type: 'success', text: 'Tu contraseña ha sido actualizada. Ya puedes iniciar sesión.' });
+                    }} />
+                ) : (
+                    <form onSubmit={handleAuth} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                     <div>
                         <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '500' }}>Correo Electrónico</label>
                         <div style={{ position: 'relative' }}>
@@ -153,34 +173,37 @@ export default function Auth() {
                         )}
                     </button>
                 </form>
+            )}
 
-                <p style={{ marginTop: '1.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                    {isForgotPassword ? (
-                        <button
-                            onClick={() => { setIsForgotPassword(false); setMessage(null); }}
-                            style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontWeight: '600' }}
-                        >
-                            Volver a Iniciar Sesión
-                        </button>
-                    ) : (
-                        <>
-                            {isSignUp ? '¿Ya tienes cuenta?' : '¿No tienes cuenta?'}
+                {!isResettingPassword && (
+                    <p style={{ marginTop: '1.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                        {isForgotPassword ? (
                             <button
-                                onClick={() => { setIsSignUp(!isSignUp); setMessage(null); }}
-                                style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    color: 'var(--primary)',
-                                    marginLeft: '0.4rem',
-                                    cursor: 'pointer',
-                                    fontWeight: '600'
-                                }}
+                                onClick={() => { setIsForgotPassword(false); setMessage(null); }}
+                                style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontWeight: '600' }}
                             >
-                                {isSignUp ? 'Inicia Sesión' : 'Regístrate'}
+                                Volver a Iniciar Sesión
                             </button>
-                        </>
-                    )}
-                </p>
+                        ) : (
+                            <>
+                                {isSignUp ? '¿Ya tienes cuenta?' : '¿No tienes cuenta?'}
+                                <button
+                                    onClick={() => { setIsSignUp(!isSignUp); setMessage(null); }}
+                                    style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        color: 'var(--primary)',
+                                        marginLeft: '0.4rem',
+                                        cursor: 'pointer',
+                                        fontWeight: '600'
+                                    }}
+                                >
+                                    {isSignUp ? 'Inicia Sesión' : 'Regístrate'}
+                                </button>
+                            </>
+                        )}
+                    </p>
+                )}
             </div>
             <PromoPopup />
         </div>
