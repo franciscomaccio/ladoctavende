@@ -20,6 +20,13 @@ Deno.serve(async (req) => {
     try {
         const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
 
+        // 0. Fetch Config
+        const { data: configRows } = await supabase.from('config').select('key, value').in('key', ['email_expiry_reminder_enabled', 'email_deactivation_notice_enabled']);
+        const config = {
+            expiry_reminder: configRows?.find(r => r.key === 'email_expiry_reminder_enabled')?.value !== 'false',
+            deactivation_notice: configRows?.find(r => r.key === 'email_deactivation_notice_enabled')?.value !== 'false'
+        };
+
         const now = new Date();
         const todayStr = now.toISOString().split('T')[0];
 
@@ -67,8 +74,13 @@ Deno.serve(async (req) => {
                     if (lastNotif === todayStr) continue;
                 }
 
+                if (!config.expiry_reminder) {
+                    console.log(`Reminder for \${biz.name} skipped (disabled in config).`);
+                    continue;
+                }
+
                 try {
-                    await sendEmail(RESEND_API_KEY!, {
+                    const res = await sendEmail(RESEND_API_KEY!, {
                         from: RESEND_FROM_EMAIL,
                         to: email,
                         subject: `⚠️ Tu suscripción en Ladoctavende vence hoy`,
@@ -80,11 +92,25 @@ Deno.serve(async (req) => {
                         .update({ notification_sent_at: new Date().toISOString() })
                         .eq('id', biz.id);
 
+                    // Log activity
+                    await supabase.from('email_logs').insert({
+                        type: 'expiry_reminder',
+                        recipient: email,
+                        status: 'success'
+                    });
+
                     results.expiring_today++;
                     console.log(`Reminder sent to \${email} for business \${biz.name}`);
                 } catch (e: any) {
                     console.error(`Failed to send reminder to \${email}:`, e.message);
                     results.errors.push(`Send to \${email}: \${e.message}`);
+                    
+                    await supabase.from('email_logs').insert({
+                        type: 'expiry_reminder',
+                        recipient: email,
+                        status: 'error',
+                        error_message: e.message
+                    });
                 }
             }
         }
@@ -114,11 +140,23 @@ Deno.serve(async (req) => {
                         .update({ active: false, notification_sent_at: new Date().toISOString() })
                         .eq('id', biz.id);
 
-                    await sendEmail(RESEND_API_KEY!, {
+                    if (!config.deactivation_notice) {
+                        console.log(`Deactivation notice for \${biz.name} skipped (disabled in config).`);
+                        continue;
+                    }
+
+                    const res = await sendEmail(RESEND_API_KEY!, {
                         from: RESEND_FROM_EMAIL,
                         to: email,
                         subject: `⛔ Tu suscripción en Ladoctavende finalizó`,
                         html: buildExpiredEmail(biz.name),
+                    });
+
+                    // Log activity
+                    await supabase.from('email_logs').insert({
+                        type: 'deactivation_notice',
+                        recipient: email,
+                        status: 'success'
                     });
 
                     results.expired_yesterday++;
@@ -126,6 +164,13 @@ Deno.serve(async (req) => {
                 } catch (e: any) {
                     console.error(`Failed to send expiration to \${email}:`, e.message);
                     results.errors.push(`Expire \${email}: \${e.message}`);
+
+                    await supabase.from('email_logs').insert({
+                        type: 'deactivation_notice',
+                        recipient: email,
+                        status: 'error',
+                        error_message: e.message
+                    });
                 }
             }
         }
@@ -154,10 +199,10 @@ function buildExpiringEmail(businessName: string): string {
             </div>
             <div style="background: #fefce8; border: 1px solid #fde047; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
                 <h2 style="color: #854d0e; margin-top: 0;">⚠️ Tu suscripción vence hoy</h2>
-                <p style="color: #713f12; font-size: 16px;">La suscripción de tu negocio <strong>\${businessName}</strong> vence <strong>hoy</strong>.</p>
+                <p style="color: #713f12; font-size: 16px;">La suscripción de tu negocio <strong>${businessName}</strong> vence <strong>hoy</strong>.</p>
                 <p style="color: #713f12; font-size: 16px;">Renová ahora para seguir apareciendo en La Docta Vende:</p>
                 <div style="text-align: center; margin-top: 16px;">
-                    <a href="\${RENEWAL_URL}" style="display: inline-block; background: #009ee3; color: white; padding: 14px 32px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 16px;">Renovar Suscripción</a>
+                    <a href="${RENEWAL_URL}" style="display: inline-block; background: #009ee3; color: white; padding: 14px 32px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 16px;">Renovar Suscripción</a>
                 </div>
             </div>
             <p style="color: #9ca3af; font-size: 12px; text-align: center;">Este email fue enviado automáticamente desde La Docta Vende</p>
@@ -173,10 +218,10 @@ function buildExpiredEmail(businessName: string): string {
             </div>
             <div style="background: #fef2f2; border: 1px solid #fca5a5; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
                 <h2 style="color: #991b1b; margin-top: 0;">⛔ Tu suscripción finalizó</h2>
-                <p style="color: #7f1d1d; font-size: 16px;">La suscripción de <strong>\${businessName}</strong> ha expirado y tu negocio ya no aparece en La Docta Vende.</p>
+                <p style="color: #7f1d1d; font-size: 16px;">La suscripción de <strong>${businessName}</strong> ha expirado y tu negocio ya no aparece en La Docta Vende.</p>
                 <p style="color: #7f1d1d; font-size: 16px;">¡Podés renovarla cuando quieras!</p>
                 <div style="text-align: center; margin-top: 16px;">
-                    <a href="\${RENEWAL_URL}" style="display: inline-block; background: #16a34a; color: white; padding: 14px 32px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 16px;">Renovar Ahora</a>
+                    <a href="${RENEWAL_URL}" style="display: inline-block; background: #16a34a; color: white; padding: 14px 32px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 16px;">Renovar Ahora</a>
                 </div>
             </div>
             <p style="color: #9ca3af; font-size: 12px; text-align: center;">Este email fue enviado automáticamente desde La Docta Vende</p>
@@ -188,7 +233,7 @@ async function sendEmail(apiKey: string, { from, to, subject, html }: { from: st
     const res = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
-            'Authorization': \`Bearer \${apiKey}\`,
+            'Authorization': "Bearer " + apiKey,
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -201,7 +246,7 @@ async function sendEmail(apiKey: string, { from, to, subject, html }: { from: st
 
     if (!res.ok) {
         const errorBody = await res.text();
-        throw new Error(\`Resend API error \${res.status}: \${errorBody}\`);
+        throw new Error(`Resend API error ${res.status}: ${errorBody}`);
     }
 
     return await res.json();

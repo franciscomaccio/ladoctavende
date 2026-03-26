@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
-import { CheckCircle, XCircle, Settings, LayoutDashboard, Calendar, Users, TrendingUp, BarChart3, PieChart, UserPlus, Trash2, RotateCw, Upload, Scissors } from 'lucide-react';
+import { CheckCircle, XCircle, Settings, LayoutDashboard, Calendar, Users, TrendingUp, BarChart3, PieChart, UserPlus, Trash2, RotateCw, Upload, Scissors, Mail } from 'lucide-react';
 import { BusinessStatsModal } from '../components/BusinessStatsModal';
 import { TransferBusinessModal } from '../components/TransferBusinessModal';
 import { RegisteredUsersModal } from '../components/RegisteredUsersModal';
@@ -47,6 +47,16 @@ export default function AdminDashboard() {
     const [promoZoom, setPromoZoom] = useState(1);
     const [promoCroppedAreaPixels, setPromoCroppedAreaPixels] = useState<any>(null);
     const [isPromoCropping, setIsPromoCropping] = useState(false);
+    
+    // Email Management State
+    const [emailConfigs, setEmailConfigs] = useState({
+        signup: true,
+        payment: true,
+        expiry: true,
+        deactivation: true
+    });
+    const [emailLogs, setEmailLogs] = useState<any[]>([]);
+    const [emailStats, setEmailStats] = useState<Record<string, number>>({});
 
     const [selectedBusinessForStats, setSelectedBusinessForStats] = useState<{ id: string, name: string } | null>(null);
     const [selectedBusinessForTransfer, setSelectedBusinessForTransfer] = useState<{ id: string, name: string } | null>(null);
@@ -130,8 +140,30 @@ export default function AdminDashboard() {
             fetchBusinesses();
             fetchPrice();
             fetchDashboardData();
+            fetchEmailData();
         }
     }, [isAdmin, dateRange]);
+
+    const fetchEmailData = async () => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        // Fetch logs for today
+        const { data: logs } = await supabase
+            .from('email_logs')
+            .select('*')
+            .gte('sent_at', today.toISOString())
+            .order('sent_at', { ascending: false });
+
+        if (logs) {
+            setEmailLogs(logs);
+            const stats: Record<string, number> = {};
+            logs.forEach(log => {
+                stats[log.type] = (stats[log.type] || 0) + 1;
+            });
+            setEmailStats(stats);
+        }
+    };
 
     const fetchBusinesses = async () => {
         const { data } = await supabase
@@ -170,6 +202,19 @@ export default function AdminDashboard() {
             setPromoPopupEnabled(promoEnabled === 'true');
             if (promoText !== undefined) setPromoPopupText(promoText);
             if (promoUrl !== undefined) setPromoPopupImageUrl(promoUrl);
+
+            // Fetch Email Configs
+            const signupEb = data.find((c: any) => c.key === 'email_signup_enabled')?.value;
+            const paymentEb = data.find((c: any) => c.key === 'email_payment_enabled')?.value;
+            const expiryEb = data.find((c: any) => c.key === 'email_expiry_reminder_enabled')?.value;
+            const deactivationEb = data.find((c: any) => c.key === 'email_deactivation_notice_enabled')?.value;
+
+            setEmailConfigs({
+                signup: signupEb !== 'false',
+                payment: paymentEb !== 'false',
+                expiry: expiryEb !== 'false',
+                deactivation: deactivationEb !== 'false'
+            });
         }
     };
 
@@ -369,6 +414,11 @@ export default function AdminDashboard() {
                 updates.push({ key: `subscription_active_${tier}`, value: prices[tier].active.toString() });
             });
 
+            updates.push({ key: 'email_signup_enabled', value: emailConfigs.signup.toString() });
+            updates.push({ key: 'email_payment_enabled', value: emailConfigs.payment.toString() });
+            updates.push({ key: 'email_expiry_reminder_enabled', value: emailConfigs.expiry.toString() });
+            updates.push({ key: 'email_deactivation_notice_enabled', value: emailConfigs.deactivation.toString() });
+
             for (const update of updates) {
                 const { error } = await supabase
                     .from('config')
@@ -392,10 +442,108 @@ export default function AdminDashboard() {
     return (
         <div className="container-wide">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', flexWrap: 'wrap', gap: '1.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: '#7f1d1d', flex: 1, minWidth: 'min-content' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: '#7f1d1d' }}>
                     <LayoutDashboard size={32} />
                     <h1 style={{ color: '#7f1d1d', margin: 0 }}>Panel Administrador</h1>
                 </div>
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                    <button onClick={() => setIsUsersModalOpen(true)} className="btn-primary" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-main)', border: '1px solid var(--border-light)' }}>
+                        <Users size={18} /> Usuarios Registrados
+                    </button>
+                    <img src="/landing-logo.png" alt="Logo" style={{ height: '40px', objectFit: 'contain' }} />
+                </div>
+            </div>
+
+            {/* Email Management Section - Moved Outside Flex */}
+            <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', maxWidth: '1000px', margin: '0 auto 2rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <Mail size={24} color="var(--primary)" />
+                        <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem' }}>Gestión de Emails (Resend)</h3>
+                    </div>
+                    <div style={{ 
+                        background: (Object.values(emailStats || {}).reduce((a: any, b: any) => a + b, 0)) > 90 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)',
+                        padding: '4px 12px',
+                        borderRadius: '20px',
+                        fontSize: '0.85rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        color: (Object.values(emailStats || {}).reduce((a: any, b: any) => a + b, 0)) > 90 ? '#f87171' : '#34d399'
+                    }}>
+                        <TrendingUp size={14} />
+                        Enviados hoy: {Object.values(emailStats || {}).reduce((a: any, b: any) => a + b, 0)} / 100
+                    </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+                    {[
+                        { id: 'signup', label: 'Registros (Welcome)', key: 'signup' },
+                        { id: 'payment', label: 'Confirmación Pago', key: 'payment' },
+                        { id: 'expiry', label: 'Aviso Vencimiento', key: 'expiry' },
+                        { id: 'deactivation', label: 'Aviso Desactivación', key: 'deactivation' }
+                    ].map((type) => (
+                        <div key={type.id} style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '12px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>{type.label}</span>
+                                <input
+                                    type="checkbox"
+                                    checked={(emailConfigs as any)[type.key]}
+                                    onChange={(e) => setEmailConfigs(prev => ({ ...prev, [type.key]: e.target.checked }))}
+                                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                                />
+                            </div>
+                            <div style={{ fontSize: '1.25rem', fontWeight: '700', color: (emailConfigs as any)[type.key] ? 'var(--text-main)' : 'var(--text-muted)' }}>
+                                {emailStats[type.id] || 0} <span style={{ fontSize: '0.7rem', fontWeight: '400', opacity: 0.6 }}>hoy</span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {emailLogs.length > 0 && (
+                    <div style={{ marginTop: '0.5rem' }}>
+                        <h4 style={{ fontSize: '0.9rem', marginBottom: '0.75rem', color: 'var(--text-muted)' }}>Últimos envíos</h4>
+                        <div style={{ maxHeight: '200px', overflowY: 'auto', background: 'rgba(0,0,0,0.1)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                            <table style={{ width: '100%', fontSize: '0.8rem', borderCollapse: 'collapse' }}>
+                                <thead style={{ position: 'sticky', top: 0, background: '#111', zIndex: 1 }}>
+                                    <tr style={{ textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                                        <th style={{ padding: '8px' }}>Tipo</th>
+                                        <th style={{ padding: '8px' }}>Destinatario</th>
+                                        <th style={{ padding: '8px' }}>Estado</th>
+                                        <th style={{ padding: '8px' }}>Fecha</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {emailLogs.map((log) => (
+                                        <tr key={log.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
+                                            <td style={{ padding: '8px', opacity: 0.8 }}>{log.type}</td>
+                                            <td style={{ padding: '8px', opacity: 0.8 }}>{log.recipient}</td>
+                                            <td style={{ padding: '8px' }}>
+                                                {log.status === 'success' ? 
+                                                    <span style={{ color: '#34d399' }}>Enviado</span> : 
+                                                    <span style={{ color: '#f87171' }} title={log.error_message}>Error</span>
+                                                }
+                                            </td>
+                                            <td style={{ padding: '8px', opacity: 0.6 }}>
+                                                {new Date(log.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+
+                <button
+                    onClick={updatePrice}
+                    className="btn-primary"
+                    style={{ width: '100%' }}
+                    disabled={loading}
+                >
+                    <Settings size={18} /> {loading ? 'Guardando...' : 'Guardar Configuración de Emails'}
+                </button>
+            </div>
 
                 <div className="date-filter-container">
                     <div className="date-filter-item">
@@ -552,6 +700,7 @@ export default function AdminDashboard() {
                     </div>
                 </div>
 
+
                 <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', maxWidth: '1000px', margin: '0 auto 2rem' }}>
                     <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem' }}>Suscripciones</h3>
 
@@ -691,7 +840,6 @@ export default function AdminDashboard() {
                         </button>
                     </div>
                 </div>
-            </div>
 
             {/* Cropper Modal for Promo Image */}
             {isPromoCropping && promoImageSrc && (
@@ -891,15 +1039,15 @@ export default function AdminDashboard() {
 
             {selectedBusinessForStats && (
                 <BusinessStatsModal
-                    businessId={selectedBusinessForStats.id}
-                    businessName={selectedBusinessForStats.name}
+                    businessId={selectedBusinessForStats?.id || ''}
+                    businessName={selectedBusinessForStats?.name || ''}
                     onClose={() => setSelectedBusinessForStats(null)}
                 />
             )}
             {selectedBusinessForTransfer && (
                 <TransferBusinessModal
-                    businessId={selectedBusinessForTransfer.id}
-                    businessName={selectedBusinessForTransfer.name}
+                    businessId={selectedBusinessForTransfer?.id || ''}
+                    businessName={selectedBusinessForTransfer?.name || ''}
                     onClose={() => setSelectedBusinessForTransfer(null)}
                     onSuccess={() => {
                         setSelectedBusinessForTransfer(null);

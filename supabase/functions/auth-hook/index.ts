@@ -41,9 +41,26 @@ Deno.serve(async (req) => {
         }
 
         const supabaseUrl = Deno.env.get("SUPABASE_URL");
-        if (!supabaseUrl) throw new Error("Missing SUPABASE_URL");
+        const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+        if (!supabaseUrl || !supabaseServiceKey) throw new Error("Missing Supabase environment variables");
 
-        const confirmationUrl = `${supabaseUrl}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(redirect_to)}`;
+        const { createClient } = await import("jsr:@supabase/supabase-js@2");
+        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+        // 1. Check if this email type is enabled
+        const configKey = email_action_type === 'signup' ? 'email_signup_enabled' : null;
+        if (configKey) {
+            const { data: config } = await supabase.from('config').select('value').eq('key', configKey).single();
+            if (config?.value === 'false') {
+                console.log(`Email \${email_action_type} is disabled in config. Skipping.`);
+                return new Response(JSON.stringify({ message: "Skipped by config" }), {
+                    headers: { ...corsHeaders, "Content-Type": "application/json" },
+                    status: 200,
+                });
+            }
+        }
+
+        const confirmationUrl = `\${supabaseUrl}/auth/v1/verify?token=\${token_hash}&type=\${email_action_type}&redirect_to=\${encodeURIComponent(redirect_to)}`;
         console.log("Confirmation URL generated:", confirmationUrl);
 
         let subject = "";
@@ -93,9 +110,9 @@ Deno.serve(async (req) => {
                         <h1>La Docta Vende</h1>
                     </div>
                     <div class="content">
-                        <h2>${title}</h2>
-                        <p>${message}</p>
-                        <a href="${confirmationUrl}" class="button">${buttonText}</a>
+                        <h2>\${title}</h2>
+                        <p>\${message}</p>
+                        <a href="\${confirmationUrl}" class="button">\${buttonText}</a>
                     </div>
                     <div class="footer">
                         <p><strong>La Docta Vende</strong> - Córdoba, Argentina</p>
@@ -123,6 +140,14 @@ Deno.serve(async (req) => {
 
         const resData = await res.json();
         console.log("Resend Response:", JSON.stringify(resData, null, 2));
+
+        // 2. Log activity
+        await supabase.from('email_logs').insert({
+            type: email_action_type,
+            recipient: user.email,
+            status: res.ok ? 'success' : 'error',
+            error_message: res.ok ? null : JSON.stringify(resData)
+        });
 
         return new Response(JSON.stringify(resData), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
