@@ -318,7 +318,25 @@ export default function AdminDashboard() {
             .from('businesses')
             .update({ active: !currentStatus })
             .eq('id', id);
+
         if (!error) {
+            const biz = businesses.find(b => b.id === id);
+            
+            // If we are activating (!currentStatus is true) and we have the business data
+            if (!currentStatus && biz) {
+                const userEmail = biz.profiles?.email;
+                if (userEmail && emailConfigs.payment) {
+                    console.log('Activating and sending confirmation email to:', userEmail);
+                    supabase.functions.invoke('send-confirmation-email', {
+                        body: {
+                            email: userEmail,
+                            businessName: biz.name,
+                            expiryDate: biz.subscription_expires_at
+                        }
+                    }).catch(err => console.error('Error sending manual activation email:', err));
+                }
+            }
+
             setBusinesses(prev => prev.map(b => b.id === id ? { ...b, active: !currentStatus } : b));
             setGeneralStats(prev => ({
                 ...prev,
