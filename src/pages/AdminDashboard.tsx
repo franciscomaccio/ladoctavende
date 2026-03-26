@@ -53,7 +53,8 @@ export default function AdminDashboard() {
         signup: true,
         payment: true,
         expiry: true,
-        deactivation: true
+        deactivation: true,
+        recovery: true
     });
     const [emailLogs, setEmailLogs] = useState<any[]>([]);
     const [emailStats, setEmailStats] = useState<Record<string, number>>({});
@@ -208,12 +209,14 @@ export default function AdminDashboard() {
             const paymentEb = data.find((c: any) => c.key === 'email_payment_enabled')?.value;
             const expiryEb = data.find((c: any) => c.key === 'email_expiry_reminder_enabled')?.value;
             const deactivationEb = data.find((c: any) => c.key === 'email_deactivation_notice_enabled')?.value;
+            const recoveryEb = data.find((c: any) => c.key === 'email_recovery_enabled')?.value;
 
             setEmailConfigs({
                 signup: signupEb !== 'false',
                 payment: paymentEb !== 'false',
                 expiry: expiryEb !== 'false',
-                deactivation: deactivationEb !== 'false'
+                deactivation: deactivationEb !== 'false',
+                recovery: recoveryEb !== 'false'
             });
         }
     };
@@ -436,6 +439,7 @@ export default function AdminDashboard() {
             updates.push({ key: 'email_payment_enabled', value: emailConfigs.payment.toString() });
             updates.push({ key: 'email_expiry_reminder_enabled', value: emailConfigs.expiry.toString() });
             updates.push({ key: 'email_deactivation_notice_enabled', value: emailConfigs.deactivation.toString() });
+            updates.push({ key: 'email_recovery_enabled', value: emailConfigs.recovery.toString() });
 
             for (const update of updates) {
                 const { error } = await supabase
@@ -497,6 +501,7 @@ export default function AdminDashboard() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
                     {[
                         { id: 'signup', label: 'Registros (Welcome)', key: 'signup' },
+                        { id: 'recovery', label: 'Recuperar Clave', key: 'recovery' },
                         { id: 'payment_confirmation', label: 'Confirmación Pago', key: 'payment' },
                         { id: 'expiry_reminder', label: 'Aviso Vencimiento', key: 'expiry' },
                         { id: 'deactivation_notice', label: 'Aviso Desactivación', key: 'deactivation' }
