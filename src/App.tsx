@@ -41,7 +41,7 @@ function Navigation() {
             </Link>
             {user ? (
               <>
-                <Link to="/dashboard" style={{ color: 'var(--text-main)', display: 'flex' }} title={`Mi Cuenta: \${user.email}`}>
+                <Link to="/dashboard" style={{ color: 'var(--text-main)', display: 'flex' }} title={"Mi Cuenta: " + user.email}>
                   <UserCircle size={28} />
                 </Link>
                 <button
