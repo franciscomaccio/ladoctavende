@@ -116,7 +116,10 @@ export default function Dashboard() {
     return (
         <div className="container-wide" style={{ paddingBottom: '100px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '1.5rem 0' }}>
-                <h1 style={{ fontSize: '1.5rem', fontWeight: '800' }}>Panel de Control</h1>
+                <h1 style={{ fontSize: '1.5rem', fontWeight: '800', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                    Panel de Control
+                    <span style={{ fontSize: '1rem', color: 'var(--text-muted)', fontWeight: 'normal' }}>({user.email})</span>
+                </h1>
                 <div style={{ display: 'flex', gap: '0.8rem' }}>
                     <button
                         className="btn-primary"

@@ -31,7 +31,7 @@ export default function ResetPasswordForm({ onSuccess }: ResetPasswordFormProps)
 
             if (error) throw error;
 
-            setMessage({ type: 'success', text: '¡Contraseña actualizada! Ahora puedes ingresar.' });
+            setMessage({ type: 'success', text: '¡Contraseña actualizada! Redirigiendo al panel...' });
             
             // Wait a bit then notify parent
             setTimeout(() => {

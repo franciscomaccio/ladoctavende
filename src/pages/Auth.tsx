@@ -57,7 +57,7 @@ export default function Auth() {
 
         checkRecovery();
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, _session) => {
             console.log('Auth Event:', event);
             if (event === 'PASSWORD_RECOVERY') {
                 console.log('PASSWORD_RECOVERY event received');
@@ -123,7 +123,7 @@ export default function Auth() {
                 {isResettingPassword ? (
                     <ResetPasswordForm onSuccess={() => {
                         setIsResettingPassword(false);
-                        setMessage({ type: 'success', text: 'Tu contraseña ha sido actualizada. Ya puedes iniciar sesión.' });
+                        navigate('/dashboard');
                     }} />
                 ) : (
                     <form onSubmit={handleAuth} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
