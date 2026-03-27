@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Mail, Lock, UserPlus, LogIn, CheckCircle } from 'lucide-react';
+import { Mail, Lock, UserPlus, LogIn, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { translateError } from '../utils/translateError';
 import PromoPopup from '../components/PromoPopup';
 import ResetPasswordForm from '../components/ResetPasswordForm';
@@ -15,6 +15,8 @@ export default function Auth() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
     React.useEffect(() => {
@@ -149,14 +151,22 @@ export default function Auth() {
                             <div style={{ position: 'relative' }}>
                                 <Lock size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                                 <input
-                                    type="password"
+                                    type={showPassword ? "text" : "password"}
                                     className="input-field"
-                                    style={{ paddingLeft: '40px' }}
+                                    style={{ paddingLeft: '40px', paddingRight: '40px' }}
                                     placeholder="********"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', padding: 0 }}
+                                    title={showPassword ? "Ocultar Contraseña" : "Ver Contraseña"}
+                                >
+                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
                             </div>
                         </div>
                     )}
@@ -167,14 +177,22 @@ export default function Auth() {
                             <div style={{ position: 'relative' }}>
                                 <Lock size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                                 <input
-                                    type="password"
+                                    type={showConfirmPassword ? "text" : "password"}
                                     className="input-field"
-                                    style={{ paddingLeft: '40px' }}
+                                    style={{ paddingLeft: '40px', paddingRight: '40px' }}
                                     placeholder="********"
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     required
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', padding: 0 }}
+                                    title={showConfirmPassword ? "Ocultar Contraseña" : "Ver Contraseña"}
+                                >
+                                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
                             </div>
                         </div>
                     )}

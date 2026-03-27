@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Lock, CheckCircle, Save, ShieldAlert } from 'lucide-react';
+import { Lock, CheckCircle, Save, ShieldAlert, Eye, EyeOff } from 'lucide-react';
 import { translateError } from '../utils/translateError';
 
 interface ResetPasswordFormProps {
@@ -11,6 +11,8 @@ export default function ResetPasswordForm({ onSuccess }: ResetPasswordFormProps)
     const [loading, setLoading] = useState(false);
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
     const handleReset = async (e: React.FormEvent) => {
@@ -62,15 +64,23 @@ export default function ResetPasswordForm({ onSuccess }: ResetPasswordFormProps)
                     <div style={{ position: 'relative' }}>
                         <Lock size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                         <input
-                            type="password"
+                            type={showNewPassword ? "text" : "password"}
                             className="input-field"
-                            style={{ paddingLeft: '40px' }}
+                            style={{ paddingLeft: '40px', paddingRight: '40px' }}
                             placeholder="Mínimo 6 caracteres"
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
                             required
                             minLength={6}
                         />
+                        <button
+                            type="button"
+                            onClick={() => setShowNewPassword(!showNewPassword)}
+                            style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', padding: 0 }}
+                            title={showNewPassword ? "Ocultar Contraseña" : "Ver Contraseña"}
+                        >
+                            {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
                     </div>
                 </div>
 
@@ -79,15 +89,23 @@ export default function ResetPasswordForm({ onSuccess }: ResetPasswordFormProps)
                     <div style={{ position: 'relative' }}>
                         <Lock size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                         <input
-                            type="password"
+                            type={showConfirmPassword ? "text" : "password"}
                             className="input-field"
-                            style={{ paddingLeft: '40px' }}
+                            style={{ paddingLeft: '40px', paddingRight: '40px' }}
                             placeholder="Repite la nueva contraseña"
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             required
                             minLength={6}
                         />
+                        <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', padding: 0 }}
+                            title={showConfirmPassword ? "Ocultar Contraseña" : "Ver Contraseña"}
+                        >
+                            {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
                     </div>
                 </div>
 

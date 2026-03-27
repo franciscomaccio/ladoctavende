@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Lock, CheckCircle, Save, X, KeyRound, ShieldAlert } from 'lucide-react';
+import { Lock, CheckCircle, Save, X, KeyRound, ShieldAlert, Eye, EyeOff } from 'lucide-react';
 import { translateError } from '../utils/translateError';
 
 interface UpdatePasswordFormProps {
@@ -12,6 +12,9 @@ export default function UpdatePasswordForm({ onClose }: UpdatePasswordFormProps)
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
     const handleUpdate = async (e: React.FormEvent) => {
@@ -92,14 +95,22 @@ export default function UpdatePasswordForm({ onClose }: UpdatePasswordFormProps)
                         <div style={{ position: 'relative' }}>
                             <KeyRound size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                             <input
-                                type="password"
+                                type={showCurrentPassword ? "text" : "password"}
                                 className="input-field"
-                                style={{ paddingLeft: '40px' }}
+                                style={{ paddingLeft: '40px', paddingRight: '40px' }}
                                 placeholder="Ingresá tu contraseña actual"
                                 value={currentPassword}
                                 onChange={(e) => setCurrentPassword(e.target.value)}
                                 required
                             />
+                            <button
+                                type="button"
+                                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', padding: 0 }}
+                                title={showCurrentPassword ? "Ocultar Contraseña" : "Ver Contraseña"}
+                            >
+                                {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
                         </div>
                     </div>
 
@@ -110,15 +121,23 @@ export default function UpdatePasswordForm({ onClose }: UpdatePasswordFormProps)
                         <div style={{ position: 'relative' }}>
                             <Lock size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                             <input
-                                type="password"
+                                type={showNewPassword ? "text" : "password"}
                                 className="input-field"
-                                style={{ paddingLeft: '40px' }}
+                                style={{ paddingLeft: '40px', paddingRight: '40px' }}
                                 placeholder="Escribí la nueva contraseña"
                                 value={newPassword}
                                 onChange={(e) => setNewPassword(e.target.value)}
                                 required
                                 minLength={6}
                             />
+                            <button
+                                type="button"
+                                onClick={() => setShowNewPassword(!showNewPassword)}
+                                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', padding: 0 }}
+                                title={showNewPassword ? "Ocultar Contraseña" : "Ver Contraseña"}
+                            >
+                                {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
                         </div>
                     </div>
 
@@ -127,15 +146,23 @@ export default function UpdatePasswordForm({ onClose }: UpdatePasswordFormProps)
                         <div style={{ position: 'relative' }}>
                             <Lock size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                             <input
-                                type="password"
+                                type={showConfirmPassword ? "text" : "password"}
                                 className="input-field"
-                                style={{ paddingLeft: '40px' }}
+                                style={{ paddingLeft: '40px', paddingRight: '40px' }}
                                 placeholder="Repetid la nueva contraseña"
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 required
                                 minLength={6}
                             />
+                            <button
+                                type="button"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', padding: 0 }}
+                                title={showConfirmPassword ? "Ocultar Contraseña" : "Ver Contraseña"}
+                            >
+                                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
                         </div>
                     </div>
 
