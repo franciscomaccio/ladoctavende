@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
             subject = "📩 Confirma tu registro en La Docta Vende";
             title = "¡Bienvenido a La Docta Vende!";
             buttonText = "Confirmar mi cuenta";
-            message = "Gracias por unirte a la plataforma líder para conectar negocios locales en Córdoba. Para empezar a publicar tu negocio, por favor confirma tu dirección de correo electrónico.";
+            message = "Gracias por unirte a la plataforma para conectar negocios locales en Córdoba. Para empezar a publicar tu negocio, por favor confirma tu dirección de correo electrónico.";
         } else if (email_action_type === 'recovery') {
             subject = "🔒 Recupera tu contraseña - La Docta Vende";
             title = "Recuperar Contraseña";
