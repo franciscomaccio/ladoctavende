@@ -154,7 +154,8 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
         e.stopPropagation();
         recordBusinessEvent(businessId, 'whatsapp');
         const cleanPhone = phone.replace(/\D/g, '');
-        window.open(`https://wa.me/${cleanPhone}`, '_blank');
+        const message = encodeURIComponent("Hola te escribo desde La Docta Vende");
+        window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
     };
 
     const openMaps = (e: React.MouseEvent, businessId: string, lat: number, lng: number) => {

@@ -88,7 +88,7 @@ const About: React.FC = () => {
                             <Mail size={20} /> administracion@ladoctavende.com.ar
                         </a>
                         <a
-                            href="https://wa.me/5493512117700"
+                            href="https://wa.me/5493512117700?text=Hola%20te%20escribo%20desde%20La%20Docta%20Vende"
                             target="_blank"
                             rel="noopener noreferrer"
                             style={{
