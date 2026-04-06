@@ -314,13 +314,15 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
 
                         {/* Footer always visible */}
                         <div style={{ padding: '1.25rem', borderTop: '1px solid var(--border-light)', display: 'flex', gap: '0.75rem', background: '#fff' }}>
-                            <button
-                                className="btn-whatsapp"
-                                style={{ flex: 1, padding: '12px', justifyContent: 'center' }}
-                                onClick={(e) => openWhatsApp(e, selectedBusiness.id, selectedBusiness.phone || '')}
-                            >
-                                <MessageCircle size={20} fill="currentColor" /> WhatsApp
-                            </button>
+                            {selectedBusiness.phone && (
+                                <button
+                                    className="btn-whatsapp"
+                                    style={{ flex: 1, padding: '12px', justifyContent: 'center' }}
+                                    onClick={(e) => openWhatsApp(e, selectedBusiness.id, selectedBusiness.phone || '')}
+                                >
+                                    <MessageCircle size={20} fill="currentColor" /> WhatsApp
+                                </button>
+                            )}
 
                             <button
                                 className="btn-web"
