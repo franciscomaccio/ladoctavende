@@ -18,7 +18,7 @@ const About: React.FC = () => {
                         Potenciamos el Comercio Local
                     </h1>
                     <p style={{ fontSize: '1.2rem', opacity: 0.8, lineHeight: '1.6' }}>
-                        La Docta Vende es la plataforma en Córdoba para conectar negocios locales con clientes cercanos.
+                        La Docta Vende es la plataforma para conectar negocios con clientes cercanos.
                         Simplificamos la búsqueda de servicios y productos, dándole a cada emprendimiento el lugar que merece.
                     </p>
                 </div>
@@ -30,7 +30,7 @@ const About: React.FC = () => {
                     <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '20px' }}>
                         <div style={{ color: 'var(--primary)', marginBottom: '1rem' }}><Search size={32} /></div>
                         <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Visibilidad 24/7</h3>
-                        <p style={{ opacity: 0.7, fontSize: '0.95rem' }}>Tu negocio estará disponible para miles de usuarios que buscan servicios en Córdoba a toda hora.</p>
+                        <p style={{ opacity: 0.7, fontSize: '0.95rem' }}>Tu negocio estará disponible para miles de usuarios que te están buscando a toda hora.</p>
                     </div>
 
                     <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '20px' }}>
