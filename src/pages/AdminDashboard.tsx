@@ -78,12 +78,12 @@ export default function AdminDashboard() {
         start: (() => {
             const d = new Date();
             d.setDate(1);
-            return d.toISOString().split('T')[0];
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
         })(),
         end: (() => {
             const d = new Date();
             d.setDate(d.getDate() + 1);
-            return d.toISOString().split('T')[0];
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
         })()
     });
 
@@ -275,7 +275,7 @@ export default function AdminDashboard() {
                 if (isSingleDay) {
                     key = `${String(d.getHours()).padStart(2, '0')}:00`;
                 } else {
-                    key = d.toISOString().split('T')[0];
+                    key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
                 }
                 if (!chartDataMap[key]) chartDataMap[key] = { revenue: 0, visits: 0 };
                 chartDataMap[key].revenue += Number(p.amount);
@@ -287,7 +287,7 @@ export default function AdminDashboard() {
                 if (isSingleDay) {
                     key = `${String(d.getHours()).padStart(2, '0')}:00`;
                 } else {
-                    key = d.toISOString().split('T')[0];
+                    key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
                 }
                 if (!chartDataMap[key]) chartDataMap[key] = { revenue: 0, visits: 0 };
                 chartDataMap[key].visits += 1;
