@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { Search, Tag, MessageCircle, MapPin, X, Globe, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Business, Promotion } from '../types/database';
 import { recordBusinessEvent } from '../lib/analytics';
+import BusinessMap from '../components/BusinessMap';
 
 interface PromotionWithBusiness extends Promotion {
     businesses: Business;
@@ -39,6 +40,7 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
     const [selectedDay] = useState<number | null>(null);
     const [showLeftArrow, setShowLeftArrow] = useState(false);
     const [showRightArrow, setShowRightArrow] = useState(false);
+    const [isMapView, setIsMapView] = useState(false);
 
     const updateArrowsVisibility = () => {
         const el = scrollRef.current;
@@ -173,17 +175,44 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
                 <meta name="description" content={type === 'business' ? 'Explorá los mejores comercios y servicios de Córdoba en un solo lugar.' : 'Encontrá avisos clasificados y productos en Córdoba, Argentina.'} />
             </Helmet>
             {/* Search Bar */}
-            <div style={{ position: 'relative', margin: '1rem 0 1.5rem' }}>
-                <Search size={20} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                <input
-                    id="search-input"
-                    type="text"
-                    className="input-field"
-                    style={{ paddingLeft: '50px', background: '#f3f4f6', border: 'none' }}
-                    placeholder={type === 'business' ? "Buscar negocios..." : "Buscar clasificados..."}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
+            <div style={{ position: 'relative', margin: '1rem 0 1.5rem', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                <div style={{ position: 'relative', flex: 1 }}>
+                    <Search size={20} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                    <input
+                        id="search-input"
+                        type="text"
+                        className="input-field"
+                        style={{ paddingLeft: '50px', background: '#f3f4f6', border: 'none' }}
+                        placeholder={type === 'business' ? "Buscar negocios..." : "Buscar clasificados..."}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+                
+                {type === 'business' && (
+                    <button
+                        onClick={() => setIsMapView(!isMapView)}
+                        style={{
+                            background: isMapView ? 'var(--primary)' : 'rgba(0,0,0,0.05)',
+                            color: isMapView ? 'white' : 'var(--text-muted)',
+                            border: 'none',
+                            borderRadius: '12px',
+                            padding: '12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            boxShadow: isMapView ? '0 4px 12px rgba(0, 155, 58, 0.3)' : 'none'
+                        }}
+                        title={isMapView ? "Ver como lista" : "Ver en mapa"}
+                    >
+                        <MapPin size={24} />
+                        <span style={{ fontSize: '0.9rem', fontWeight: '700', display: window.innerWidth > 400 ? 'block' : 'none' }}>
+                            {isMapView ? 'Lista' : 'Mapa'}
+                        </span>
+                    </button>
+                )}
             </div>
 
             {/* Categories */}
@@ -223,47 +252,54 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
                 )}
             </div>
 
-            {/* List */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {/* Content Area (Map or List) */}
+            <div style={{ position: 'relative', minHeight: '300px' }}>
                 {loading ? (
-                    <p style={{ textAlign: 'center' }}>Cargando...</p>
+                    <p style={{ textAlign: 'center', padding: '2rem' }}>Cargando...</p>
+                ) : isMapView && type === 'business' ? (
+                    <BusinessMap 
+                        businesses={filteredBusinesses} 
+                        onBusinessClick={(b) => setSelectedBusiness(b)} 
+                    />
                 ) : (
-                    filteredBusinesses.length > 0 ? (
-                        filteredBusinesses.map(business => (
-                            <div
-                                key={business.id}
-                                className="business-card-h"
-                                onClick={() => {
-                                    recordBusinessEvent(business.id, 'open');
-                                    setSelectedBusiness(business);
-                                }}
-                                style={{ background: type === 'business' ? '#1f2937' : '#1e3a8a', color: 'white', border: 'none' }}
-                            >
-                                {business.image_url ? (
-                                    <img src={business.image_url} alt={business.name} />
-                                ) : (
-                                    <div style={{ width: '120px', height: '120px', background: '#374151', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        <Tag size={32} color="#9ca3af" />
-                                    </div>
-                                )}
-                                <div className="business-info" style={{ padding: '12px', justifyContent: 'flex-start' }}>
-                                    <h3 style={{ fontSize: '1.1rem', marginBottom: '2px', color: 'white' }}>{business.name}</h3>
-                                    <span style={{ fontSize: '0.85rem', color: '#9ca3af', marginBottom: '4px' }}>{business.category}</span>
-                                    {business.description && (
-                                        <p style={{
-                                            fontSize: '0.85rem', color: '#d1d5db',
-                                            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-                                            overflow: 'hidden', margin: '0 0 8px 0', lineHeight: '1.4'
-                                        }}>
-                                            {business.description}
-                                        </p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        {filteredBusinesses.length > 0 ? (
+                            filteredBusinesses.map(business => (
+                                <div
+                                    key={business.id}
+                                    className="business-card-h"
+                                    onClick={() => {
+                                        recordBusinessEvent(business.id, 'open');
+                                        setSelectedBusiness(business);
+                                    }}
+                                    style={{ background: type === 'business' ? '#1f2937' : '#1e3a8a', color: 'white', border: 'none' }}
+                                >
+                                    {business.image_url ? (
+                                        <img src={business.image_url} alt={business.name} />
+                                    ) : (
+                                        <div style={{ width: '120px', height: '120px', background: '#374151', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            <Tag size={32} color="#9ca3af" />
+                                        </div>
                                     )}
+                                    <div className="business-info" style={{ padding: '12px', justifyContent: 'flex-start' }}>
+                                        <h3 style={{ fontSize: '1.1rem', marginBottom: '2px', color: 'white' }}>{business.name}</h3>
+                                        <span style={{ fontSize: '0.85rem', color: '#9ca3af', marginBottom: '4px' }}>{business.category}</span>
+                                        {business.description && (
+                                            <p style={{
+                                                fontSize: '0.85rem', color: '#d1d5db',
+                                                display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+                                                overflow: 'hidden', margin: '0 0 8px 0', lineHeight: '1.4'
+                                            }}>
+                                                {business.description}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        ))
-                    ) : (
-                        <p style={{ textAlign: 'center' }}>No se encontraron {type === 'business' ? 'negocios' : 'clasificados'}.</p>
-                    )
+                            ))
+                        ) : (
+                            <p style={{ textAlign: 'center' }}>No se encontraron {type === 'business' ? 'negocios' : 'clasificados'}.</p>
+                        )}
+                    </div>
                 )}
             </div>
 
