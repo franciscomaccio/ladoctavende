@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
-import { CheckCircle, XCircle, Settings, LayoutDashboard, Calendar, Users, TrendingUp, BarChart3, PieChart, UserPlus, Trash2, RotateCw, Upload, Scissors, Mail, CreditCard } from 'lucide-react';
+import { CheckCircle, XCircle, Settings, LayoutDashboard, Calendar, Users, TrendingUp, BarChart3, PieChart, UserPlus, Trash2, RotateCw, Upload, Scissors, Mail, CreditCard, MessageCircle } from 'lucide-react';
 import { BusinessStatsModal } from '../components/BusinessStatsModal';
 import { TransferBusinessModal } from '../components/TransferBusinessModal';
 import { RegisteredUsersModal } from '../components/RegisteredUsersModal';
@@ -17,6 +17,7 @@ interface Business {
     active: boolean;
     subscription_expires_at: string | null;
     category: string;
+    whatsapp?: string;
     profiles?: { email: string };
 }
 
@@ -173,7 +174,7 @@ export default function AdminDashboard() {
     const fetchBusinesses = async () => {
         const { data } = await supabase
             .from('businesses')
-            .select('id, name, active, subscription_expires_at, category, profiles(email)')
+            .select('id, name, active, subscription_expires_at, category, whatsapp, profiles(email)')
             .order('created_at', { ascending: false })
             .order('id', { ascending: false });
         if (data) setBusinesses(data as unknown as Business[]);
@@ -1222,6 +1223,26 @@ export default function AdminDashboard() {
                                                             >
                                                                 <BarChart3 size={14} /> Stats
                                                             </button>
+                                                            {business.whatsapp && (
+                                                                <a
+                                                                    href={`https://wa.me/${business.whatsapp.replace(/\D/g, '')}`}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="btn-primary"
+                                                                    title="Contactar por WhatsApp"
+                                                                    style={{
+                                                                        padding: '6px 10px',
+                                                                        background: 'var(--whatsapp)',
+                                                                        color: 'white',
+                                                                        border: 'none',
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        justifyContent: 'center'
+                                                                    }}
+                                                                >
+                                                                    <MessageCircle size={16} />
+                                                                </a>
+                                                            )}
                                                             <button
                                                                 onClick={() => setSelectedBusinessForTransfer({ id: business.id, name: business.name })}
                                                                 className="btn-primary"
