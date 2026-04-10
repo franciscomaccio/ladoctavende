@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
-import { CheckCircle, XCircle, Settings, LayoutDashboard, Calendar, Users, TrendingUp, BarChart3, PieChart, UserPlus, Trash2, RotateCw, Upload, Scissors, Mail } from 'lucide-react';
+import { CheckCircle, XCircle, Settings, LayoutDashboard, Calendar, Users, TrendingUp, BarChart3, PieChart, UserPlus, Trash2, RotateCw, Upload, Scissors, Mail, CreditCard } from 'lucide-react';
 import { BusinessStatsModal } from '../components/BusinessStatsModal';
 import { TransferBusinessModal } from '../components/TransferBusinessModal';
 import { RegisteredUsersModal } from '../components/RegisteredUsersModal';
@@ -47,6 +47,7 @@ export default function AdminDashboard() {
     const [promoZoom, setPromoZoom] = useState(1);
     const [promoCroppedAreaPixels, setPromoCroppedAreaPixels] = useState<any>(null);
     const [isPromoCropping, setIsPromoCropping] = useState(false);
+    const [activeTab, setActiveTab] = useState('businesses');
     
     // Email Management State
     const [emailConfigs, setEmailConfigs] = useState({
@@ -463,267 +464,317 @@ export default function AdminDashboard() {
 
     return (
         <div className="container-wide">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', flexWrap: 'wrap', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: '#7f1d1d' }}>
                     <LayoutDashboard size={32} />
                     <h1 style={{ color: '#7f1d1d', margin: 0 }}>Panel Administrador</h1>
                 </div>
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                    <button onClick={() => setIsUsersModalOpen(true)} className="btn-primary" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-main)', border: '1px solid var(--border-light)' }}>
-                        <Users size={18} /> Usuarios Registrados
-                    </button>
                     <img src="/landing-logo.png" alt="Logo" style={{ height: '40px', objectFit: 'contain' }} />
                 </div>
             </div>
 
-            {/* Email Management Section - Moved Outside Flex */}
-            <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', maxWidth: '1000px', margin: '0 auto 2rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        <Mail size={24} color="var(--primary)" />
-                        <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem' }}>Gestión de Emails (Resend)</h3>
-                    </div>
-                    <div style={{ 
-                        background: (Object.values(emailStats || {}).reduce((a: any, b: any) => a + b, 0)) > 90 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)',
-                        padding: '4px 12px',
-                        borderRadius: '20px',
-                        fontSize: '0.85rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        color: (Object.values(emailStats || {}).reduce((a: any, b: any) => a + b, 0)) > 90 ? '#f87171' : '#34d399'
-                    }}>
-                        <TrendingUp size={14} />
-                        Enviados hoy: {Object.values(emailStats || {}).reduce((a: any, b: any) => a + b, 0)} / 100
-                    </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-                    {[
-                        { id: 'signup', label: 'Registros (Welcome)', key: 'signup' },
-                        { id: 'recovery', label: 'Recuperar Clave', key: 'recovery' },
-                        { id: 'payment_confirmation', label: 'Confirmación Pago', key: 'payment' },
-                        { id: 'expiry_reminder', label: 'Aviso Vencimiento', key: 'expiry' },
-                        { id: 'deactivation_notice', label: 'Aviso Desactivación', key: 'deactivation' }
-                    ].map((type) => (
-                        <div key={type.id} style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '12px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>{type.label}</span>
-                                <input
-                                    type="checkbox"
-                                    checked={(emailConfigs as any)[type.key]}
-                                    onChange={(e) => setEmailConfigs(prev => ({ ...prev, [type.key]: e.target.checked }))}
-                                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                                />
-                            </div>
-                            <div style={{ fontSize: '1.25rem', fontWeight: '700', color: (emailConfigs as any)[type.key] ? 'var(--text-main)' : 'var(--text-muted)' }}>
-                                {emailStats[type.id] || 0} <span style={{ fontSize: '0.7rem', fontWeight: '400', opacity: 0.6 }}>hoy</span>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                {emailLogs.length > 0 && (
-                    <div style={{ marginTop: '0.5rem' }}>
-                        <h4 style={{ fontSize: '0.9rem', marginBottom: '0.75rem', color: 'var(--text-muted)' }}>Últimos envíos</h4>
-                        <div style={{ maxHeight: '200px', overflowY: 'auto', background: 'rgba(0,0,0,0.1)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                            <table style={{ width: '100%', fontSize: '0.8rem', borderCollapse: 'collapse' }}>
-                                <thead style={{ position: 'sticky', top: 0, background: '#111', zIndex: 1 }}>
-                                    <tr style={{ textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                                        <th style={{ padding: '8px' }}>Tipo</th>
-                                        <th style={{ padding: '8px' }}>Destinatario</th>
-                                        <th style={{ padding: '8px' }}>Estado</th>
-                                        <th style={{ padding: '8px' }}>Fecha</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {emailLogs.map((log) => (
-                                        <tr key={log.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
-                                            <td style={{ padding: '8px', opacity: 0.8 }}>{log.type}</td>
-                                            <td style={{ padding: '8px', opacity: 0.8 }}>{log.recipient}</td>
-                                            <td style={{ padding: '8px' }}>
-                                                {log.status === 'success' ? 
-                                                    <span style={{ color: '#34d399' }}>Enviado</span> : 
-                                                    <span style={{ color: '#f87171' }} title={log.error_message}>Error</span>
-                                                }
-                                            </td>
-                                            <td style={{ padding: '8px', opacity: 0.6 }}>
-                                                {new Date(log.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                )}
-
-                <button
-                    onClick={updatePrice}
-                    className="btn-primary"
-                    style={{ width: '100%' }}
-                    disabled={loading}
-                >
-                    <Settings size={18} /> {loading ? 'Guardando...' : 'Guardar Configuración de Emails'}
-                </button>
+            {/* Tab Navigation */}
+            <div className="glass-card" style={{ 
+                display: 'flex', 
+                gap: '0.25rem', 
+                padding: '0.4rem', 
+                marginBottom: '2rem', 
+                overflowX: 'auto',
+                background: 'rgba(0,0,0,0.2)',
+                borderRadius: '12px',
+                border: '1px solid var(--glass-border)',
+                WebkitOverflowScrolling: 'touch'
+            }}>
+                {[
+                    { id: 'businesses', label: 'Negocios', icon: <LayoutDashboard size={18} /> },
+                    { id: 'stats', label: 'Evolución e Ingresos', icon: <TrendingUp size={18} /> },
+                    { id: 'prices', label: 'Precios', icon: <CreditCard size={18} /> },
+                    { id: 'promo', label: 'Pop-up Promo', icon: <Settings size={18} /> },
+                    { id: 'emails', label: 'Gestión Emails', icon: <Mail size={18} /> }
+                ].map((tab) => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.6rem',
+                            padding: '0.6rem 1.25rem',
+                            borderRadius: '8px',
+                            border: 'none',
+                            background: activeTab === tab.id ? 'var(--primary)' : 'transparent',
+                            color: activeTab === tab.id ? 'white' : 'var(--text-main)',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            fontWeight: '600',
+                            fontSize: '0.85rem',
+                            whiteSpace: 'nowrap'
+                        }}
+                    >
+                        {tab.icon}
+                        {tab.label}
+                    </button>
+                ))}
             </div>
 
-                <div className="date-filter-container">
-                    <div className="date-filter-item">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <Calendar size={16} />
-                            <span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Desde:</span>
+            {/* Tab: Emails */}
+            {activeTab === 'emails' && (
+                <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', maxWidth: '1000px', margin: '0 auto 2rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <Mail size={24} color="var(--primary)" />
+                            <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem' }}>Gestión de Emails (Resend)</h3>
                         </div>
-                        <input
-                            type="date"
-                            value={dateRange.start}
-                            onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
-                            style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', fontSize: '0.85rem', outline: 'none', cursor: 'pointer' }}
-                        />
-                    </div>
-                    <div className="date-filter-item">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Hasta:</span>
+                        <div style={{ 
+                            background: (Object.values(emailStats || {}).reduce((a: any, b: any) => a + b, 0)) > 90 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)',
+                            padding: '4px 12px',
+                            borderRadius: '20px',
+                            fontSize: '0.85rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            color: (Object.values(emailStats || {}).reduce((a: any, b: any) => a + b, 0)) > 90 ? '#f87171' : '#34d399'
+                        }}>
+                            <TrendingUp size={14} />
+                            Enviados hoy: {Object.values(emailStats || {}).reduce((a: any, b: any) => a + b, 0)} / 100
                         </div>
-                        <input
-                            type="date"
-                            value={dateRange.end}
-                            onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
-                            style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', fontSize: '0.85rem', outline: 'none', cursor: 'pointer' }}
-                        />
                     </div>
-                </div>
 
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                    gap: '1rem',
-                    width: '100%',
-                    marginBottom: '1rem'
-                }}>
-                    <div className="glass-card" style={{ padding: '1.25rem', borderLeft: '4px solid var(--primary)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                            <span style={{ fontSize: '0.85rem', fontWeight: '600', opacity: 0.7 }}>Ingresos Periodo</span>
-                            <TrendingUp size={18} color="var(--primary)" />
-                        </div>
-                        <div style={{ fontSize: '1.5rem', fontWeight: '800' }}>${generalStats.monthlyRevenue.toLocaleString()}</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+                        {[
+                            { id: 'signup', label: 'Registros (Welcome)', key: 'signup' },
+                            { id: 'recovery', label: 'Recuperar Clave', key: 'recovery' },
+                            { id: 'payment_confirmation', label: 'Confirmación Pago', key: 'payment' },
+                            { id: 'expiry_reminder', label: 'Aviso Vencimiento', key: 'expiry' },
+                            { id: 'deactivation_notice', label: 'Aviso Desactivación', key: 'deactivation' }
+                        ].map((type) => (
+                            <div key={type.id} style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '12px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                    <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>{type.label}</span>
+                                    <input
+                                        type="checkbox"
+                                        checked={(emailConfigs as any)[type.key]}
+                                        onChange={(e) => setEmailConfigs(prev => ({ ...prev, [type.key]: e.target.checked }))}
+                                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                                    />
+                                </div>
+                                <div style={{ fontSize: '1.25rem', fontWeight: '700', color: (emailConfigs as any)[type.key] ? 'var(--text-main)' : 'var(--text-muted)' }}>
+                                    {emailStats[type.id] || 0} <span style={{ fontSize: '0.7rem', fontWeight: '400', opacity: 0.6 }}>hoy</span>
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                    <div className="glass-card" style={{ padding: '1.25rem', borderLeft: '4px solid #3b82f6' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                            <span style={{ fontSize: '0.85rem', fontWeight: '600', opacity: 0.7 }}>Negocios Totales</span>
-                            <Users size={18} color="#3b82f6" />
+
+                    {emailLogs.length > 0 && (
+                        <div style={{ marginTop: '0.5rem' }}>
+                            <h4 style={{ fontSize: '0.9rem', marginBottom: '0.75rem', color: 'var(--text-muted)' }}>Últimos envíos</h4>
+                            <div style={{ maxHeight: '200px', overflowY: 'auto', background: 'rgba(0,0,0,0.1)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                <table style={{ width: '100%', fontSize: '0.8rem', borderCollapse: 'collapse' }}>
+                                    <thead style={{ position: 'sticky', top: 0, background: '#111', zIndex: 1 }}>
+                                        <tr style={{ textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                                            <th style={{ padding: '8px' }}>Tipo</th>
+                                            <th style={{ padding: '8px' }}>Destinatario</th>
+                                            <th style={{ padding: '8px' }}>Estado</th>
+                                            <th style={{ padding: '8px' }}>Fecha</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {emailLogs.map((log) => (
+                                            <tr key={log.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
+                                                <td style={{ padding: '8px', opacity: 0.8 }}>{log.type}</td>
+                                                <td style={{ padding: '8px', opacity: 0.8 }}>{log.recipient}</td>
+                                                <td style={{ padding: '8px' }}>
+                                                    {log.status === 'success' ? 
+                                                        <span style={{ color: '#34d399' }}>Enviado</span> : 
+                                                        <span style={{ color: '#f87171' }} title={log.error_message}>Error</span>
+                                                    }
+                                                </td>
+                                                <td style={{ padding: '8px', opacity: 0.6 }}>
+                                                    {new Date(log.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                        <div style={{ fontSize: '1.5rem', fontWeight: '800' }}>{generalStats.totalBusinesses}</div>
-                    </div>
-                    <div className="glass-card" style={{ padding: '1.25rem', borderLeft: '4px solid #10b981' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                            <span style={{ fontSize: '0.85rem', fontWeight: '600', opacity: 0.7 }}>Negocios Activos</span>
-                            <CheckCircle size={18} color="#10b981" />
-                        </div>
-                        <div style={{ fontSize: '1.5rem', fontWeight: '800' }}>{generalStats.activeBusinesses}</div>
-                    </div>
-                    <div className="glass-card" style={{ padding: '1.25rem', borderLeft: '4px solid #cb7f00' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                            <span style={{ fontSize: '0.85rem', fontWeight: '600', opacity: 0.7 }}>Recaudación Total</span>
-                            <PieChart size={18} color="#cb7f00" />
-                        </div>
-                        <div style={{ fontSize: '1.5rem', fontWeight: '800' }}>${generalStats.totalRevenue.toLocaleString()}</div>
-                    </div>
-                    <div 
-                        className="glass-card" 
-                        style={{ padding: '1.25rem', borderLeft: '4px solid var(--accent)', cursor: 'pointer', transition: 'transform 0.2s' }}
-                        onClick={() => setIsUsersModalOpen(true)}
-                        onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-                        onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                    )}
+
+                    <button
+                        onClick={updatePrice}
+                        className="btn-primary"
+                        style={{ width: '100%' }}
+                        disabled={loading}
                     >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                            <span style={{ fontSize: '0.85rem', fontWeight: '600', opacity: 0.7 }}>Usuarios Registrados</span>
-                            <UserPlus size={18} color="var(--accent)" />
-                        </div>
-                        <div style={{ fontSize: '1.5rem', fontWeight: '800' }}>{generalStats.totalUsers}</div>
-                    </div>
-                    <div className="glass-card" style={{ padding: '1.25rem', borderLeft: '4px solid #f26522' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                            <span style={{ fontSize: '0.85rem', fontWeight: '600', opacity: 0.7 }}>Visitas (Total / Periodo)</span>
-                            <Users size={18} color="#f26522" />
-                        </div>
-                        <div style={{ fontSize: '1.5rem', fontWeight: '800' }}>{generalStats.totalVisits} / {generalStats.periodVisits}</div>
-                    </div>
+                        <Settings size={18} /> {loading ? 'Guardando...' : 'Guardar Configuración de Emails'}
+                    </button>
                 </div>
+            )}
 
-                <div className="glass-card" style={{ padding: '1.5rem', width: '100%', marginBottom: '2rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
-                        <BarChart3 size={20} color="var(--primary)" />
-                        <h3 style={{ margin: 0, color: 'var(--text-main)' }}>Evolución de Ingresos y Tráfico</h3>
+            {/* Tab: Stats */}
+            {activeTab === 'stats' && (
+                <>
+                    <div className="date-filter-container">
+                        <div className="date-filter-item">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <Calendar size={16} />
+                                <span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Desde:</span>
+                            </div>
+                            <input
+                                type="date"
+                                value={dateRange.start}
+                                onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                                style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', fontSize: '0.85rem', outline: 'none', cursor: 'pointer' }}
+                            />
+                        </div>
+                        <div className="date-filter-item">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Hasta:</span>
+                            </div>
+                            <input
+                                type="date"
+                                value={dateRange.end}
+                                onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                                style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', fontSize: '0.85rem', outline: 'none', cursor: 'pointer' }}
+                            />
+                        </div>
                     </div>
-                    <div style={{ width: '100%', height: '300px' }}>
-                        <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={generalStats.chartData}>
-                                <defs>
-                                    <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
-                                    </linearGradient>
-                                    <linearGradient id="colorVisits" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#f26522" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="#f26522" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
-                                <XAxis
-                                    dataKey="name"
-                                    stroke="rgba(255,255,255,0.5)"
-                                    fontSize={12}
-                                    tickLine={false}
-                                    axisLine={false}
-                                />
-                                <YAxis
-                                    yAxisId="left"
-                                    stroke="var(--primary)"
-                                    fontSize={12}
-                                    tickLine={false}
-                                    axisLine={false}
-                                    tickFormatter={(val) => `$${val}`}
-                                />
-                                <YAxis
-                                    yAxisId="right"
-                                    orientation="right"
-                                    stroke="#f26522"
-                                    fontSize={12}
-                                    tickLine={false}
-                                    axisLine={false}
-                                />
-                                <Tooltip
-                                    contentStyle={{ background: '#1a1a1a', border: '1px solid var(--glass-border)', borderRadius: '8px' }}
-                                    formatter={(val: any, name: any) => [
-                                        name === 'revenue' ? `$${Number(val).toLocaleString()}` : val,
-                                        name === 'revenue' ? 'Ingresos' : 'Visitas'
-                                    ]}
-                                />
-                                <Area
-                                    yAxisId="left"
-                                    type="monotone"
-                                    dataKey="revenue"
-                                    stroke="var(--primary)"
-                                    strokeWidth={3}
-                                    fillOpacity={1}
-                                    fill="url(#colorValue)"
-                                />
-                                <Area
-                                    yAxisId="right"
-                                    type="monotone"
-                                    dataKey="visits"
-                                    stroke="#f26522"
-                                    strokeWidth={2}
-                                    fillOpacity={1}
-                                    fill="url(#colorVisits)"
-                                />
-                            </AreaChart>
-                        </ResponsiveContainer>
+
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                        gap: '1rem',
+                        width: '100%',
+                        marginBottom: '1rem'
+                    }}>
+                        <div className="glass-card" style={{ padding: '1.25rem', borderLeft: '4px solid var(--primary)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                <span style={{ fontSize: '0.85rem', fontWeight: '600', opacity: 0.7 }}>Ingresos Periodo</span>
+                                <TrendingUp size={18} color="var(--primary)" />
+                            </div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: '800' }}>${generalStats.monthlyRevenue.toLocaleString()}</div>
+                        </div>
+                        <div className="glass-card" style={{ padding: '1.25rem', borderLeft: '4px solid #3b82f6' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                <span style={{ fontSize: '0.85rem', fontWeight: '600', opacity: 0.7 }}>Negocios Totales</span>
+                                <Users size={18} color="#3b82f6" />
+                            </div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: '800' }}>{generalStats.totalBusinesses}</div>
+                        </div>
+                        <div className="glass-card" style={{ padding: '1.25rem', borderLeft: '4px solid #10b981' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                <span style={{ fontSize: '0.85rem', fontWeight: '600', opacity: 0.7 }}>Negocios Activos</span>
+                                <CheckCircle size={18} color="#10b981" />
+                            </div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: '800' }}>{generalStats.activeBusinesses}</div>
+                        </div>
+                        <div className="glass-card" style={{ padding: '1.25rem', borderLeft: '4px solid #cb7f00' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                <span style={{ fontSize: '0.85rem', fontWeight: '600', opacity: 0.7 }}>Recaudación Total</span>
+                                <PieChart size={18} color="#cb7f00" />
+                            </div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: '800' }}>${generalStats.totalRevenue.toLocaleString()}</div>
+                        </div>
+                        <div 
+                            className="glass-card" 
+                            style={{ padding: '1.25rem', borderLeft: '4px solid var(--accent)', cursor: 'pointer', transition: 'transform 0.2s' }}
+                            onClick={() => setIsUsersModalOpen(true)}
+                            onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                            onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                        >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                <span style={{ fontSize: '0.85rem', fontWeight: '600', opacity: 0.7 }}>Usuarios Registrados</span>
+                                <UserPlus size={18} color="var(--accent)" />
+                            </div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: '800' }}>{generalStats.totalUsers}</div>
+                        </div>
+                        <div className="glass-card" style={{ padding: '1.25rem', borderLeft: '4px solid #f26522' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                <span style={{ fontSize: '0.85rem', fontWeight: '600', opacity: 0.7 }}>Visitas (Total / Periodo)</span>
+                                <Users size={18} color="#f26522" />
+                            </div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: '800' }}>{generalStats.totalVisits} / {generalStats.periodVisits}</div>
+                        </div>
                     </div>
-                </div>
+
+                    <div className="glass-card" style={{ padding: '1.5rem', width: '100%', marginBottom: '2rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
+                            <BarChart3 size={20} color="var(--primary)" />
+                            <h3 style={{ margin: 0, color: 'var(--text-main)' }}>Evolución de Ingresos y Tráfico</h3>
+                        </div>
+                        <div style={{ width: '100%', height: '300px' }}>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={generalStats.chartData}>
+                                    <defs>
+                                        <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
+                                        </linearGradient>
+                                        <linearGradient id="colorVisits" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#f26522" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#f26522" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
+                                    <XAxis
+                                        dataKey="name"
+                                        stroke="rgba(255,255,255,0.5)"
+                                        fontSize={12}
+                                        tickLine={false}
+                                        axisLine={false}
+                                    />
+                                    <YAxis
+                                        yAxisId="left"
+                                        stroke="var(--primary)"
+                                        fontSize={12}
+                                        tickLine={false}
+                                        axisLine={false}
+                                        tickFormatter={(val) => `$${val}`}
+                                    />
+                                    <YAxis
+                                        yAxisId="right"
+                                        orientation="right"
+                                        stroke="#f26522"
+                                        fontSize={12}
+                                        tickLine={false}
+                                        axisLine={false}
+                                    />
+                                    <Tooltip
+                                        contentStyle={{ background: '#1a1a1a', border: '1px solid var(--glass-border)', borderRadius: '8px' }}
+                                        formatter={(val: any, name: any) => [
+                                            name === 'revenue' ? `$${Number(val).toLocaleString()}` : val,
+                                            name === 'revenue' ? 'Ingresos' : 'Visitas'
+                                        ]}
+                                    />
+                                    <Area
+                                        yAxisId="left"
+                                        type="monotone"
+                                        dataKey="revenue"
+                                        stroke="var(--primary)"
+                                        strokeWidth={3}
+                                        fillOpacity={1}
+                                        fill="url(#colorValue)"
+                                    />
+                                    <Area
+                                        yAxisId="right"
+                                        type="monotone"
+                                        dataKey="visits"
+                                        stroke="#f26522"
+                                        strokeWidth={2}
+                                        fillOpacity={1}
+                                        fill="url(#colorVisits)"
+                                    />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                </>
+            )}
 
 
+            {/* Tab: Prices */}
+            {activeTab === 'prices' && (
                 <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', maxWidth: '1000px', margin: '0 auto 2rem' }}>
                     <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem' }}>Suscripciones</h3>
 
@@ -788,8 +839,11 @@ export default function AdminDashboard() {
                         <Settings size={18} /> Actualizar Precios
                     </button>
                 </div>
+            )}
 
                 {/* Promo Pop-up Config */}
+            {/* Tab: Promo Pop-up */}
+            {activeTab === 'promo' && (
                 <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', maxWidth: '1000px', margin: '0 auto 2rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                         <BarChart3 size={24} color="var(--primary)" />
@@ -797,7 +851,7 @@ export default function AdminDashboard() {
                     </div>
                     <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>Configurá el anuncio que verán los usuarios al ingresar a su panel.</p>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                         <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '12px', cursor: 'pointer' }}>
                             <input
                                 type="checkbox"
@@ -863,6 +917,7 @@ export default function AdminDashboard() {
                         </button>
                     </div>
                 </div>
+            )}
 
             {/* Cropper Modal for Promo Image */}
             {isPromoCropping && promoImageSrc && (
@@ -885,179 +940,199 @@ export default function AdminDashboard() {
                 </div>
             )}
 
-            {loading ? (
-                <p>Cargando negocios...</p>
-            ) : (
-                <div className="glass-card" style={{ padding: '1rem' }}>
-                    <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-                        <input
-                            type="text"
-                            placeholder="Buscar por dueño..."
-                            value={filterOwner}
-                            onChange={(e) => setFilterOwner(e.target.value)}
-                            className="input-field"
-                            style={{ margin: 0, minWidth: '200px', flex: 1 }}
-                        />
-                        <select
-                            value={filterCategory}
-                            onChange={(e) => setFilterCategory(e.target.value)}
-                            className="input-field"
-                            style={{ margin: 0, minWidth: '200px', flex: 1 }}
-                        >
-                            <option value="all">Todas las Categorías</option>
-                            {uniqueCategories.map(c => (
-                                <option key={c} value={c}>{c}</option>
-                            ))}
-                        </select>
-                        <select
-                            value={filterStatus}
-                            onChange={(e) => setFilterStatus(e.target.value)}
-                            className="input-field"
-                            style={{ margin: 0, minWidth: '200px', flex: 1 }}
-                        >
-                            <option value="all">Todos los Estados</option>
-                            <option value="active">Activos</option>
-                            <option value="inactive">Inactivos</option>
-                        </select>
-                        <button
-                            onClick={() => {
-                                fetchBusinesses();
-                                fetchDashboardData();
-                            }}
-                            className="btn-primary"
-                            title="Actualizar lista"
-                            style={{
-                                margin: 0,
-                                padding: '0 1rem',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                background: 'rgba(255,255,255,0.05)',
-                                color: 'var(--text-main)',
-                                border: '1px solid var(--border-light)'
+            {activeTab === 'businesses' && (
+                <>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+                        <button 
+                            onClick={() => setIsUsersModalOpen(true)} 
+                            className="btn-primary" 
+                            style={{ 
+                                background: 'rgba(255,255,255,0.05)', 
+                                color: 'var(--text-main)', 
+                                border: '1px solid var(--border-light)',
+                                padding: '0.5rem 1rem',
+                                fontSize: '0.85rem'
                             }}
                         >
-                            <RotateCw size={18} />
+                            <Users size={18} /> Ver Usuarios Registrados
                         </button>
                     </div>
-                    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', width: '100%' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
-                            <thead>
-                                <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
-                                    <th onClick={() => handleSort('name')} style={{ textAlign: 'left', padding: '1rem', cursor: 'pointer' }}>
-                                        Negocio {sortConfig.key === 'name' ? (sortConfig.direction === 'asc' ? '↑' : sortConfig.direction === 'desc' ? '↓' : '') : ''}
-                                    </th>
-                                    <th onClick={() => handleSort('owner')} style={{ textAlign: 'left', padding: '1rem', cursor: 'pointer' }}>
-                                        Dueño {sortConfig.key === 'owner' ? (sortConfig.direction === 'asc' ? '↑' : sortConfig.direction === 'desc' ? '↓' : '') : ''}
-                                    </th>
-                                    <th onClick={() => handleSort('category')} style={{ textAlign: 'left', padding: '1rem', cursor: 'pointer' }}>
-                                        Categoría {sortConfig.key === 'category' ? (sortConfig.direction === 'asc' ? '↑' : sortConfig.direction === 'desc' ? '↓' : '') : ''}
-                                    </th>
-                                    <th onClick={() => handleSort('subscription_expires_at')} style={{ textAlign: 'left', padding: '1rem', cursor: 'pointer' }}>
-                                        Vencimiento {sortConfig.key === 'subscription_expires_at' ? (sortConfig.direction === 'asc' ? '↑' : sortConfig.direction === 'desc' ? '↓' : '') : ''}
-                                    </th>
-                                    <th onClick={() => handleSort('active')} style={{ textAlign: 'left', padding: '1rem', cursor: 'pointer' }}>
-                                        Estado {sortConfig.key === 'active' ? (sortConfig.direction === 'asc' ? '↑' : sortConfig.direction === 'desc' ? '↓' : '') : ''}
-                                    </th>
-                                    <th style={{ textAlign: 'center', padding: '1rem' }}>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {processedBusinesses.map((business) => {
-                                    const isExpired = isSubscriptionExpired(business.subscription_expires_at);
 
-                                    return (
-                                        <tr key={business.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                                            <td style={{ padding: '1rem' }}>{business.name}</td>
-                                            <td style={{ padding: '1rem', fontSize: '0.85rem', opacity: 0.8 }}>{business.profiles?.email || 'N/A'}</td>
-                                            <td style={{ padding: '1rem' }}>{business.category}</td>
-                                            <td style={{ padding: '1rem' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: isExpired ? 'var(--error)' : 'var(--text-main)' }}>
-                                                    <Calendar size={14} />
-                                                    <input
-                                                        type="date"
-                                                        defaultValue={business.subscription_expires_at ? business.subscription_expires_at.split('T')[0] : ''}
-                                                        onChange={(e) => handleUpdateExpiry(business.id, e.target.value)}
-                                                        style={{ background: 'transparent', border: 'none', color: 'inherit', outline: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.9rem' }}
-                                                    />
-                                                </div>
-                                            </td>
-                                            <td style={{ padding: '1rem' }}>
-                                                <span style={{
-                                                    padding: '4px 8px',
-                                                    borderRadius: '20px',
-                                                    fontSize: '0.8rem',
-                                                    background: business.active ? 'rgba(0, 155, 58, 0.2)' : 'rgba(255, 92, 138, 0.2)',
-                                                    color: business.active ? '#4ade80' : 'var(--error)'
-                                                }}>
-                                                    {business.active ? 'Visible' : 'Oculto'}
-                                                </span>
-                                            </td>
-                                            <td style={{ padding: '1rem', textAlign: 'center' }}>
-                                                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                                                    <button
-                                                        onClick={() => setSelectedBusinessForStats({ id: business.id, name: business.name })}
-                                                        className="btn-primary"
-                                                        style={{
-                                                            padding: '6px 12px',
-                                                            fontSize: '0.8rem',
-                                                            background: 'rgba(255,255,255,0.05)',
-                                                            color: 'var(--text-main)',
-                                                            border: '1px solid var(--border-light)'
-                                                        }}
-                                                    >
-                                                        <BarChart3 size={14} /> Stats
-                                                    </button>
-                                                    <button
-                                                        onClick={() => setSelectedBusinessForTransfer({ id: business.id, name: business.name })}
-                                                        className="btn-primary"
-                                                        style={{
-                                                            padding: '6px 12px',
-                                                            fontSize: '0.8rem',
-                                                            background: 'rgba(255,255,255,0.05)',
-                                                            color: 'var(--text-main)',
-                                                            border: '1px solid var(--border-light)'
-                                                        }}
-                                                    >
-                                                        <UserPlus size={14} /> Transferir
-                                                    </button>
-                                                    <button
-                                                        onClick={() => toggleActive(business.id, business.active)}
-                                                        className="btn-primary"
-                                                        style={{
-                                                            padding: '6px 12px',
-                                                            fontSize: '0.8rem',
-                                                            background: business.active ? 'var(--error)' : 'var(--primary)'
-                                                        }}
-                                                    >
-                                                        {business.active ? <XCircle size={14} /> : <CheckCircle size={14} />}
-                                                        {business.active ? ' Desactivar' : ' Activar'}
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteBusiness(business.id, business.name)}
-                                                        className="btn-primary"
-                                                        title="Eliminar"
-                                                        style={{
-                                                            padding: '6px 10px',
-                                                            background: 'rgba(239, 68, 68, 0.1)',
-                                                            color: '#ef4444',
-                                                            border: '1px solid rgba(239, 68, 68, 0.3)',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center'
-                                                        }}
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                </div>
-                                            </td>
+                    {loading ? (
+                        <p>Cargando negocios...</p>
+                    ) : (
+                        <div className="glass-card" style={{ padding: '1rem' }}>
+                            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+                                <input
+                                    type="text"
+                                    placeholder="Buscar por dueño..."
+                                    value={filterOwner}
+                                    onChange={(e) => setFilterOwner(e.target.value)}
+                                    className="input-field"
+                                    style={{ margin: 0, minWidth: '200px', flex: 1 }}
+                                />
+                                <select
+                                    value={filterCategory}
+                                    onChange={(e) => setFilterCategory(e.target.value)}
+                                    className="input-field"
+                                    style={{ margin: 0, minWidth: '200px', flex: 1 }}
+                                >
+                                    <option value="all">Todas las Categorías</option>
+                                    {uniqueCategories.map(c => (
+                                        <option key={c} value={c}>{c}</option>
+                                    ))}
+                                </select>
+                                <select
+                                    value={filterStatus}
+                                    onChange={(e) => setFilterStatus(e.target.value)}
+                                    className="input-field"
+                                    style={{ margin: 0, minWidth: '200px', flex: 1 }}
+                                >
+                                    <option value="all">Todos los Estados</option>
+                                    <option value="active">Activos</option>
+                                    <option value="inactive">Inactivos</option>
+                                </select>
+                                <button
+                                    onClick={() => {
+                                        fetchBusinesses();
+                                        fetchDashboardData();
+                                    }}
+                                    className="btn-primary"
+                                    title="Actualizar lista"
+                                    style={{
+                                        margin: 0,
+                                        padding: '0 1rem',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        background: 'rgba(255,255,255,0.05)',
+                                        color: 'var(--text-main)',
+                                        border: '1px solid var(--border-light)'
+                                    }}
+                                >
+                                    <RotateCw size={18} />
+                                </button>
+                            </div>
+                            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', width: '100%' }}>
+                                <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
+                                    <thead>
+                                        <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
+                                            <th onClick={() => handleSort('name')} style={{ textAlign: 'left', padding: '1rem', cursor: 'pointer' }}>
+                                                Negocio {sortConfig.key === 'name' ? (sortConfig.direction === 'asc' ? '↑' : sortConfig.direction === 'desc' ? '↓' : '') : ''}
+                                            </th>
+                                            <th onClick={() => handleSort('owner')} style={{ textAlign: 'left', padding: '1rem', cursor: 'pointer' }}>
+                                                Dueño {sortConfig.key === 'owner' ? (sortConfig.direction === 'asc' ? '↑' : sortConfig.direction === 'desc' ? '↓' : '') : ''}
+                                            </th>
+                                            <th onClick={() => handleSort('category')} style={{ textAlign: 'left', padding: '1rem', cursor: 'pointer' }}>
+                                                Categoría {sortConfig.key === 'category' ? (sortConfig.direction === 'asc' ? '↑' : sortConfig.direction === 'desc' ? '↓' : '') : ''}
+                                            </th>
+                                            <th onClick={() => handleSort('subscription_expires_at')} style={{ textAlign: 'left', padding: '1rem', cursor: 'pointer' }}>
+                                                Vencimiento {sortConfig.key === 'subscription_expires_at' ? (sortConfig.direction === 'asc' ? '↑' : sortConfig.direction === 'desc' ? '↓' : '') : ''}
+                                            </th>
+                                            <th onClick={() => handleSort('active')} style={{ textAlign: 'left', padding: '1rem', cursor: 'pointer' }}>
+                                                Estado {sortConfig.key === 'active' ? (sortConfig.direction === 'asc' ? '↑' : sortConfig.direction === 'desc' ? '↓' : '') : ''}
+                                            </th>
+                                            <th style={{ textAlign: 'center', padding: '1rem' }}>Acciones</th>
                                         </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                                    </thead>
+                                    <tbody>
+                                        {processedBusinesses.map((business) => {
+                                            const isExpired = isSubscriptionExpired(business.subscription_expires_at);
+
+                                            return (
+                                                <tr key={business.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                                    <td style={{ padding: '1rem' }}>{business.name}</td>
+                                                    <td style={{ padding: '1rem', fontSize: '0.85rem', opacity: 0.8 }}>{business.profiles?.email || 'N/A'}</td>
+                                                    <td style={{ padding: '1rem' }}>{business.category}</td>
+                                                    <td style={{ padding: '1rem' }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: isExpired ? 'var(--error)' : 'var(--text-main)' }}>
+                                                            <Calendar size={14} />
+                                                            <input
+                                                                type="date"
+                                                                defaultValue={business.subscription_expires_at ? business.subscription_expires_at.split('T')[0] : ''}
+                                                                onChange={(e) => handleUpdateExpiry(business.id, e.target.value)}
+                                                                style={{ background: 'transparent', border: 'none', color: 'inherit', outline: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.9rem' }}
+                                                            />
+                                                        </div>
+                                                    </td>
+                                                    <td style={{ padding: '1rem' }}>
+                                                        <span style={{
+                                                            padding: '4px 8px',
+                                                            borderRadius: '20px',
+                                                            fontSize: '0.8rem',
+                                                            background: business.active ? 'rgba(0, 155, 58, 0.2)' : 'rgba(255, 92, 138, 0.2)',
+                                                            color: business.active ? '#4ade80' : 'var(--error)'
+                                                        }}>
+                                                            {business.active ? 'Visible' : 'Oculto'}
+                                                        </span>
+                                                    </td>
+                                                    <td style={{ padding: '1rem', textAlign: 'center' }}>
+                                                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                                                            <button
+                                                                onClick={() => setSelectedBusinessForStats({ id: business.id, name: business.name })}
+                                                                className="btn-primary"
+                                                                style={{
+                                                                    padding: '6px 12px',
+                                                                    fontSize: '0.8rem',
+                                                                    background: 'rgba(255,255,255,0.05)',
+                                                                    color: 'var(--text-main)',
+                                                                    border: '1px solid var(--border-light)'
+                                                                }}
+                                                            >
+                                                                <BarChart3 size={14} /> Stats
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setSelectedBusinessForTransfer({ id: business.id, name: business.name })}
+                                                                className="btn-primary"
+                                                                style={{
+                                                                    padding: '6px 12px',
+                                                                    fontSize: '0.8rem',
+                                                                    background: 'rgba(255,255,255,0.05)',
+                                                                    color: 'var(--text-main)',
+                                                                    border: '1px solid var(--border-light)'
+                                                                }}
+                                                            >
+                                                                <UserPlus size={14} /> Transferir
+                                                            </button>
+                                                            <button
+                                                                onClick={() => toggleActive(business.id, business.active)}
+                                                                className="btn-primary"
+                                                                style={{
+                                                                    padding: '6px 12px',
+                                                                    fontSize: '0.8rem',
+                                                                    background: business.active ? 'var(--error)' : 'var(--primary)'
+                                                                }}
+                                                            >
+                                                                {business.active ? <XCircle size={14} /> : <CheckCircle size={14} />}
+                                                                {business.active ? ' Desactivar' : ' Activar'}
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteBusiness(business.id, business.name)}
+                                                                className="btn-primary"
+                                                                title="Eliminar"
+                                                                style={{
+                                                                    padding: '6px 10px',
+                                                                    background: 'rgba(239, 68, 68, 0.1)',
+                                                                    color: '#ef4444',
+                                                                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center'
+                                                                }}
+                                                            >
+                                                                <Trash2 size={16} />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+                </>
             )}
 
             {selectedBusinessForStats && (
