@@ -765,12 +765,12 @@ export default function AdminDashboard() {
                             <div style={{ width: '100%', height: '300px' }}>
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={generalStats.categoryActivity}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
-                                        <XAxis dataKey="name" stroke="rgba(255,255,255,0.5)" fontSize={11} tickLine={false} axisLine={false} />
-                                        <YAxis stroke="rgba(255,255,255,0.5)" fontSize={12} tickLine={false} axisLine={false} />
+                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" vertical={false} />
+                                        <XAxis dataKey="name" stroke="var(--text-main)" fontSize={11} tickLine={false} axisLine={false} />
+                                        <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
                                         <Tooltip 
-                                            contentStyle={{ background: '#1a1a1a', border: '1px solid var(--glass-border)', borderRadius: '8px' }}
-                                            cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                                            contentStyle={{ background: '#ffffff', border: '1px solid var(--border-light)', borderRadius: '8px', color: 'var(--text-main)' }}
+                                            cursor={{ fill: 'rgba(0,0,0,0.05)' }}
                                         />
                                         <Bar dataKey="value" fill="var(--primary)" radius={[4, 4, 0, 0]}>
                                             {generalStats.categoryActivity.map((_entry: any, index: number) => (
@@ -808,13 +808,13 @@ export default function AdminDashboard() {
                                         }
                                         layout="vertical"
                                     >
-                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" horizontal={false} />
-                                        <XAxis type="number" stroke="rgba(255,255,255,0.5)" fontSize={12} tickLine={false} axisLine={false} />
-                                        <YAxis dataKey="name" type="category" stroke="rgba(255,255,255,0.5)" fontSize={10} width={100} tickLine={false} axisLine={false} />
+                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" horizontal={false} />
+                                        <XAxis type="number" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
+                                        <YAxis dataKey="name" type="category" stroke="var(--text-main)" fontSize={10} width={100} tickLine={false} axisLine={false} />
                                         <Tooltip 
-                                            contentStyle={{ background: '#1a1a1a', border: '1px solid var(--glass-border)', borderRadius: '8px' }}
+                                            contentStyle={{ background: '#ffffff', border: '1px solid var(--border-light)', borderRadius: '8px', color: 'var(--text-main)' }}
                                             formatter={(value: any, name: string) => [value, name === 'total' ? 'Interacciones' : name.charAt(0).toUpperCase() + name.slice(1)]}
-                                            cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                                            cursor={{ fill: 'rgba(0,0,0,0.05)' }}
                                         />
                                         <Bar dataKey="total" fill="var(--accent)" radius={[0, 4, 4, 0]} />
                                     </BarChart>
@@ -841,10 +841,10 @@ export default function AdminDashboard() {
                                             <stop offset="95%" stopColor="#f26522" stopOpacity={0} />
                                         </linearGradient>
                                     </defs>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
+                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" vertical={false} />
                                     <XAxis
                                         dataKey="name"
-                                        stroke="rgba(255,255,255,0.5)"
+                                        stroke="var(--text-main)"
                                         fontSize={12}
                                         tickLine={false}
                                         axisLine={false}
