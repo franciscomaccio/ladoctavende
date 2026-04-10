@@ -493,10 +493,19 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                                 className="input-field"
                                 style={{ paddingLeft: '40px' }}
                                 value={formData.website_url}
-                                onChange={e => setFormData({ ...formData, website_url: e.target.value })}
+                                onChange={e => {
+                                    let value = e.target.value.trim();
+                                    // Si contiene espacios, solo tomar la primera URL
+                                    if (value.includes(' ')) {
+                                        value = value.split(' ').filter(Boolean)[0] || '';
+                                    }
+                                    setFormData({ ...formData, website_url: value });
+                                }}
+                                onBlur={e => setFormData({ ...formData, website_url: e.target.value.trim() })}
                                 placeholder="https://tu-sitio.com"
                             />
                         </div>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>Ingresá un solo enlace (web o red social)</span>
                     </div>
 
                     <div>
