@@ -422,12 +422,14 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                             required
                             placeholder="Nombre de tu negocio"
                         />
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>Los clientes buscarán tu negocio por este nombre.</span>
                     </div>
 
                     <div>
                         <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>
                             Categorías <span style={{ fontWeight: '400', fontSize: '0.75rem', color: 'var(--text-muted)' }}>(Máximo 2)</span>
                         </label>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.75rem', display: 'block', marginTop: '-0.2rem' }}>Permite que los clientes te encuentren filtrando por rubro.</span>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
                             {CATEGORIES.map(c => {
                                 const isSelected = selectedCategories.includes(c);
@@ -483,6 +485,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                             onChange={e => setFormData({ ...formData, description: e.target.value })}
                             placeholder="Contanos qué haces..."
                         />
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>Incluí palabras clave; los clientes también buscan dentro de las descripciones.</span>
                     </div>
 
                     <div>
