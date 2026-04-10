@@ -17,7 +17,7 @@ interface Business {
     active: boolean;
     subscription_expires_at: string | null;
     category: string;
-    whatsapp?: string;
+    phone?: string;
     profiles?: { email: string };
 }
 
@@ -174,7 +174,7 @@ export default function AdminDashboard() {
     const fetchBusinesses = async () => {
         const { data } = await supabase
             .from('businesses')
-            .select('id, name, active, subscription_expires_at, category, whatsapp, profiles(email)')
+            .select('id, name, active, subscription_expires_at, category, phone, profiles(email)')
             .order('created_at', { ascending: false })
             .order('id', { ascending: false });
         if (data) setBusinesses(data as unknown as Business[]);
@@ -1221,11 +1221,11 @@ export default function AdminDashboard() {
                                                                     border: '1px solid var(--border-light)'
                                                                 }}
                                                             >
-                                                                <BarChart3 size={14} /> Stats
+                                                            <BarChart3 size={14} /> Stats
                                                             </button>
-                                                            {business.whatsapp && (
+                                                            {business.phone && (
                                                                 <a
-                                                                    href={`https://wa.me/${business.whatsapp.replace(/\D/g, '')}`}
+                                                                    href={`https://wa.me/${business.phone.replace(/\D/g, '')}`}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
                                                                     className="btn-primary"
