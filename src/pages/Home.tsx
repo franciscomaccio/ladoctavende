@@ -330,7 +330,8 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
                                 onClick={() => {
                                     if (selectedBusiness.website_url) {
                                         recordBusinessEvent(selectedBusiness.id, 'web');
-                                        window.open(selectedBusiness.website_url, '_blank');
+                                        const url = selectedBusiness.website_url.startsWith('http') ? selectedBusiness.website_url : `https://${selectedBusiness.website_url}`;
+                                        window.open(url, '_blank');
                                     }
                                 }}
                                 disabled={!selectedBusiness.website_url}

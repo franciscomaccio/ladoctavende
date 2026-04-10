@@ -383,7 +383,8 @@ export default function Promotions() {
                                 onClick={() => {
                                     if (selectedPromotion.businesses.website_url) {
                                         recordBusinessEvent(selectedPromotion.businesses.id, 'web', selectedPromotion.id);
-                                        window.open(selectedPromotion.businesses.website_url, '_blank');
+                                        const url = selectedPromotion.businesses.website_url.startsWith('http') ? selectedPromotion.businesses.website_url : `https://${selectedPromotion.businesses.website_url}`;
+                                        window.open(url, '_blank');
                                     }
                                 }}
                                 disabled={!selectedPromotion.businesses.website_url}
