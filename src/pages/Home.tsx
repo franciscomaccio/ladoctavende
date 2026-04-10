@@ -260,6 +260,7 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
                     <BusinessMap 
                         businesses={filteredBusinesses} 
                         onBusinessClick={(b) => setSelectedBusiness(b)} 
+                        categoryIcons={CATEGORIES}
                     />
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

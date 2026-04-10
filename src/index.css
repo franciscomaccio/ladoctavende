@@ -318,6 +318,31 @@ footer {
   pointer-events: none;
 }
 
+/* Custom Map Markers */
+.business-category-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.marker-pin-inner {
+  background: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 1.4rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 2px solid var(--primary);
+  transition: transform 0.2s ease;
+}
+
+.marker-pin-inner:hover {
+  transform: scale(1.1);
+  z-index: 1000;
+}
+
 /* Modals */
 .modal-overlay {
   position: fixed;

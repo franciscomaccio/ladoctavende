@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import type { Business } from '../types/database';
-import { MapPin, Navigation } from 'lucide-react';
+import { Navigation } from 'lucide-react';
 
 // Fix Leaflet marker icons in Vite
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -19,9 +19,15 @@ let DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
+interface CategoryIcon {
+    name: string;
+    icon: string;
+}
+
 interface BusinessMapProps {
     businesses: Business[];
     onBusinessClick: (business: Business) => void;
+    categoryIcons: CategoryIcon[];
 }
 
 // Component to handle map centering and user location
@@ -37,7 +43,7 @@ const MapController = ({ userLocation }: { userLocation: [number, number] | null
     return null;
 };
 
-const BusinessMap: React.FC<BusinessMapProps> = ({ businesses, onBusinessClick }) => {
+const BusinessMap: React.FC<BusinessMapProps> = ({ businesses, onBusinessClick, categoryIcons }) => {
     const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
     const defaultCenter: [number, number] = [-31.417, -64.183]; // Córdoba, Argentina
 
@@ -53,6 +59,12 @@ const BusinessMap: React.FC<BusinessMapProps> = ({ businesses, onBusinessClick }
             );
         }
     }, []);
+
+    const getBusinessIcon = (categoriesString: string) => {
+        const businessCategories = categoriesString.split(',').map(s => s.trim());
+        const categoryMatch = categoryIcons.find(cat => businessCategories.includes(cat.name));
+        return categoryMatch ? categoryMatch.icon : '✨';
+    };
 
     // Filter businesses with valid coordinates
     const georeferencedBusinesses = businesses.filter(
@@ -98,6 +110,13 @@ const BusinessMap: React.FC<BusinessMapProps> = ({ businesses, onBusinessClick }
                     <Marker 
                         key={business.id} 
                         position={[business.location_lat!, business.location_lng!]}
+                        icon={L.divIcon({
+                            className: 'business-category-marker',
+                            html: `<div class="marker-pin-inner">${getBusinessIcon(business.category)}</div>`,
+                            iconSize: [36, 36],
+                            iconAnchor: [18, 18],
+                            popupAnchor: [0, -18]
+                        })}
                     >
                         <Popup>
                             <div style={{ textAlign: 'center', minWidth: '150px' }}>
