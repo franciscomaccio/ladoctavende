@@ -6,7 +6,7 @@ import { BusinessStatsModal } from '../components/BusinessStatsModal';
 import { TransferBusinessModal } from '../components/TransferBusinessModal';
 import { RegisteredUsersModal } from '../components/RegisteredUsersModal';
 import { translateError } from '../utils/translateError';
-import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, Cell } from 'recharts';
 import { isSubscriptionExpired, toEndOfDayISO } from '../utils/dateUtils';
 import Cropper from 'react-easy-crop';
 import { getCroppedImg } from '../utils/imageUtils';
@@ -71,8 +71,11 @@ export default function AdminDashboard() {
         totalVisits: 0,
         periodVisits: 0,
         categoryDistribution: {} as Record<string, number>,
-        chartData: [] as any[]
+        chartData: [] as any[],
+        categoryActivity: [] as any[],
+        businessActivity: [] as any[]
     });
+    const [statsFilterCategory, setStatsFilterCategory] = useState('all');
     const { user } = useAuth();
     const [isUsersModalOpen, setIsUsersModalOpen] = useState(false);
     const [dateRange, setDateRange] = useState({
@@ -239,12 +242,27 @@ export default function AdminDashboard() {
             .from('profiles')
             .select('*', { count: 'exact', head: true });
 
-        if (payments && bData && vData) {
-            const startDate = new Date(dateRange.start);
-            startDate.setHours(0, 0, 0, 0);
-            const endDate = new Date(dateRange.end);
-            endDate.setHours(23, 59, 59, 999);
+        const startDate = new Date(dateRange.start);
+        startDate.setHours(0, 0, 0, 0);
+        const endDate = new Date(dateRange.end);
+        endDate.setHours(23, 59, 59, 999);
 
+        // Fetch Analytics Events for the period
+        const { data: analyticsData } = await supabase
+            .from('business_analytics')
+            .select(`
+                event_type,
+                created_at,
+                business_id,
+                businesses (
+                    name,
+                    category
+                )
+            `)
+            .gte('created_at', startDate.toISOString())
+            .lte('created_at', endDate.toISOString());
+
+        if (payments && bData && vData) {
             const filteredPayments = payments.filter((p: Payment) => {
                 const d = new Date(p.created_at);
                 return d >= startDate && d <= endDate;
@@ -303,6 +321,43 @@ export default function AdminDashboard() {
                 if (b.category) cats[b.category] = (cats[b.category] || 0) + 1;
             });
 
+            // Process Categorized Analytics
+            const catActivityMap: Record<string, number> = {};
+            const bizActivityMap: Record<string, any> = {};
+
+            analyticsData?.forEach((event: any) => {
+                const bizInfo: any = event.businesses;
+                if (!bizInfo) return;
+
+                const category = bizInfo.category || 'Sin Categoría';
+                catActivityMap[category] = (catActivityMap[category] || 0) + 1;
+
+                if (!bizActivityMap[event.business_id]) {
+                    bizActivityMap[event.business_id] = {
+                        id: event.business_id,
+                        name: bizInfo.name,
+                        category: category,
+                        total: 0,
+                        view: 0,
+                        whatsapp: 0,
+                        map: 0,
+                        web: 0
+                    };
+                }
+                bizActivityMap[event.business_id].total += 1;
+                const eType = event.event_type;
+                if (eType in bizActivityMap[event.business_id]) {
+                    bizActivityMap[event.business_id][eType] += 1;
+                }
+            });
+
+            const categoryActivity = Object.entries(catActivityMap)
+                .map(([name, value]) => ({ name, value }))
+                .sort((a, b) => b.value - a.value);
+
+            const businessActivity = Object.values(bizActivityMap)
+                .sort((a, b) => b.total - a.total);
+
             setGeneralStats({
                 totalBusinesses: bData.length,
                 activeBusinesses: bData.filter((b: any) => b.active).length,
@@ -312,7 +367,9 @@ export default function AdminDashboard() {
                 totalVisits: vData.length,
                 periodVisits: filteredVisits.length,
                 categoryDistribution: cats,
-                chartData
+                chartData,
+                categoryActivity,
+                businessActivity
             });
         }
     };
@@ -695,6 +752,74 @@ export default function AdminDashboard() {
                                 <Users size={18} color="#f26522" />
                             </div>
                             <div style={{ fontSize: '1.5rem', fontWeight: '800' }}>{generalStats.totalVisits} / {generalStats.periodVisits}</div>
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+                        {/* Category Popularity Chart */}
+                        <div className="glass-card" style={{ padding: '1.5rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
+                                <BarChart3 size={20} color="var(--primary)" />
+                                <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem' }}>Popularidad de Categorías</h3>
+                            </div>
+                            <div style={{ width: '100%', height: '300px' }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={generalStats.categoryActivity}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
+                                        <XAxis dataKey="name" stroke="rgba(255,255,255,0.5)" fontSize={11} tickLine={false} axisLine={false} />
+                                        <YAxis stroke="rgba(255,255,255,0.5)" fontSize={12} tickLine={false} axisLine={false} />
+                                        <Tooltip 
+                                            contentStyle={{ background: '#1a1a1a', border: '1px solid var(--glass-border)', borderRadius: '8px' }}
+                                            cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                                        />
+                                        <Bar dataKey="value" fill="var(--primary)" radius={[4, 4, 0, 0]}>
+                                            {generalStats.categoryActivity.map((_entry: any, index: number) => (
+                                                <Cell key={`cell-${index}`} fillOpacity={0.8 - (Math.min(index, 10) * 0.05)} />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+
+                        {/* Business Activity Chart */}
+                        <div className="glass-card" style={{ padding: '1.5rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <TrendingUp size={20} color="var(--accent)" />
+                                    <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem' }}>Top Actividad por Negocio</h3>
+                                </div>
+                                <select
+                                    value={statsFilterCategory}
+                                    onChange={(e) => setStatsFilterCategory(e.target.value)}
+                                    className="input-field"
+                                    style={{ margin: 0, fontSize: '0.8rem', padding: '4px 8px', width: 'auto', background: 'rgba(0,0,0,0.3)' }}
+                                >
+                                    <option value="all">Todas las Categorías</option>
+                                    {uniqueCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                                </select>
+                            </div>
+                            <div style={{ width: '100%', height: '300px' }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart 
+                                        data={generalStats.businessActivity
+                                            .filter(b => statsFilterCategory === 'all' || b.category === statsFilterCategory)
+                                            .slice(0, 15)
+                                        }
+                                        layout="vertical"
+                                    >
+                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" horizontal={false} />
+                                        <XAxis type="number" stroke="rgba(255,255,255,0.5)" fontSize={12} tickLine={false} axisLine={false} />
+                                        <YAxis dataKey="name" type="category" stroke="rgba(255,255,255,0.5)" fontSize={10} width={100} tickLine={false} axisLine={false} />
+                                        <Tooltip 
+                                            contentStyle={{ background: '#1a1a1a', border: '1px solid var(--glass-border)', borderRadius: '8px' }}
+                                            formatter={(value: any, name: string) => [value, name === 'total' ? 'Interacciones' : name.charAt(0).toUpperCase() + name.slice(1)]}
+                                            cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                                        />
+                                        <Bar dataKey="total" fill="var(--accent)" radius={[0, 4, 4, 0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
                         </div>
                     </div>
 
