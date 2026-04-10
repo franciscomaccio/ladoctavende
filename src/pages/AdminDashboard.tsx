@@ -696,6 +696,22 @@ export default function AdminDashboard() {
                                 style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', fontSize: '0.85rem', outline: 'none', cursor: 'pointer' }}
                             />
                         </div>
+                        <button
+                            onClick={() => fetchDashboardData()}
+                            className="btn-primary"
+                            title="Actualizar Estadísticas"
+                            style={{
+                                height: '38px',
+                                padding: '0 1rem',
+                                background: 'rgba(255,255,255,0.05)',
+                                color: 'var(--text-main)',
+                                border: '1px solid var(--border-light)',
+                                margin: 0,
+                                marginLeft: '0.5rem'
+                            }}
+                        >
+                            <RotateCw size={18} />
+                        </button>
                     </div>
 
                     <div style={{
@@ -786,7 +802,7 @@ export default function AdminDashboard() {
                         <div className="glass-card" style={{ padding: '1.5rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <TrendingUp size={20} color="var(--accent)" />
+                                    <TrendingUp size={20} color="#d97706" />
                                     <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem' }}>Top Actividad por Negocio</h3>
                                 </div>
                                 <select
@@ -816,7 +832,7 @@ export default function AdminDashboard() {
                                             formatter={(value: any, name: string) => [value, name === 'total' ? 'Interacciones' : name.charAt(0).toUpperCase() + name.slice(1)]}
                                             cursor={{ fill: 'rgba(0,0,0,0.05)' }}
                                         />
-                                        <Bar dataKey="total" fill="var(--accent)" radius={[0, 4, 4, 0]} />
+                                        <Bar dataKey="total" fill="#d97706" radius={[0, 4, 4, 0]} />
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
