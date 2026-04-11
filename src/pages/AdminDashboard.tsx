@@ -552,8 +552,8 @@ export default function AdminDashboard() {
         <div className="container-wide">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: '#7f1d1d' }}>
-                    <LayoutDashboard size={32} />
-                    <h1 style={{ color: '#7f1d1d', margin: 0 }}>Panel Administrador</h1>
+                    <LayoutDashboard size={24} />
+                    <h1 style={{ color: '#7f1d1d', margin: 0, fontSize: '1.25rem' }}>Panel Administrador</h1>
                     <div style={{ 
                         background: '#fef2f2', 
                         color: '#991b1b', 
@@ -570,9 +570,6 @@ export default function AdminDashboard() {
                         <Users size={14} />
                         Hoy: {generalStats.todayVisits}
                     </div>
-                </div>
-                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                    <img src="/landing-logo.png" alt="Logo" style={{ height: '40px', objectFit: 'contain' }} />
                 </div>
             </div>
 
