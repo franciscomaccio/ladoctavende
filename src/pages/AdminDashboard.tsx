@@ -74,7 +74,8 @@ export default function AdminDashboard() {
         categoryDistribution: {} as Record<string, number>,
         chartData: [] as any[],
         categoryActivity: [] as any[],
-        businessActivity: [] as any[]
+        businessActivity: [] as any[],
+        todayVisits: 0
     });
     const [statsFilterCategory, setStatsFilterCategory] = useState('all');
     const [statsInteractionFilter, setStatsInteractionFilter] = useState<'total' | 'view' | 'open' | 'whatsapp' | 'map' | 'web' | 'site_visits'>('total');
@@ -372,14 +373,19 @@ export default function AdminDashboard() {
                 if (b.category) cats[b.category] = (cats[b.category] || 0) + 1;
             });
 
+            const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Argentina/Buenos_Aires' });
+            const todayEntry = visits?.find((v: any) => v.date.startsWith(todayStr));
+            const todayVisitsCount = todayEntry ? Number(todayEntry.count) : 0;
+
             setGeneralStats({
                 totalBusinesses: bData.length,
                 activeBusinesses: bData.filter((b: any) => b.active).length,
                 totalUsers: usersCount || 0,
                 monthlyRevenue: mRev,
                 totalRevenue: tRev,
-                totalVisits: totalVisitsCount, // This should probably be a separate long-term total, but for now we use aggregated
+                totalVisits: totalVisitsCount, 
                 periodVisits: totalVisitsCount,
+                todayVisits: todayVisitsCount,
                 categoryDistribution: cats,
                 chartData,
                 categoryActivity: categoryActivity || [],
@@ -539,6 +545,22 @@ export default function AdminDashboard() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: '#7f1d1d' }}>
                     <LayoutDashboard size={32} />
                     <h1 style={{ color: '#7f1d1d', margin: 0 }}>Panel Administrador</h1>
+                    <div style={{ 
+                        background: '#fef2f2', 
+                        color: '#991b1b', 
+                        padding: '0.25rem 0.75rem', 
+                        borderRadius: '20px', 
+                        fontSize: '0.85rem', 
+                        fontWeight: '700',
+                        border: '1px solid #fee2e2',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.4rem',
+                        boxShadow: '0 2px 4px rgba(127, 29, 29, 0.05)'
+                    }}>
+                        <Users size={14} />
+                        Hoy: {generalStats.todayVisits}
+                    </div>
                 </div>
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                     <img src="/landing-logo.png" alt="Logo" style={{ height: '40px', objectFit: 'contain' }} />
