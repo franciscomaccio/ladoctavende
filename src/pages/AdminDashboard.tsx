@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
-import { CheckCircle, XCircle, Settings, LayoutDashboard, Calendar, Users, TrendingUp, BarChart3, PieChart, UserPlus, Trash2, RotateCw, Upload, Scissors, Mail, CreditCard, MessageCircle, Pencil } from 'lucide-react';
+import { CheckCircle, XCircle, Settings, LayoutDashboard, Calendar, Users, TrendingUp, BarChart3, PieChart, UserPlus, Trash2, RotateCw, Upload, Scissors, Mail, CreditCard, MessageCircle, Pencil, Eye, EyeOff } from 'lucide-react';
 import { BusinessStatsModal } from '../components/BusinessStatsModal';
 import { TransferBusinessModal } from '../components/TransferBusinessModal';
 import { RegisteredUsersModal } from '../components/RegisteredUsersModal';
@@ -1297,9 +1297,6 @@ export default function AdminDashboard() {
                                             <th onClick={() => handleSort('subscription_expires_at')} style={{ textAlign: 'left', padding: '1rem', cursor: 'pointer' }}>
                                                 Vencimiento {sortConfig.key === 'subscription_expires_at' ? (sortConfig.direction === 'asc' ? '↑' : sortConfig.direction === 'desc' ? '↓' : '') : ''}
                                             </th>
-                                            <th onClick={() => handleSort('active')} style={{ textAlign: 'left', padding: '1rem', cursor: 'pointer' }}>
-                                                Estado {sortConfig.key === 'active' ? (sortConfig.direction === 'asc' ? '↑' : sortConfig.direction === 'desc' ? '↓' : '') : ''}
-                                            </th>
                                             <th style={{ textAlign: 'center', padding: '1rem' }}>Acciones</th>
                                         </tr>
                                     </thead>
@@ -1322,17 +1319,6 @@ export default function AdminDashboard() {
                                                                 style={{ background: 'transparent', border: 'none', color: 'inherit', outline: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.9rem' }}
                                                             />
                                                         </div>
-                                                    </td>
-                                                    <td style={{ padding: '1rem' }}>
-                                                        <span style={{
-                                                            padding: '4px 8px',
-                                                            borderRadius: '20px',
-                                                            fontSize: '0.8rem',
-                                                            background: business.active ? 'rgba(0, 155, 58, 0.2)' : 'rgba(255, 92, 138, 0.2)',
-                                                            color: business.active ? '#4ade80' : 'var(--error)'
-                                                        }}>
-                                                            {business.active ? 'Visible' : 'Oculto'}
-                                                        </span>
                                                     </td>
                                                     <td style={{ padding: '1rem', textAlign: 'center' }}>
                                                         <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center' }}>
@@ -1407,17 +1393,18 @@ export default function AdminDashboard() {
                                                             <button
                                                                 onClick={() => toggleActive(business.id, business.active)}
                                                                 className="btn-primary"
-                                                                title={business.active ? 'Desactivar' : 'Activar'}
+                                                                title={business.active ? 'Ocultar Negocio' : 'Mostrar Negocio'}
                                                                 style={{
                                                                     padding: '8px',
-                                                                    background: business.active ? 'var(--error)' : 'var(--primary)',
+                                                                    background: 'rgba(255,255,255,0.05)',
+                                                                    color: business.active ? '#22c55e' : '#ef4444',
+                                                                    border: `1px solid ${business.active ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
                                                                     display: 'flex',
                                                                     alignItems: 'center',
-                                                                    justifyContent: 'center',
-                                                                    border: 'none'
+                                                                    justifyContent: 'center'
                                                                 }}
                                                             >
-                                                                {business.active ? <XCircle size={16} /> : <CheckCircle size={16} />}
+                                                                {business.active ? <Eye size={18} /> : <EyeOff size={18} />}
                                                             </button>
                                                             <button
                                                                 onClick={() => handleDeleteBusiness(business.id, business.name)}
