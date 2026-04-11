@@ -242,10 +242,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
             alert('Por favor, seleccioná al menos una categoría.');
             return false;
         }
-        if (!formData.phone.trim()) {
-            alert('Por favor, ingresá un número de WhatsApp.');
-            return false;
-        }
+
         if (!formData.description.trim()) {
             alert('Por favor, ingresá una descripción.');
             return false;
@@ -467,7 +464,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                     </div>
 
                     <div>
-                        <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>WhatsApp</label>
+                        <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>WhatsApp (Opcional)</label>
                         <input
                             className="input-field"
                             value={formData.phone}
