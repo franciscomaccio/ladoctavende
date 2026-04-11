@@ -1,10 +1,11 @@
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
-import { CheckCircle, XCircle, Settings, LayoutDashboard, Calendar, Users, TrendingUp, BarChart3, PieChart, UserPlus, Trash2, RotateCw, Upload, Scissors, Mail, CreditCard, MessageCircle } from 'lucide-react';
+import { CheckCircle, XCircle, Settings, LayoutDashboard, Calendar, Users, TrendingUp, BarChart3, PieChart, UserPlus, Trash2, RotateCw, Upload, Scissors, Mail, CreditCard, MessageCircle, Pencil } from 'lucide-react';
 import { BusinessStatsModal } from '../components/BusinessStatsModal';
 import { TransferBusinessModal } from '../components/TransferBusinessModal';
 import { RegisteredUsersModal } from '../components/RegisteredUsersModal';
+import BusinessForm from '../components/BusinessForm';
 import { translateError } from '../utils/translateError';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, Cell } from 'recharts';
 import { isSubscriptionExpired, toEndOfDayISO } from '../utils/dateUtils';
@@ -18,6 +19,7 @@ interface Business {
     subscription_expires_at: string | null;
     category: string;
     phone?: string;
+    owner_id: string;
     profiles?: { email: string };
 }
 
@@ -63,6 +65,7 @@ export default function AdminDashboard() {
 
     const [selectedBusinessForStats, setSelectedBusinessForStats] = useState<{ id: string, name: string } | null>(null);
     const [selectedBusinessForTransfer, setSelectedBusinessForTransfer] = useState<{ id: string, name: string } | null>(null);
+    const [selectedBusinessForEdit, setSelectedBusinessForEdit] = useState<Business | null>(null);
     const [generalStats, setGeneralStats] = useState({
         totalBusinesses: 0,
         activeBusinesses: 0,
@@ -176,7 +179,7 @@ export default function AdminDashboard() {
     const fetchBusinesses = async () => {
         const { data } = await supabase
             .from('businesses')
-            .select('id, name, active, subscription_expires_at, category, phone, profiles(email)')
+            .select('id, name, active, subscription_expires_at, category, phone, owner_id, profiles(email)')
             .order('created_at', { ascending: false })
             .order('id', { ascending: false });
         if (data) setBusinesses(data as unknown as Business[]);
@@ -1326,19 +1329,38 @@ export default function AdminDashboard() {
                                                         </span>
                                                     </td>
                                                     <td style={{ padding: '1rem', textAlign: 'center' }}>
-                                                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                                                        <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center' }}>
                                                             <button
                                                                 onClick={() => setSelectedBusinessForStats({ id: business.id, name: business.name })}
                                                                 className="btn-primary"
+                                                                title="Estadísticas"
                                                                 style={{
-                                                                    padding: '6px 12px',
-                                                                    fontSize: '0.8rem',
+                                                                    padding: '8px',
                                                                     background: 'rgba(255,255,255,0.05)',
                                                                     color: 'var(--text-main)',
-                                                                    border: '1px solid var(--border-light)'
+                                                                    border: '1px solid var(--border-light)',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center'
                                                                 }}
                                                             >
-                                                            <BarChart3 size={14} /> Stats
+                                                                <BarChart3 size={16} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setSelectedBusinessForEdit(business)}
+                                                                className="btn-primary"
+                                                                title="Editar Información"
+                                                                style={{
+                                                                    padding: '8px',
+                                                                    background: 'rgba(255,255,255,0.05)',
+                                                                    color: 'var(--text-main)',
+                                                                    border: '1px solid var(--border-light)',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center'
+                                                                }}
+                                                            >
+                                                                <Pencil size={16} />
                                                             </button>
                                                             {business.phone && (
                                                                 <a
@@ -1346,9 +1368,9 @@ export default function AdminDashboard() {
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
                                                                     className="btn-primary"
-                                                                    title="Contactar por WhatsApp"
+                                                                    title="WhatsApp Dueño"
                                                                     style={{
-                                                                        padding: '6px 10px',
+                                                                        padding: '8px',
                                                                         background: 'var(--whatsapp)',
                                                                         color: 'white',
                                                                         border: 'none',
@@ -1363,34 +1385,40 @@ export default function AdminDashboard() {
                                                             <button
                                                                 onClick={() => setSelectedBusinessForTransfer({ id: business.id, name: business.name })}
                                                                 className="btn-primary"
+                                                                title="Transferir Negocio"
                                                                 style={{
-                                                                    padding: '6px 12px',
-                                                                    fontSize: '0.8rem',
+                                                                    padding: '8px',
                                                                     background: 'rgba(255,255,255,0.05)',
                                                                     color: 'var(--text-main)',
-                                                                    border: '1px solid var(--border-light)'
+                                                                    border: '1px solid var(--border-light)',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center'
                                                                 }}
                                                             >
-                                                                <UserPlus size={14} /> Transferir
+                                                                <UserPlus size={16} />
                                                             </button>
                                                             <button
                                                                 onClick={() => toggleActive(business.id, business.active)}
                                                                 className="btn-primary"
+                                                                title={business.active ? 'Desactivar' : 'Activar'}
                                                                 style={{
-                                                                    padding: '6px 12px',
-                                                                    fontSize: '0.8rem',
-                                                                    background: business.active ? 'var(--error)' : 'var(--primary)'
+                                                                    padding: '8px',
+                                                                    background: business.active ? 'var(--error)' : 'var(--primary)',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center',
+                                                                    border: 'none'
                                                                 }}
                                                             >
-                                                                {business.active ? <XCircle size={14} /> : <CheckCircle size={14} />}
-                                                                {business.active ? ' Desactivar' : ' Activar'}
+                                                                {business.active ? <XCircle size={16} /> : <CheckCircle size={16} />}
                                                             </button>
                                                             <button
                                                                 onClick={() => handleDeleteBusiness(business.id, business.name)}
                                                                 className="btn-primary"
-                                                                title="Eliminar"
+                                                                title="Eliminar DEFINITIVAMENTE"
                                                                 style={{
-                                                                    padding: '6px 10px',
+                                                                    padding: '8px',
                                                                     background: 'rgba(239, 68, 68, 0.1)',
                                                                     color: '#ef4444',
                                                                     border: '1px solid rgba(239, 68, 68, 0.3)',
@@ -1434,6 +1462,28 @@ export default function AdminDashboard() {
             )}
             {isUsersModalOpen && (
                 <RegisteredUsersModal onClose={() => setIsUsersModalOpen(false)} />
+            )}
+            {selectedBusinessForEdit && (
+                <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100dvh', background: 'rgba(0,0,0,0.85)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+                    <div className="glass-card" style={{ width: '100%', maxWidth: '900px', maxHeight: '90vh', overflowY: 'auto', padding: '1.5rem', position: 'relative' }}>
+                        <button 
+                            onClick={() => setSelectedBusinessForEdit(null)}
+                            style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', color: 'var(--text-main)', cursor: 'pointer' }}
+                        >
+                            <XCircle size={24} />
+                        </button>
+                        <h2 style={{ marginBottom: '1.5rem', color: 'var(--accent)' }}>Editar Negocio: {selectedBusinessForEdit.name}</h2>
+                        <BusinessForm 
+                            business={selectedBusinessForEdit as any}
+                            userId={selectedBusinessForEdit.owner_id}
+                            onClose={() => setSelectedBusinessForEdit(null)}
+                            onSave={() => {
+                                setSelectedBusinessForEdit(null);
+                                fetchBusinesses();
+                            }}
+                        />
+                    </div>
+                </div>
             )}
         </div>
     );
