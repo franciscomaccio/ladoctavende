@@ -77,7 +77,7 @@ export default function AdminDashboard() {
         businessActivity: [] as any[]
     });
     const [statsFilterCategory, setStatsFilterCategory] = useState('all');
-    const [statsInteractionFilter, setStatsInteractionFilter] = useState<'total' | 'view' | 'whatsapp' | 'map' | 'web' | 'site_visits'>('total');
+    const [statsInteractionFilter, setStatsInteractionFilter] = useState<'total' | 'view' | 'open' | 'whatsapp' | 'map' | 'web' | 'site_visits'>('total');
     const { user } = useAuth();
     const [isUsersModalOpen, setIsUsersModalOpen] = useState(false);
     const [dateRange, setDateRange] = useState({
@@ -228,62 +228,49 @@ export default function AdminDashboard() {
     };
 
     const fetchDashboardData = async () => {
-        const { data: payments } = await supabase
-            .from('payments')
-            .select('*') as { data: Payment[] | null };
-
         const { data: bData } = await supabase
             .from('businesses')
             .select('active, category');
 
-        const { data: vData } = await supabase
-            .from('site_visits')
-            .select('created_at');
-
         const { count: usersCount } = await supabase
             .from('profiles')
             .select('*', { count: 'exact', head: true });
+
+        const { data: paymentsAll } = await supabase
+            .from('payments')
+            .select('*');
 
         const startDate = new Date(dateRange.start);
         startDate.setHours(0, 0, 0, 0);
         const endDate = new Date(dateRange.end);
         endDate.setHours(23, 59, 59, 999);
 
-        // Fetch Analytics Events for the period
-        const { data: analyticsData } = await supabase
-            .from('business_analytics')
-            .select(`
-                event_type,
-                created_at,
-                business_id,
-                businesses (
-                    name,
-                    category
-                )
-            `)
-            .gte('created_at', startDate.toISOString())
-            .lte('created_at', endDate.toISOString());
+        // Call the new RPC for aggregated stats
+        const { data: aggregatedData, error: rpcError } = await supabase.rpc('get_admin_dashboard_stats', {
+            p_from: startDate.toISOString(),
+            p_to: endDate.toISOString()
+        });
 
-        if (payments && bData && vData) {
-            const filteredPayments = payments.filter((p: Payment) => {
+        if (rpcError) {
+            console.error('Error fetching aggregated stats:', rpcError);
+            return;
+        }
+
+        if (aggregatedData && bData) {
+            const { revenue, visits, interactions_evolution, business_activity, category_activity } = aggregatedData;
+
+            const filteredPayments = (paymentsAll || []).filter((p: any) => {
                 const d = new Date(p.created_at);
                 return d >= startDate && d <= endDate;
             });
 
-            const filteredVisits = vData.filter((v: any) => {
-                const d = new Date(v.created_at);
-                return d >= startDate && d <= endDate;
-            });
+            const mRev = filteredPayments.reduce((acc: number, p: any) => acc + Number(p.amount), 0);
+            const tRev = (paymentsAll || []).reduce((acc: number, p: any) => acc + Number(p.amount), 0);
 
-            const mRev = filteredPayments.reduce((acc: number, p: Payment) => acc + Number(p.amount), 0);
-            const tRev = payments.reduce((acc: number, p: Payment) => acc + Number(p.amount), 0);
-
-            // Group data for chart
-            const chartDataMap: Record<string, { revenue: number, visits: number, total: number, view: number, whatsapp: number, map: number, web: number }> = {};
+            // Process Evolution Chart Data
+            const chartDataMap: Record<string, any> = {};
             const isSingleDay = dateRange.start === dateRange.end;
-
-            // Initialize map with empty values
-            const initItem = () => ({ revenue: 0, visits: 0, total: 0, view: 0, whatsapp: 0, map: 0, web: 0 });
+            const initItem = () => ({ revenue: 0, visits: 0, total: 0, view: 0, open: 0, whatsapp: 0, map: 0, web: 0 });
 
             if (isSingleDay) {
                 for (let i = 0; i < 24; i++) {
@@ -292,114 +279,98 @@ export default function AdminDashboard() {
                 }
             }
 
-            filteredPayments.forEach((p: Payment) => {
-                const d = new Date(p.created_at);
-                let key: string;
-                if (isSingleDay) {
-                    key = `${String(d.getHours()).padStart(2, '0')}:00`;
-                } else {
-                    key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-                }
+            // Map Revenue
+            revenue?.forEach((r: any) => {
+                const d = new Date(r.date);
+                const key = isSingleDay ? `${String(d.getUTCHours()).padStart(2, '0')}:00` : r.date.split('T')[0];
                 if (!chartDataMap[key]) chartDataMap[key] = initItem();
-                chartDataMap[key].revenue += Number(p.amount);
+                chartDataMap[key].revenue = Number(r.total);
             });
 
-            filteredVisits.forEach((v: any) => {
-                const d = new Date(v.created_at);
-                let key: string;
-                if (isSingleDay) {
-                    key = `${String(d.getHours()).padStart(2, '0')}:00`;
-                } else {
-                    key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-                }
+            // Map Site Visits
+            visits?.forEach((v: any) => {
+                const d = new Date(v.date);
+                const key = isSingleDay ? `${String(d.getUTCHours()).padStart(2, '0')}:00` : v.date.split('T')[0];
                 if (!chartDataMap[key]) chartDataMap[key] = initItem();
-                chartDataMap[key].visits += 1;
+                chartDataMap[key].visits = Number(v.count);
             });
 
-            // Process Analytics for Charts (Evolution)
-            analyticsData?.forEach((event: any) => {
-                const d = new Date(event.created_at);
-                let key: string;
-                if (isSingleDay) {
-                    key = `${String(d.getHours()).padStart(2, '0')}:00`;
-                } else {
-                    key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-                }
+            // Map Interactions Evolution
+            interactions_evolution?.forEach((ie: any) => {
+                const d = new Date(ie.date);
+                const key = isSingleDay ? `${String(d.getUTCHours()).padStart(2, '0')}:00` : ie.date.split('T')[0];
                 if (!chartDataMap[key]) chartDataMap[key] = initItem();
                 
-                chartDataMap[key].total += 1;
-                const eType = event.event_type as keyof typeof chartDataMap[string];
-                if (eType in chartDataMap[key]) {
-                    (chartDataMap[key][eType] as number) += 1;
+                const type = ie.event_type;
+                if (type in chartDataMap[key]) {
+                    chartDataMap[key][type] = Number(ie.count);
                 }
+                chartDataMap[key].total += Number(ie.count);
             });
 
             const chartData = Object.entries(chartDataMap)
-                .map(([name, data]) => ({ 
+                .map(([name, data]: [string, any]) => ({ 
                     name, 
                     revenue: data.revenue, 
                     visits: data.visits,
-                    interactions: statsInteractionFilter === 'site_visits' ? data.visits : data[statsInteractionFilter === 'total' ? 'total' : statsInteractionFilter as keyof typeof data]
+                    interactions: statsInteractionFilter === 'site_visits' ? data.visits : 
+                                 statsInteractionFilter === 'total' ? data.total : 
+                                 data[statsInteractionFilter] || 0
                 }))
                 .sort((a, b) => a.name.localeCompare(b.name));
+
+            // Process Category Popularity
+            const categoryActivity = category_activity
+                ?.filter((ca: any) => {
+                    if (statsInteractionFilter === 'total') return true;
+                    if (statsInteractionFilter === 'site_visits') return false; // Site visits aren't tied to categories
+                    return ca.event_type === statsInteractionFilter;
+                })
+                .reduce((acc: any[], ca: any) => {
+                    const existing = acc.find(item => item.name === ca.category);
+                    const val = Number(ca.count);
+                    if (existing) {
+                        existing.value += val;
+                    } else {
+                        acc.push({ name: ca.category, value: val });
+                    }
+                    return acc;
+                }, [])
+                .sort((a: any, b: any) => b.value - a.value);
+
+            // Process Business Activity
+            const businessActivity = business_activity
+                ?.filter((ba: any) => {
+                    if (statsFilterCategory !== 'all' && ba.category !== statsFilterCategory) return false;
+                    if (statsInteractionFilter === 'site_visits') return false;
+                    if (statsInteractionFilter === 'total') return true;
+                    return ba.event_type === statsInteractionFilter;
+                })
+                .reduce((acc: any[], ba: any) => {
+                    const existing = acc.find(item => item.id === ba.id);
+                    const val = Number(ba.count);
+                    if (existing) {
+                        existing.currentValue += val;
+                        existing[ba.event_type] = val;
+                    } else {
+                        acc.push({
+                            id: ba.id,
+                            name: ba.name,
+                            category: ba.category,
+                            currentValue: val,
+                            [ba.event_type]: val
+                        });
+                    }
+                    return acc;
+                }, [])
+                .sort((a: any, b: any) => b.currentValue - a.currentValue);
+
+            const totalVisitsCount = visits?.reduce((acc: number, v: any) => acc + Number(v.count), 0) || 0;
 
             const cats: Record<string, number> = {};
             bData.forEach((b: any) => {
                 if (b.category) cats[b.category] = (cats[b.category] || 0) + 1;
             });
-
-            // Process Categorized Analytics
-            const catActivityMap: Record<string, any> = {};
-            const bizActivityMap: Record<string, any> = {};
-
-            analyticsData?.forEach((event: any) => {
-                const bizInfo: any = event.businesses;
-                if (!bizInfo) return;
-
-                const category = bizInfo.category || 'Sin Categoría';
-                
-                if (!catActivityMap[category]) {
-                    catActivityMap[category] = { name: category, total: 0, view: 0, whatsapp: 0, map: 0, web: 0 };
-                }
-                catActivityMap[category].total += 1;
-                const eType = event.event_type;
-                if (eType in catActivityMap[category]) {
-                    catActivityMap[category][eType] += 1;
-                }
-
-                if (!bizActivityMap[event.business_id]) {
-                    bizActivityMap[event.business_id] = {
-                        id: event.business_id,
-                        name: bizInfo.name,
-                        category: category,
-                        total: 0,
-                        view: 0,
-                        whatsapp: 0,
-                        map: 0,
-                        web: 0
-                    };
-                }
-                bizActivityMap[event.business_id].total += 1;
-                if (eType in bizActivityMap[event.business_id]) {
-                    bizActivityMap[event.business_id][eType] += 1;
-                }
-            });
-
-            const categoryActivity = Object.values(catActivityMap)
-                .map((cat: any) => ({
-                    name: cat.name,
-                    value: cat[statsInteractionFilter === 'total' ? 'total' : statsInteractionFilter]
-                }))
-                .filter(c => c.value > 0)
-                .sort((a, b) => b.value - a.value);
-
-            const businessActivity = Object.values(bizActivityMap)
-                .map((biz: any) => ({
-                    ...biz,
-                    currentValue: biz[statsInteractionFilter === 'total' ? 'total' : statsInteractionFilter]
-                }))
-                .filter(b => b.currentValue > 0)
-                .sort((a, b) => b.currentValue - a.currentValue);
 
             setGeneralStats({
                 totalBusinesses: bData.length,
@@ -407,12 +378,12 @@ export default function AdminDashboard() {
                 totalUsers: usersCount || 0,
                 monthlyRevenue: mRev,
                 totalRevenue: tRev,
-                totalVisits: vData.length,
-                periodVisits: filteredVisits.length,
+                totalVisits: totalVisitsCount, // This should probably be a separate long-term total, but for now we use aggregated
+                periodVisits: totalVisitsCount,
                 categoryDistribution: cats,
                 chartData,
-                categoryActivity,
-                businessActivity
+                categoryActivity: categoryActivity || [],
+                businessActivity: businessActivity || []
             });
         }
     };
@@ -776,7 +747,8 @@ export default function AdminDashboard() {
                             {[
                                 { id: 'total', label: 'Todas las Interacciones' },
                                 { id: 'site_visits', label: 'Visitas Generales' },
-                                { id: 'view', label: 'Vistas Perfil' },
+                                { id: 'view', label: 'Impresiones (En Lista)' },
+                                { id: 'open', label: 'Vistas de Perfil' },
                                 { id: 'whatsapp', label: 'WhatsApp' },
                                 { id: 'map', label: 'Ubicación' },
                                 { id: 'web', label: 'Sitio Web' }
@@ -865,7 +837,14 @@ export default function AdminDashboard() {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 <BarChart3 size={20} color="var(--primary)" />
-                                <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem' }}>Evolución: Ingresos e {statsInteractionFilter === 'total' ? 'Interacciones' : statsInteractionFilter === 'site_visits' ? 'Visitas Generales' : statsInteractionFilter === 'view' ? 'Vistas' : statsInteractionFilter === 'whatsapp' ? 'WhatsApp' : statsInteractionFilter === 'map' ? 'Ubicación' : 'Sitio Web'}</h3>
+                                <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem' }}>Evolución: Ingresos e {
+                                    statsInteractionFilter === 'total' ? 'Interacciones' : 
+                                    statsInteractionFilter === 'site_visits' ? 'Visitas Generales' : 
+                                    statsInteractionFilter === 'view' ? 'Impresiones' : 
+                                    statsInteractionFilter === 'open' ? 'Vistas de Perfil' :
+                                    statsInteractionFilter === 'whatsapp' ? 'WhatsApp' : 
+                                    statsInteractionFilter === 'map' ? 'Ubicación' : 'Sitio Web'
+                                }</h3>
                             </div>
                         </div>
                         <div style={{ width: '100%', height: '350px' }}>
@@ -909,7 +888,13 @@ export default function AdminDashboard() {
                                         contentStyle={{ background: '#1a1a1a', border: '1px solid var(--glass-border)', borderRadius: '8px' }}
                                         formatter={(val: any, name: any) => [
                                             name === 'revenue' ? `$${Number(val).toLocaleString()}` : val,
-                                            name === 'revenue' ? 'Ingresos' : (statsInteractionFilter === 'total' ? 'Interacciones' : statsInteractionFilter === 'site_visits' ? 'Visitas Generales' : statsInteractionFilter.charAt(0).toUpperCase() + statsInteractionFilter.slice(1))
+                                            name === 'revenue' ? 'Ingresos' : (
+                                                statsInteractionFilter === 'total' ? 'Interacciones' : 
+                                                statsInteractionFilter === 'site_visits' ? 'Visitas Generales' : 
+                                                statsInteractionFilter === 'view' ? 'Impresiones' :
+                                                statsInteractionFilter === 'open' ? 'Vistas de Perfil' :
+                                                statsInteractionFilter.charAt(0).toUpperCase() + statsInteractionFilter.slice(1)
+                                            )
                                         ]}
                                     />
                                     <Area
@@ -940,7 +925,14 @@ export default function AdminDashboard() {
                         <div className="glass-card" style={{ padding: '1.5rem' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
                                 <BarChart3 size={20} color="var(--primary)" />
-                                <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem' }}>Categorías ({statsInteractionFilter === 'total' ? 'Popularidad' : statsInteractionFilter === 'whatsapp' ? 'WhatsApp' : statsInteractionFilter === 'map' ? 'Ubicación' : statsInteractionFilter === 'web' ? 'Sitio Web' : 'Vistas'})</h3>
+                                <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem' }}>Popularidad por {
+                                    statsInteractionFilter === 'total' ? 'Categorías' : 
+                                    statsInteractionFilter === 'site_visits' ? 'Visitas Generales' : 
+                                    statsInteractionFilter === 'view' ? 'Impresiones' : 
+                                    statsInteractionFilter === 'open' ? 'Vistas de Perfil' :
+                                    statsInteractionFilter === 'whatsapp' ? 'WhatsApp' : 
+                                    statsInteractionFilter === 'map' ? 'Ubicación' : 'Sitio Web'
+                                }</h3>
                             </div>
                             <div style={{ width: '100%', height: '300px' }}>
                                 <ResponsiveContainer width="100%" height="100%">
@@ -966,8 +958,15 @@ export default function AdminDashboard() {
                         <div className="glass-card" style={{ padding: '1.5rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <TrendingUp size={20} color="#d97706" />
-                                    <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem' }}>Top {statsInteractionFilter === 'total' ? 'Actividad' : statsInteractionFilter === 'whatsapp' ? 'WhatsApp' : statsInteractionFilter === 'map' ? 'Ubicación' : statsInteractionFilter === 'web' ? 'Sitio Web' : 'Vistas'} por Negocio</h3>
+                                    <TrendingUp size={20} color="var(--primary)" />
+                                    <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem' }}>Top {
+                                        statsInteractionFilter === 'total' ? 'Actividad' : 
+                                        statsInteractionFilter === 'site_visits' ? 'Tráfico' : 
+                                        statsInteractionFilter === 'view' ? 'Impresiones' :
+                                        statsInteractionFilter === 'open' ? 'Vistas de Perfil' :
+                                        statsInteractionFilter === 'whatsapp' ? 'WhatsApp' : 
+                                        statsInteractionFilter === 'map' ? 'Ubicación' : 'Sitio Web'
+                                    } por Negocio</h3>
                                 </div>
                                 <select
                                     value={statsFilterCategory}
@@ -993,7 +992,12 @@ export default function AdminDashboard() {
                                         <YAxis dataKey="name" type="category" stroke="var(--text-main)" fontSize={10} width={100} tickLine={false} axisLine={false} />
                                         <Tooltip 
                                             contentStyle={{ background: '#ffffff', border: '1px solid var(--border-light)', borderRadius: '8px', color: 'var(--text-main)' }}
-                                            formatter={(value: any) => [value, statsInteractionFilter === 'total' ? 'Interacciones' : statsInteractionFilter.charAt(0).toUpperCase() + statsInteractionFilter.slice(1)]}
+                                            formatter={(value: any) => [value, 
+                                                statsInteractionFilter === 'total' ? 'Interacciones' : 
+                                                statsInteractionFilter === 'view' ? 'Impresiones' :
+                                                statsInteractionFilter === 'open' ? 'Vistas de Perfil' :
+                                                statsInteractionFilter.charAt(0).toUpperCase() + statsInteractionFilter.slice(1)
+                                            ]}
                                             cursor={{ fill: 'rgba(0,0,0,0.05)' }}
                                         />
                                         <Bar dataKey="currentValue" fill="#d97706" radius={[0, 4, 4, 0]} />
