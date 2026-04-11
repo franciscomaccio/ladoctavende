@@ -77,7 +77,7 @@ export default function AdminDashboard() {
         businessActivity: [] as any[]
     });
     const [statsFilterCategory, setStatsFilterCategory] = useState('all');
-    const [statsInteractionFilter, setStatsInteractionFilter] = useState<'total' | 'view' | 'whatsapp' | 'map' | 'web'>('total');
+    const [statsInteractionFilter, setStatsInteractionFilter] = useState<'total' | 'view' | 'whatsapp' | 'map' | 'web' | 'site_visits'>('total');
     const { user } = useAuth();
     const [isUsersModalOpen, setIsUsersModalOpen] = useState(false);
     const [dateRange, setDateRange] = useState({
@@ -339,7 +339,7 @@ export default function AdminDashboard() {
                     name, 
                     revenue: data.revenue, 
                     visits: data.visits,
-                    interactions: data[statsInteractionFilter === 'total' ? 'total' : statsInteractionFilter as keyof typeof data]
+                    interactions: statsInteractionFilter === 'site_visits' ? data.visits : data[statsInteractionFilter === 'total' ? 'total' : statsInteractionFilter as keyof typeof data]
                 }))
                 .sort((a, b) => a.name.localeCompare(b.name));
 
@@ -775,6 +775,7 @@ export default function AdminDashboard() {
                         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                             {[
                                 { id: 'total', label: 'Todas las Interacciones' },
+                                { id: 'site_visits', label: 'Visitas Generales' },
                                 { id: 'view', label: 'Vistas Perfil' },
                                 { id: 'whatsapp', label: 'WhatsApp' },
                                 { id: 'map', label: 'Ubicación' },
@@ -864,7 +865,7 @@ export default function AdminDashboard() {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 <BarChart3 size={20} color="var(--primary)" />
-                                <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem' }}>Evolución: Ingresos e {statsInteractionFilter === 'total' ? 'Interacciones' : statsInteractionFilter === 'view' ? 'Vistas' : statsInteractionFilter === 'whatsapp' ? 'WhatsApp' : statsInteractionFilter === 'map' ? 'Ubicación' : 'Sitio Web'}</h3>
+                                <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem' }}>Evolución: Ingresos e {statsInteractionFilter === 'total' ? 'Interacciones' : statsInteractionFilter === 'site_visits' ? 'Visitas Generales' : statsInteractionFilter === 'view' ? 'Vistas' : statsInteractionFilter === 'whatsapp' ? 'WhatsApp' : statsInteractionFilter === 'map' ? 'Ubicación' : 'Sitio Web'}</h3>
                             </div>
                         </div>
                         <div style={{ width: '100%', height: '350px' }}>
@@ -908,7 +909,7 @@ export default function AdminDashboard() {
                                         contentStyle={{ background: '#1a1a1a', border: '1px solid var(--glass-border)', borderRadius: '8px' }}
                                         formatter={(val: any, name: any) => [
                                             name === 'revenue' ? `$${Number(val).toLocaleString()}` : val,
-                                            name === 'revenue' ? 'Ingresos' : (statsInteractionFilter === 'total' ? 'Interacciones' : statsInteractionFilter.charAt(0).toUpperCase() + statsInteractionFilter.slice(1))
+                                            name === 'revenue' ? 'Ingresos' : (statsInteractionFilter === 'total' ? 'Interacciones' : statsInteractionFilter === 'site_visits' ? 'Visitas Generales' : statsInteractionFilter.charAt(0).toUpperCase() + statsInteractionFilter.slice(1))
                                         ]}
                                     />
                                     <Area
