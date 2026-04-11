@@ -2,20 +2,14 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '../lib/supabase';
+import { recordSiteVisit } from '../lib/analytics';
 import { Home, Tag, ShoppingBag, PlusCircle } from 'lucide-react';
 
 const Index: React.FC = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const logVisit = async () => {
-            try {
-                await supabase.from('site_visits').insert([{ path: '/' }]);
-            } catch (err) {
-                console.error('Error logging visit:', err);
-            }
-        };
-        logVisit();
+        recordSiteVisit('/');
     }, []);
 
     return (

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import { setIgnoreTracking } from '../lib/analytics';
 
 interface AuthContextType {
     user: User | null;
@@ -58,6 +59,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         return () => subscription.unsubscribe();
     }, []);
+
+    useEffect(() => {
+        setIgnoreTracking(isAdmin);
+    }, [isAdmin]);
 
     const signOut = async () => {
         await supabase.auth.signOut();
