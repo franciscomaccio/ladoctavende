@@ -77,6 +77,7 @@ export default function AdminDashboard() {
         businessActivity: [] as any[]
     });
     const [statsFilterCategory, setStatsFilterCategory] = useState('all');
+    const [statsInteractionFilter, setStatsInteractionFilter] = useState<'total' | 'view' | 'whatsapp' | 'map' | 'web'>('total');
     const { user } = useAuth();
     const [isUsersModalOpen, setIsUsersModalOpen] = useState(false);
     const [dateRange, setDateRange] = useState({
@@ -148,7 +149,7 @@ export default function AdminDashboard() {
             fetchDashboardData();
             fetchEmailData();
         }
-    }, [isAdmin, dateRange]);
+    }, [isAdmin, dateRange, statsInteractionFilter]);
 
     const fetchEmailData = async () => {
         const today = new Date();
@@ -278,14 +279,16 @@ export default function AdminDashboard() {
             const tRev = payments.reduce((acc: number, p: Payment) => acc + Number(p.amount), 0);
 
             // Group data for chart
-            const chartDataMap: Record<string, { revenue: number, visits: number }> = {};
+            const chartDataMap: Record<string, { revenue: number, visits: number, total: number, view: number, whatsapp: number, map: number, web: number }> = {};
             const isSingleDay = dateRange.start === dateRange.end;
 
             // Initialize map with empty values
+            const initItem = () => ({ revenue: 0, visits: 0, total: 0, view: 0, whatsapp: 0, map: 0, web: 0 });
+
             if (isSingleDay) {
                 for (let i = 0; i < 24; i++) {
                     const h = `${String(i).padStart(2, '0')}:00`;
-                    chartDataMap[h] = { revenue: 0, visits: 0 };
+                    chartDataMap[h] = initItem();
                 }
             }
 
@@ -297,7 +300,7 @@ export default function AdminDashboard() {
                 } else {
                     key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
                 }
-                if (!chartDataMap[key]) chartDataMap[key] = { revenue: 0, visits: 0 };
+                if (!chartDataMap[key]) chartDataMap[key] = initItem();
                 chartDataMap[key].revenue += Number(p.amount);
             });
 
@@ -309,12 +312,35 @@ export default function AdminDashboard() {
                 } else {
                     key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
                 }
-                if (!chartDataMap[key]) chartDataMap[key] = { revenue: 0, visits: 0 };
+                if (!chartDataMap[key]) chartDataMap[key] = initItem();
                 chartDataMap[key].visits += 1;
             });
 
+            // Process Analytics for Charts (Evolution)
+            analyticsData?.forEach((event: any) => {
+                const d = new Date(event.created_at);
+                let key: string;
+                if (isSingleDay) {
+                    key = `${String(d.getHours()).padStart(2, '0')}:00`;
+                } else {
+                    key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                }
+                if (!chartDataMap[key]) chartDataMap[key] = initItem();
+                
+                chartDataMap[key].total += 1;
+                const eType = event.event_type as keyof typeof chartDataMap[string];
+                if (eType in chartDataMap[key]) {
+                    (chartDataMap[key][eType] as number) += 1;
+                }
+            });
+
             const chartData = Object.entries(chartDataMap)
-                .map(([name, data]) => ({ name, revenue: data.revenue, visits: data.visits }))
+                .map(([name, data]) => ({ 
+                    name, 
+                    revenue: data.revenue, 
+                    visits: data.visits,
+                    interactions: data[statsInteractionFilter === 'total' ? 'total' : statsInteractionFilter as keyof typeof data]
+                }))
                 .sort((a, b) => a.name.localeCompare(b.name));
 
             const cats: Record<string, number> = {};
@@ -323,7 +349,7 @@ export default function AdminDashboard() {
             });
 
             // Process Categorized Analytics
-            const catActivityMap: Record<string, number> = {};
+            const catActivityMap: Record<string, any> = {};
             const bizActivityMap: Record<string, any> = {};
 
             analyticsData?.forEach((event: any) => {
@@ -331,7 +357,15 @@ export default function AdminDashboard() {
                 if (!bizInfo) return;
 
                 const category = bizInfo.category || 'Sin Categoría';
-                catActivityMap[category] = (catActivityMap[category] || 0) + 1;
+                
+                if (!catActivityMap[category]) {
+                    catActivityMap[category] = { name: category, total: 0, view: 0, whatsapp: 0, map: 0, web: 0 };
+                }
+                catActivityMap[category].total += 1;
+                const eType = event.event_type;
+                if (eType in catActivityMap[category]) {
+                    catActivityMap[category][eType] += 1;
+                }
 
                 if (!bizActivityMap[event.business_id]) {
                     bizActivityMap[event.business_id] = {
@@ -346,18 +380,26 @@ export default function AdminDashboard() {
                     };
                 }
                 bizActivityMap[event.business_id].total += 1;
-                const eType = event.event_type;
                 if (eType in bizActivityMap[event.business_id]) {
                     bizActivityMap[event.business_id][eType] += 1;
                 }
             });
 
-            const categoryActivity = Object.entries(catActivityMap)
-                .map(([name, value]) => ({ name, value }))
+            const categoryActivity = Object.values(catActivityMap)
+                .map((cat: any) => ({
+                    name: cat.name,
+                    value: cat[statsInteractionFilter === 'total' ? 'total' : statsInteractionFilter]
+                }))
+                .filter(c => c.value > 0)
                 .sort((a, b) => b.value - a.value);
 
             const businessActivity = Object.values(bizActivityMap)
-                .sort((a, b) => b.total - a.total);
+                .map((biz: any) => ({
+                    ...biz,
+                    currentValue: biz[statsInteractionFilter === 'total' ? 'total' : statsInteractionFilter]
+                }))
+                .filter(b => b.currentValue > 0)
+                .sort((a, b) => b.currentValue - a.currentValue);
 
             setGeneralStats({
                 totalBusinesses: bData.length,
@@ -715,6 +757,51 @@ export default function AdminDashboard() {
                         </button>
                     </div>
 
+                    <div style={{ 
+                        background: 'rgba(0,0,0,0.2)', 
+                        padding: '1rem', 
+                        borderRadius: '12px', 
+                        border: '1px solid var(--glass-border)',
+                        marginBottom: '1.5rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '1rem',
+                        flexWrap: 'wrap'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <TrendingUp size={18} color="var(--primary)" />
+                            <span style={{ fontWeight: '700', fontSize: '0.9rem' }}>Filtrar por interacción:</span>
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            {[
+                                { id: 'total', label: 'Todas las Interacciones' },
+                                { id: 'view', label: 'Vistas Perfil' },
+                                { id: 'whatsapp', label: 'WhatsApp' },
+                                { id: 'map', label: 'Ubicación' },
+                                { id: 'web', label: 'Sitio Web' }
+                            ].map(filter => (
+                                <button
+                                    key={filter.id}
+                                    onClick={() => setStatsInteractionFilter(filter.id as any)}
+                                    style={{
+                                        padding: '6px 14px',
+                                        borderRadius: '20px',
+                                        fontSize: '0.8rem',
+                                        fontWeight: '700',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        border: '1px solid',
+                                        background: statsInteractionFilter === filter.id ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+                                        color: statsInteractionFilter === filter.id ? 'white' : 'var(--text-main)',
+                                        borderColor: statsInteractionFilter === filter.id ? 'var(--primary)' : 'var(--border-light)',
+                                    }}
+                                >
+                                    {filter.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
                     <div style={{
                         display: 'grid',
                         gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
@@ -772,80 +859,15 @@ export default function AdminDashboard() {
                         </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-                        {/* Category Popularity Chart */}
-                        <div className="glass-card" style={{ padding: '1.5rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
+                    {/* Main Evolution Chart - TOP 100% width */}
+                    <div className="glass-card" style={{ padding: '1.5rem', width: '100%', marginBottom: '1.5rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 <BarChart3 size={20} color="var(--primary)" />
-                                <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem' }}>Popularidad de Categorías</h3>
-                            </div>
-                            <div style={{ width: '100%', height: '300px' }}>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={generalStats.categoryActivity}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" vertical={false} />
-                                        <XAxis dataKey="name" stroke="var(--text-main)" fontSize={11} tickLine={false} axisLine={false} />
-                                        <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
-                                        <Tooltip 
-                                            contentStyle={{ background: '#ffffff', border: '1px solid var(--border-light)', borderRadius: '8px', color: 'var(--text-main)' }}
-                                            cursor={{ fill: 'rgba(0,0,0,0.05)' }}
-                                        />
-                                        <Bar dataKey="value" fill="var(--primary)" radius={[4, 4, 0, 0]}>
-                                            {generalStats.categoryActivity.map((_entry: any, index: number) => (
-                                                <Cell key={`cell-${index}`} fillOpacity={0.8 - (Math.min(index, 10) * 0.05)} />
-                                            ))}
-                                        </Bar>
-                                    </BarChart>
-                                </ResponsiveContainer>
+                                <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem' }}>Evolución: Ingresos e {statsInteractionFilter === 'total' ? 'Interacciones' : statsInteractionFilter === 'view' ? 'Vistas' : statsInteractionFilter === 'whatsapp' ? 'WhatsApp' : statsInteractionFilter === 'map' ? 'Ubicación' : 'Sitio Web'}</h3>
                             </div>
                         </div>
-
-                        {/* Business Activity Chart */}
-                        <div className="glass-card" style={{ padding: '1.5rem' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <TrendingUp size={20} color="#d97706" />
-                                    <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem' }}>Top Actividad por Negocio</h3>
-                                </div>
-                                <select
-                                    value={statsFilterCategory}
-                                    onChange={(e) => setStatsFilterCategory(e.target.value)}
-                                    className="input-field"
-                                    style={{ margin: 0, fontSize: '0.8rem', padding: '4px 8px', width: 'auto', background: 'rgba(0,0,0,0.3)' }}
-                                >
-                                    <option value="all">Todas las Categorías</option>
-                                    {uniqueCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                                </select>
-                            </div>
-                            <div style={{ width: '100%', height: '300px' }}>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart 
-                                        data={generalStats.businessActivity
-                                            .filter(b => statsFilterCategory === 'all' || b.category === statsFilterCategory)
-                                            .slice(0, 15)
-                                        }
-                                        layout="vertical"
-                                    >
-                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" horizontal={false} />
-                                        <XAxis type="number" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
-                                        <YAxis dataKey="name" type="category" stroke="var(--text-main)" fontSize={10} width={100} tickLine={false} axisLine={false} />
-                                        <Tooltip 
-                                            contentStyle={{ background: '#ffffff', border: '1px solid var(--border-light)', borderRadius: '8px', color: 'var(--text-main)' }}
-                                            formatter={(value: any, name: string) => [value, name === 'total' ? 'Interacciones' : name.charAt(0).toUpperCase() + name.slice(1)]}
-                                            cursor={{ fill: 'rgba(0,0,0,0.05)' }}
-                                        />
-                                        <Bar dataKey="total" fill="#d97706" radius={[0, 4, 4, 0]} />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="glass-card" style={{ padding: '1.5rem', width: '100%', marginBottom: '2rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
-                            <BarChart3 size={20} color="var(--primary)" />
-                            <h3 style={{ margin: 0, color: 'var(--text-main)' }}>Evolución de Ingresos y Tráfico</h3>
-                        </div>
-                        <div style={{ width: '100%', height: '300px' }}>
+                        <div style={{ width: '100%', height: '350px' }}>
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={generalStats.chartData}>
                                     <defs>
@@ -853,7 +875,7 @@ export default function AdminDashboard() {
                                             <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3} />
                                             <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
                                         </linearGradient>
-                                        <linearGradient id="colorVisits" x1="0" y1="0" x2="0" y2="1">
+                                        <linearGradient id="colorInteractions" x1="0" y1="0" x2="0" y2="1">
                                             <stop offset="5%" stopColor="#f26522" stopOpacity={0.3} />
                                             <stop offset="95%" stopColor="#f26522" stopOpacity={0} />
                                         </linearGradient>
@@ -886,7 +908,7 @@ export default function AdminDashboard() {
                                         contentStyle={{ background: '#1a1a1a', border: '1px solid var(--glass-border)', borderRadius: '8px' }}
                                         formatter={(val: any, name: any) => [
                                             name === 'revenue' ? `$${Number(val).toLocaleString()}` : val,
-                                            name === 'revenue' ? 'Ingresos' : 'Visitas'
+                                            name === 'revenue' ? 'Ingresos' : (statsInteractionFilter === 'total' ? 'Interacciones' : statsInteractionFilter.charAt(0).toUpperCase() + statsInteractionFilter.slice(1))
                                         ]}
                                     />
                                     <Area
@@ -901,14 +923,82 @@ export default function AdminDashboard() {
                                     <Area
                                         yAxisId="right"
                                         type="monotone"
-                                        dataKey="visits"
+                                        dataKey="interactions"
                                         stroke="#f26522"
                                         strokeWidth={2}
                                         fillOpacity={1}
-                                        fill="url(#colorVisits)"
+                                        fill="url(#colorInteractions)"
                                     />
                                 </AreaChart>
                             </ResponsiveContainer>
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+                        {/* Category Popularity Chart */}
+                        <div className="glass-card" style={{ padding: '1.5rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
+                                <BarChart3 size={20} color="var(--primary)" />
+                                <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem' }}>Categorías ({statsInteractionFilter === 'total' ? 'Popularidad' : statsInteractionFilter === 'whatsapp' ? 'WhatsApp' : statsInteractionFilter === 'map' ? 'Ubicación' : statsInteractionFilter === 'web' ? 'Sitio Web' : 'Vistas'})</h3>
+                            </div>
+                            <div style={{ width: '100%', height: '300px' }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={generalStats.categoryActivity}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" vertical={false} />
+                                        <XAxis dataKey="name" stroke="var(--text-main)" fontSize={11} tickLine={false} axisLine={false} />
+                                        <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
+                                        <Tooltip 
+                                            contentStyle={{ background: '#ffffff', border: '1px solid var(--border-light)', borderRadius: '8px', color: 'var(--text-main)' }}
+                                            cursor={{ fill: 'rgba(0,0,0,0.05)' }}
+                                        />
+                                        <Bar dataKey="value" fill="var(--primary)" radius={[4, 4, 0, 0]}>
+                                            {generalStats.categoryActivity.map((_entry: any, index: number) => (
+                                                <Cell key={`cell-${index}`} fillOpacity={0.8 - (Math.min(index, 10) * 0.05)} />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+
+                        {/* Business Activity Chart */}
+                        <div className="glass-card" style={{ padding: '1.5rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <TrendingUp size={20} color="#d97706" />
+                                    <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem' }}>Top {statsInteractionFilter === 'total' ? 'Actividad' : statsInteractionFilter === 'whatsapp' ? 'WhatsApp' : statsInteractionFilter === 'map' ? 'Ubicación' : statsInteractionFilter === 'web' ? 'Sitio Web' : 'Vistas'} por Negocio</h3>
+                                </div>
+                                <select
+                                    value={statsFilterCategory}
+                                    onChange={(e) => setStatsFilterCategory(e.target.value)}
+                                    className="input-field"
+                                    style={{ margin: 0, fontSize: '0.8rem', padding: '4px 8px', width: 'auto', background: 'rgba(0,0,0,0.3)' }}
+                                >
+                                    <option value="all">Todas las Categorías</option>
+                                    {uniqueCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                                </select>
+                            </div>
+                            <div style={{ width: '100%', height: '300px' }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart 
+                                        data={generalStats.businessActivity
+                                            .filter(b => statsFilterCategory === 'all' || b.category === statsFilterCategory)
+                                            .slice(0, 15)
+                                        }
+                                        layout="vertical"
+                                    >
+                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" horizontal={false} />
+                                        <XAxis type="number" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
+                                        <YAxis dataKey="name" type="category" stroke="var(--text-main)" fontSize={10} width={100} tickLine={false} axisLine={false} />
+                                        <Tooltip 
+                                            contentStyle={{ background: '#ffffff', border: '1px solid var(--border-light)', borderRadius: '8px', color: 'var(--text-main)' }}
+                                            formatter={(value: any) => [value, statsInteractionFilter === 'total' ? 'Interacciones' : statsInteractionFilter.charAt(0).toUpperCase() + statsInteractionFilter.slice(1)]}
+                                            cursor={{ fill: 'rgba(0,0,0,0.05)' }}
+                                        />
+                                        <Bar dataKey="currentValue" fill="#d97706" radius={[0, 4, 4, 0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
                         </div>
                     </div>
                 </>
