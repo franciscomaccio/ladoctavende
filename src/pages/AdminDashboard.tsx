@@ -20,6 +20,12 @@ interface Business {
     category: string;
     phone?: string;
     owner_id: string;
+    description?: string;
+    image_url?: string;
+    website_url?: string;
+    location_lat?: number | null;
+    location_lng?: number | null;
+    type?: 'business' | 'classified';
     profiles?: { email: string };
 }
 
@@ -179,7 +185,7 @@ export default function AdminDashboard() {
     const fetchBusinesses = async () => {
         const { data } = await supabase
             .from('businesses')
-            .select('id, name, active, subscription_expires_at, category, phone, owner_id, profiles(email)')
+            .select('id, name, active, subscription_expires_at, category, phone, owner_id, description, image_url, website_url, location_lat, location_lng, type, profiles(email)')
             .order('created_at', { ascending: false })
             .order('id', { ascending: false });
         if (data) setBusinesses(data as unknown as Business[]);
