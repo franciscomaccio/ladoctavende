@@ -13,7 +13,7 @@ interface PromotionWithBusiness extends Promotion {
 import { useHorizontalScroll } from '../hooks/useHorizontalScroll';
 
 const CATEGORIES = [
-    { name: 'Almacén/Mercado', icon: '🛒' },
+    { name: 'Almacén/Súper', icon: '🛒' },
     { name: 'Belleza', icon: '💄' },
     { name: 'Casa/Construcción', icon: '🏠' },
     { name: 'Deportes', icon: '⚽' },

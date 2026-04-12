@@ -20,7 +20,7 @@ const DAYS = [
 ];
 
 const CATEGORIES = [
-    { name: 'Almacén/Mercado', icon: '🛒' },
+    { name: 'Almacén/Súper', icon: '🛒' },
     { name: 'Belleza', icon: '💄' },
     { name: 'Casa/Construcción', icon: '🏠' },
     { name: 'Deportes', icon: '⚽' },
