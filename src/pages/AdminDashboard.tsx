@@ -6,6 +6,7 @@ import { BusinessStatsModal } from '../components/BusinessStatsModal';
 import { TransferBusinessModal } from '../components/TransferBusinessModal';
 import { RegisteredUsersModal } from '../components/RegisteredUsersModal';
 import BusinessForm from '../components/BusinessForm';
+import UsefulNoteModal from '../components/UsefulNoteModal';
 import { translateError } from '../utils/translateError';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, Cell } from 'recharts';
 import { isSubscriptionExpired, toEndOfDayISO } from '../utils/dateUtils';
@@ -36,6 +37,19 @@ interface Payment {
     created_at: string;
 }
 
+interface UsefulNote {
+    id: string;
+    title: string;
+    caption: string | null;
+    content: string | null;
+    image_url: string | null;
+    whatsapp_url: string | null;
+    website_url: string | null;
+    map_url: string | null;
+    is_visible: boolean;
+    created_at: string;
+}
+
 export default function AdminDashboard() {
     const { isAdmin } = useAuth();
     const [businesses, setBusinesses] = useState<Business[]>([]);
@@ -57,6 +71,10 @@ export default function AdminDashboard() {
     const [promoCroppedAreaPixels, setPromoCroppedAreaPixels] = useState<any>(null);
     const [isPromoCropping, setIsPromoCropping] = useState(false);
     const [activeTab, setActiveTab] = useState('businesses');
+    const [usefulNotes, setUsefulNotes] = useState<UsefulNote[]>([]);
+    const [loadingNotes, setLoadingNotes] = useState(false);
+    const [selectedNoteForEdit, setSelectedNoteForEdit] = useState<UsefulNote | null>(null);
+    const [isUsefulNoteModalOpen, setIsUsefulNoteModalOpen] = useState(false);
     
     // Email Management State
     const [emailConfigs, setEmailConfigs] = useState({
@@ -169,8 +187,47 @@ export default function AdminDashboard() {
             fetchPrice();
             fetchDashboardData();
             fetchEmailData();
+            fetchUsefulNotes();
         }
     }, [isAdmin, dateRange, statsInteractionFilter]);
+
+    const fetchUsefulNotes = async () => {
+        setLoadingNotes(true);
+        const { data } = await supabase
+            .from('useful_notes')
+            .select('*')
+            .order('created_at', { ascending: false });
+        if (data) setUsefulNotes(data as UsefulNote[]);
+        setLoadingNotes(false);
+    };
+
+    const toggleNoteVisibility = async (id: string, currentStatus: boolean) => {
+        const { error } = await supabase
+            .from('useful_notes')
+            .update({ is_visible: !currentStatus })
+            .eq('id', id);
+
+        if (!error) {
+            setUsefulNotes(prev => prev.map(n => n.id === id ? { ...n, is_visible: !currentStatus } : n));
+        } else {
+            alert('Error al cambiar visibilidad: ' + translateError(error.message));
+        }
+    };
+
+    const handleDeleteNote = async (id: string, title: string) => {
+        if (window.confirm(`¿Estás seguro de que deseas eliminar la nota "${title}"?`)) {
+            const { error } = await supabase
+                .from('useful_notes')
+                .delete()
+                .eq('id', id);
+
+            if (error) {
+                alert('Error al eliminar nota: ' + translateError(error.message));
+            } else {
+                fetchUsefulNotes();
+            }
+        }
+    };
 
     const fetchEmailData = async () => {
         const today = new Date();
@@ -619,7 +676,8 @@ export default function AdminDashboard() {
                     { id: 'stats', label: 'Evolución e Ingresos', icon: <TrendingUp size={18} /> },
                     { id: 'prices', label: 'Precios', icon: <CreditCard size={18} /> },
                     { id: 'promo', label: 'Pop-up Promo', icon: <Settings size={18} /> },
-                    { id: 'emails', label: 'Gestión Emails', icon: <Mail size={18} /> }
+                    { id: 'emails', label: 'Gestión Emails', icon: <Mail size={18} /> },
+                    { id: 'useful_info', label: 'Información Útil', icon: <MessageCircle size={18} /> }
                 ].map((tab) => (
                     <button
                         key={tab.id}
@@ -645,6 +703,114 @@ export default function AdminDashboard() {
                     </button>
                 ))}
             </div>
+
+            {/* Tab: Useful Info */}
+            {activeTab === 'useful_info' && (
+                <>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+                        <button 
+                            onClick={() => {
+                                setSelectedNoteForEdit(null);
+                                setIsUsefulNoteModalOpen(true);
+                            }} 
+                            className="btn-primary"
+                        >
+                            <MessageCircle size={18} /> Nueva Nota Informativa
+                        </button>
+                    </div>
+
+                    {loadingNotes ? (
+                        <p>Cargando notas...</p>
+                    ) : (
+                        <div className="glass-card" style={{ padding: '1rem' }}>
+                            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', width: '100%' }}>
+                                <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
+                                    <thead style={{ borderBottom: '1px solid var(--glass-border)' }}>
+                                        <tr>
+                                            <th style={{ textAlign: 'left', padding: '1rem' }}>Título</th>
+                                            <th style={{ textAlign: 'center', padding: '1rem' }}>Fecha</th>
+                                            <th style={{ textAlign: 'center', padding: '1rem' }}>Estado</th>
+                                            <th style={{ textAlign: 'center', padding: '1rem' }}>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {usefulNotes.map((note) => (
+                                            <tr key={note.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                                <td style={{ padding: '1rem' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                        {note.image_url && (
+                                                            <img 
+                                                                src={note.image_url} 
+                                                                alt={note.title} 
+                                                                style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover' }} 
+                                                            />
+                                                        )}
+                                                        <span>{note.title}</span>
+                                                    </div>
+                                                </td>
+                                                <td style={{ padding: '1rem', textAlign: 'center', fontSize: '0.85rem', opacity: 0.8 }}>
+                                                    {new Date(note.created_at).toLocaleDateString()}
+                                                </td>
+                                                <td style={{ padding: '1rem', textAlign: 'center' }}>
+                                                    <button
+                                                        onClick={() => toggleNoteVisibility(note.id, note.is_visible)}
+                                                        style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}
+                                                        title={note.is_visible ? 'Visible' : 'Oculto'}
+                                                    >
+                                                        {note.is_visible ? <Eye size={20} color="#10b981" /> : <EyeOff size={20} color="#ef4444" />}
+                                                    </button>
+                                                </td>
+                                                <td style={{ padding: '1rem', textAlign: 'center' }}>
+                                                    <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center' }}>
+                                                        <button
+                                                            onClick={() => {
+                                                                setSelectedNoteForEdit(note);
+                                                                setIsUsefulNoteModalOpen(true);
+                                                            }}
+                                                            className="btn-primary"
+                                                            style={{
+                                                                padding: '8px',
+                                                                background: 'rgba(255,255,255,0.05)',
+                                                                color: 'var(--text-main)',
+                                                                border: '1px solid var(--border-light)',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center'
+                                                            }}
+                                                        >
+                                                            <Pencil size={16} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteNote(note.id, note.title)}
+                                                            className="btn-primary"
+                                                            style={{
+                                                                padding: '8px',
+                                                                background: 'rgba(239, 68, 68, 0.1)',
+                                                                color: '#ef4444',
+                                                                border: '1px solid rgba(239, 68, 68, 0.2)',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center'
+                                                            }}
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {usefulNotes.length === 0 && (
+                                            <tr>
+                                                <td colSpan={4} style={{ textAlign: 'center', padding: '2rem', opacity: 0.6 }}>No hay notas informativas cargadas.</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+                </>
+            )}
 
             {/* Tab: Emails */}
             {activeTab === 'emails' && (
@@ -1476,6 +1642,17 @@ export default function AdminDashboard() {
                         </div>
                     )}
                 </>
+            )}
+
+            {isUsefulNoteModalOpen && (
+                <UsefulNoteModal
+                    note={selectedNoteForEdit}
+                    onClose={() => setIsUsefulNoteModalOpen(false)}
+                    onSave={() => {
+                        setIsUsefulNoteModalOpen(false);
+                        fetchUsefulNotes();
+                    }}
+                />
             )}
 
             {selectedBusinessForStats && (
