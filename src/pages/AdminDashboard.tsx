@@ -108,7 +108,18 @@ export default function AdminDashboard() {
     const [filterCategory, setFilterCategory] = useState('all');
     const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' | null }>({ key: '', direction: null });
 
-    const uniqueCategories = useMemo(() => Array.from(new Set(businesses.map(b => b.category))).sort(), [businesses]);
+    const uniqueCategories = useMemo(() => {
+        const cats = new Set<string>();
+        businesses.forEach(b => {
+            if (b.category) {
+                b.category.split(',').forEach(c => {
+                    const trimmed = c.trim();
+                    if (trimmed) cats.add(trimmed);
+                });
+            }
+        });
+        return Array.from(cats).sort();
+    }, [businesses]);
 
     const processedBusinesses = useMemo(() => {
         let result = [...businesses];
