@@ -266,15 +266,15 @@ export default function Dashboard() {
                                         </button>
                                         <button
                                             onClick={() => { setEditingBusiness(business); setIsFormOpen(true); }}
-                                            style={{ background: '#f3f4f6', border: '1px solid var(--border-light)', borderRadius: '8px', padding: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                            style={{ background: '#f3f4f6', border: '1px solid var(--border-light)', borderRadius: '8px', padding: '8px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: '700', color: 'var(--text-main)' }}
                                         >
-                                            <Edit2 size={22} />
+                                            <Edit2 size={18} /> Editar
                                         </button>
                                         <button
                                             onClick={() => deleteBusiness(business.id)}
-                                            style={{ background: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '8px', padding: '10px', color: 'var(--error)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                            style={{ background: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '8px', padding: '8px 12px', color: 'var(--error)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', fontWeight: '700' }}
                                         >
-                                            <Trash2 size={22} />
+                                            <Trash2 size={18} /> Eliminar
                                         </button>
                                     </div>
                                 </div>
