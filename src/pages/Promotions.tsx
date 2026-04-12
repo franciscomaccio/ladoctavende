@@ -20,17 +20,20 @@ const DAYS = [
 ];
 
 const CATEGORIES = [
+    { name: 'Almacén/Supermercado', icon: '🛒' },
     { name: 'Belleza', icon: '💄' },
     { name: 'Deportes', icon: '⚽' },
     { name: 'Educación', icon: '📚' },
     { name: 'Gastronomía', icon: '🍔' },
     { name: 'Hogar', icon: '🏠' },
     { name: 'Inmobiliaria', icon: '🏢' },
+    { name: 'Librería/Regalería', icon: '🎁' },
     { name: 'Mascotas', icon: '🐾' },
     { name: 'Moda', icon: '👕' },
     { name: 'Salud', icon: '🏥' },
     { name: 'Servicios', icon: '🛠️' },
     { name: 'Tecnología', icon: '💻' },
+    { name: 'Vehículos', icon: '🚗' },
     { name: 'Otros', icon: '✨' }
 ];
 

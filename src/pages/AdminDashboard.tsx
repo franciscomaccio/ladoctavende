@@ -183,17 +183,20 @@ export default function AdminDashboard() {
     };
 
     const CATEGORY_ICONS: Record<string, string> = {
+        'Almacén/Supermercado': '🛒',
         'Belleza': '💄',
         'Deportes': '⚽',
         'Educación': '📚',
         'Gastronomía': '🍔',
         'Hogar': '🏠',
         'Inmobiliaria': '🏢',
+        'Librería/Regalería': '🎁',
         'Mascotas': '🐾',
         'Moda': '👕',
         'Salud': '🏥',
         'Servicios': '🛠️',
         'Tecnología': '💻',
+        'Vehículos': '🚗',
         'Otros': '✨'
     };
 
