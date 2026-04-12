@@ -20,12 +20,12 @@ const DAYS = [
 ];
 
 const CATEGORIES = [
-    { name: 'Almacén/Supermercado', icon: '🛒' },
+    { name: 'Almacén/Mercado', icon: '🛒' },
     { name: 'Belleza', icon: '💄' },
+    { name: 'Casa/Construcción', icon: '🏠' },
     { name: 'Deportes', icon: '⚽' },
     { name: 'Educación', icon: '📚' },
     { name: 'Gastronomía', icon: '🍔' },
-    { name: 'Hogar', icon: '🏠' },
     { name: 'Inmobiliaria', icon: '🏢' },
     { name: 'Librería/Regalería', icon: '🎁' },
     { name: 'Mascotas', icon: '🐾' },
