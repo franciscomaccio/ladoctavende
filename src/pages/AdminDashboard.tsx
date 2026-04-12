@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
-import { CheckCircle, XCircle, Settings, LayoutDashboard, Calendar, Users, TrendingUp, BarChart3, PieChart, UserPlus, Trash2, RotateCw, Upload, Scissors, Mail, CreditCard, MessageCircle, Pencil, Eye, EyeOff } from 'lucide-react';
+import { CheckCircle, XCircle, Settings, LayoutDashboard, Calendar, Users, TrendingUp, BarChart3, PieChart, UserPlus, Trash2, RotateCw, Upload, Scissors, Mail, CreditCard, MessageCircle, Pencil, Eye, EyeOff, Home, ShoppingBag } from 'lucide-react';
 import { BusinessStatsModal } from '../components/BusinessStatsModal';
 import { TransferBusinessModal } from '../components/TransferBusinessModal';
 import { RegisteredUsersModal } from '../components/RegisteredUsersModal';
@@ -180,6 +180,21 @@ export default function AdminDashboard() {
             });
             setEmailStats(stats);
         }
+    };
+
+    const CATEGORY_ICONS: Record<string, string> = {
+        'Belleza': '💄',
+        'Deportes': '⚽',
+        'Educación': '📚',
+        'Gastronomía': '🍔',
+        'Hogar': '🏠',
+        'Inmobiliaria': '🏢',
+        'Mascotas': '🐾',
+        'Moda': '👕',
+        'Salud': '🏥',
+        'Servicios': '🛠️',
+        'Tecnología': '💻',
+        'Otros': '✨'
     };
 
     const fetchBusinesses = async () => {
@@ -1288,8 +1303,11 @@ export default function AdminDashboard() {
                                             <th onClick={() => handleSort('owner')} style={{ textAlign: 'left', padding: '1rem', cursor: 'pointer' }}>
                                                 Dueño {sortConfig.key === 'owner' ? (sortConfig.direction === 'asc' ? '↑' : sortConfig.direction === 'desc' ? '↓' : '') : ''}
                                             </th>
-                                            <th onClick={() => handleSort('category')} style={{ textAlign: 'left', padding: '1rem', cursor: 'pointer' }}>
-                                                Categoría {sortConfig.key === 'category' ? (sortConfig.direction === 'asc' ? '↑' : sortConfig.direction === 'desc' ? '↓' : '') : ''}
+                                            <th onClick={() => handleSort('type')} style={{ textAlign: 'center', padding: '1rem', cursor: 'pointer' }}>
+                                                Tipo {sortConfig.key === 'type' ? (sortConfig.direction === 'asc' ? '↑' : sortConfig.direction === 'desc' ? '↓' : '') : ''}
+                                            </th>
+                                            <th onClick={() => handleSort('category')} style={{ textAlign: 'center', padding: '1rem', cursor: 'pointer' }}>
+                                                Rubro {sortConfig.key === 'category' ? (sortConfig.direction === 'asc' ? '↑' : sortConfig.direction === 'desc' ? '↓' : '') : ''}
                                             </th>
                                             <th onClick={() => handleSort('subscription_expires_at')} style={{ textAlign: 'left', padding: '1rem', cursor: 'pointer' }}>
                                                 Vencimiento {sortConfig.key === 'subscription_expires_at' ? (sortConfig.direction === 'asc' ? '↑' : sortConfig.direction === 'desc' ? '↓' : '') : ''}
@@ -1305,7 +1323,21 @@ export default function AdminDashboard() {
                                                 <tr key={business.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                                                     <td style={{ padding: '1rem' }}>{business.name}</td>
                                                     <td style={{ padding: '1rem', fontSize: '0.85rem', opacity: 0.8 }}>{business.profiles?.email || 'N/A'}</td>
-                                                    <td style={{ padding: '1rem' }}>{business.category}</td>
+                                                     <td style={{ padding: '1rem', textAlign: 'center' }}>
+                                                         <div title={business.type === 'classified' ? 'Clasificado' : 'Negocio'} style={{ display: 'flex', justifyContent: 'center' }}>
+                                                             {business.type === 'classified' ? <ShoppingBag size={18} color="#1e3a8a" /> : <Home size={18} color="#009b3a" />}
+                                                         </div>
+                                                     </td>
+                                                     <td style={{ padding: '1rem', textAlign: 'center' }}>
+                                                         <div style={{ display: 'flex', justifyContent: 'center', gap: '4px' }}>
+                                                             {business.category.split(',').map((cat, idx) => (
+                                                                 <span key={idx} title={cat.trim()} style={{ fontSize: '1.2rem', cursor: 'help' }}>
+                                                                     {CATEGORY_ICONS[cat.trim()] || '✨'}
+                                                                 </span>
+                                                             ))}
+                                                         </div>
+                                                     </td>
+
                                                     <td style={{ padding: '1rem' }}>
                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: isExpired ? 'var(--error)' : 'var(--text-main)' }}>
                                                             <Calendar size={14} />
