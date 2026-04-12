@@ -115,22 +115,52 @@ export default function Dashboard() {
 
     return (
         <div className="container-wide" style={{ paddingBottom: '100px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '1.5rem 0' }}>
-                <h1 style={{ fontSize: '1.5rem', fontWeight: '800', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
-                    Panel de Control
-                    <span style={{ fontSize: '1rem', color: 'var(--text-muted)', fontWeight: 'normal' }}>({user.email})</span>
-                </h1>
-                <div style={{ display: 'flex', gap: '0.8rem' }}>
+            <div style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                margin: '1.5rem 0',
+                flexWrap: 'wrap',
+                gap: '1rem'
+            }}>
+                <div style={{ flex: '1', minWidth: '200px' }}>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: '800', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', margin: 0 }}>
+                        Panel de Control
+                    </h1>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', margin: '0.2rem 0 0' }}>{user.email}</p>
+                </div>
+                <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center', flexShrink: 0 }}>
                     <button
                         className="btn-primary"
-                        style={{ padding: '8px 16px', background: 'var(--bg-card)', color: 'var(--text-main)', border: '1px solid var(--border-light)' }}
+                        style={{ 
+                            padding: '8px 16px', 
+                            background: 'var(--bg-card)', 
+                            color: 'var(--text-main)', 
+                            border: '1px solid var(--border-light)',
+                            height: '40px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem'
+                        }}
                         onClick={() => setIsPasswordFormOpen(true)}
                         title="Cambiar Contraseña"
                     >
-                        <Key size={20} /> <span className="hide-mobile">Cambiar Clave</span>
+                        <Key size={18} /> <span className="hide-mobile">Cambiar Clave</span>
                     </button>
                     <button
-                        style={{ background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                        style={{ 
+                            background: 'var(--primary)', 
+                            color: 'white', 
+                            border: 'none', 
+                            borderRadius: '50%', 
+                            width: '40px', 
+                            height: '40px', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center', 
+                            cursor: 'pointer',
+                            flexShrink: 0
+                        }}
                         onClick={() => { setEditingBusiness(null); setIsFormOpen(true); }}
                         title="Agregar Negocio"
                     >
