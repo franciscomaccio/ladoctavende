@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { Search, Tag, MessageCircle, MapPin, X, Globe, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Business, Promotion } from '../types/database';
 import { recordBusinessEvent } from '../lib/analytics';
+import { useAuth } from '../hooks/useAuth';
 
 interface PromotionWithBusiness extends Promotion {
     businesses: Business;
@@ -38,6 +39,7 @@ const CATEGORIES = [
 ];
 
 export default function Promotions() {
+    const { loading: authLoading, isAdmin } = useAuth();
     const dayScrollRef = useHorizontalScroll();
     const catScrollRef = useHorizontalScroll();
     const [promotions, setPromotions] = useState<PromotionWithBusiness[]>([]);
@@ -134,14 +136,14 @@ export default function Promotions() {
 
     // Debounce view tracking to avoid flooding the DB
     useEffect(() => {
-        if (filteredPromos.length === 0) return;
+        if (filteredPromos.length === 0 || authLoading || isAdmin) return;
 
         const timer = setTimeout(() => {
             filteredPromos.forEach(p => recordBusinessEvent(p.businesses.id, 'view', p.id));
         }, 1000);
 
         return () => clearTimeout(timer);
-    }, [filteredPromos]);
+    }, [filteredPromos, authLoading, isAdmin]);
 
     async function fetchPromotions() {
         try {

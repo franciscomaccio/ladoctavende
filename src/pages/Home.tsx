@@ -5,6 +5,7 @@ import { Search, Tag, MessageCircle, MapPin, X, Globe, ChevronLeft, ChevronRight
 import type { Business, Promotion } from '../types/database';
 import { recordBusinessEvent } from '../lib/analytics';
 import BusinessMap from '../components/BusinessMap';
+import { useAuth } from '../hooks/useAuth';
 
 interface PromotionWithBusiness extends Promotion {
     businesses: Business;
@@ -31,6 +32,7 @@ const CATEGORIES = [
 ];
 
 export default function Home({ type = 'business' }: { type?: 'business' | 'classified' }) {
+    const { loading: authLoading, isAdmin } = useAuth();
     const scrollRef = useHorizontalScroll();
     const [businesses, setBusinesses] = useState<Business[]>([]);
     const [filteredBusinesses, setFilteredBusinesses] = useState<Business[]>([]);
@@ -146,14 +148,14 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
 
     // Debounce view tracking to avoid flooding the DB while typing
     useEffect(() => {
-        if (filteredBusinesses.length === 0) return;
+        if (filteredBusinesses.length === 0 || authLoading || isAdmin) return;
 
         const timer = setTimeout(() => {
             filteredBusinesses.forEach(b => recordBusinessEvent(b.id, 'view'));
         }, 1000);
 
         return () => clearTimeout(timer);
-    }, [filteredBusinesses]);
+    }, [filteredBusinesses, authLoading, isAdmin]);
 
     const openWhatsApp = (e: React.MouseEvent, businessId: string, phone: string) => {
         e.stopPropagation();

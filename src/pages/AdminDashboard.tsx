@@ -102,6 +102,7 @@ export default function AdminDashboard() {
         chartData: [] as any[],
         categoryActivity: [] as any[],
         businessActivity: [] as any[],
+        businessTableData: [] as any[],
         todayVisits: 0
     });
     const [statsFilterCategory, setStatsFilterCategory] = useState('all');
@@ -125,6 +126,7 @@ export default function AdminDashboard() {
     const [filterStatus, setFilterStatus] = useState('all');
     const [filterCategory, setFilterCategory] = useState('all');
     const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' | null }>({ key: '', direction: null });
+    const [statsTableSortConfig, setStatsTableSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' | null }>({ key: 'open', direction: 'desc' });
 
     const uniqueCategories = useMemo(() => {
         const cats = new Set<string>();
@@ -172,6 +174,46 @@ export default function AdminDashboard() {
 
         return result;
     }, [businesses, filterOwner, filterStatus, filterCategory, sortConfig]);
+
+    const sortedStatsTableData = useMemo(() => {
+        // Merge with all businesses to include zeros as requested
+        const fullData = businesses.map(b => {
+            const activity = generalStats.businessTableData.find(a => a.id === b.id);
+            return {
+                id: b.id,
+                name: b.name,
+                open: activity?.open || 0,
+                whatsapp: activity?.whatsapp || 0,
+                map: activity?.map || 0,
+                web: activity?.web || 0,
+                total: activity?.total || 0
+            };
+        });
+
+        if (statsTableSortConfig.key && statsTableSortConfig.direction) {
+            fullData.sort((a: any, b: any) => {
+                const aValue = a[statsTableSortConfig.key as keyof typeof a];
+                const bValue = b[statsTableSortConfig.key as keyof typeof b];
+                
+                if (typeof aValue === 'string') {
+                    const res = aValue.localeCompare(bValue as string);
+                    return statsTableSortConfig.direction === 'asc' ? res : -res;
+                }
+                
+                const res = (aValue as number) - (bValue as number);
+                return statsTableSortConfig.direction === 'asc' ? res : -res;
+            });
+        }
+        return fullData;
+    }, [generalStats.businessTableData, businesses, statsTableSortConfig]);
+
+    const handleStatsSort = (key: string) => {
+        let direction: 'asc' | 'desc' | null = 'desc';
+        if (statsTableSortConfig.key === key && statsTableSortConfig.direction === 'desc') direction = 'asc';
+        else if (statsTableSortConfig.key === key && statsTableSortConfig.direction === 'asc') direction = null;
+
+        setStatsTableSortConfig({ key, direction });
+    };
 
     const handleSort = (key: string) => {
         let direction: 'asc' | 'desc' | null = 'asc';
@@ -484,7 +526,30 @@ export default function AdminDashboard() {
                 categoryDistribution: cats,
                 chartData,
                 categoryActivity: categoryActivity || [],
-                businessActivity: businessActivity || []
+                businessActivity: businessActivity || [],
+                businessTableData: (business_activity || [])
+                    .reduce((acc: any[], ba: any) => {
+                        let existing = acc.find(item => item.id === ba.id);
+                        if (!existing) {
+                            existing = {
+                                id: ba.id,
+                                name: ba.name,
+                                category: ba.category,
+                                open: 0,
+                                whatsapp: 0,
+                                map: 0,
+                                web: 0,
+                                total: 0
+                            };
+                            acc.push(existing);
+                        }
+                        const val = Number(ba.count);
+                        if (ba.event_type in existing) {
+                            existing[ba.event_type] = val;
+                        }
+                        existing.total += val;
+                        return acc;
+                    }, [])
             });
         }
     };
@@ -1227,6 +1292,56 @@ export default function AdminDashboard() {
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
+                        </div>
+                    </div>
+
+                    <div className="glass-card" style={{ padding: '1.5rem', marginTop: '1.5rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
+                            <TrendingUp size={20} color="var(--primary)" />
+                            <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem' }}>Detalle de Actividad por Negocio</h3>
+                        </div>
+                        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', width: '100%' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px', fontSize: '0.9rem' }}>
+                                <thead>
+                                    <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
+                                        <th onClick={() => handleStatsSort('name')} style={{ textAlign: 'left', padding: '1rem', cursor: 'pointer' }}>
+                                            Negocio {statsTableSortConfig.key === 'name' ? (statsTableSortConfig.direction === 'asc' ? '↑' : statsTableSortConfig.direction === 'desc' ? '↓' : '') : ''}
+                                        </th>
+                                        <th onClick={() => handleStatsSort('open')} style={{ textAlign: 'center', padding: '1rem', cursor: 'pointer' }}>
+                                            Vistas Perfil {statsTableSortConfig.key === 'open' ? (statsTableSortConfig.direction === 'asc' ? '↑' : statsTableSortConfig.direction === 'desc' ? '↓' : '') : ''}
+                                        </th>
+                                        <th onClick={() => handleStatsSort('whatsapp')} style={{ textAlign: 'center', padding: '1rem', cursor: 'pointer' }}>
+                                            WhatsApp {statsTableSortConfig.key === 'whatsapp' ? (statsTableSortConfig.direction === 'asc' ? '↑' : statsTableSortConfig.direction === 'desc' ? '↓' : '') : ''}
+                                        </th>
+                                        <th onClick={() => handleStatsSort('map')} style={{ textAlign: 'center', padding: '1rem', cursor: 'pointer' }}>
+                                            Ubicación {statsTableSortConfig.key === 'map' ? (statsTableSortConfig.direction === 'asc' ? '↑' : statsTableSortConfig.direction === 'desc' ? '↓' : '') : ''}
+                                        </th>
+                                        <th onClick={() => handleStatsSort('web')} style={{ textAlign: 'center', padding: '1rem', cursor: 'pointer' }}>
+                                            Sitio Web {statsTableSortConfig.key === 'web' ? (statsTableSortConfig.direction === 'asc' ? '↑' : statsTableSortConfig.direction === 'desc' ? '↓' : '') : ''}
+                                        </th>
+                                        <th onClick={() => handleStatsSort('total')} style={{ textAlign: 'center', padding: '1rem', cursor: 'pointer' }}>
+                                            Total {statsTableSortConfig.key === 'total' ? (statsTableSortConfig.direction === 'asc' ? '↑' : statsTableSortConfig.direction === 'desc' ? '↓' : '') : ''}
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {sortedStatsTableData.map((row) => (
+                                        <tr key={row.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', transition: 'background 0.2s' }}>
+                                            <td style={{ padding: '0.75rem 1rem', fontWeight: '500' }}>{row.name}</td>
+                                            <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>{row.open || 0}</td>
+                                            <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>{row.whatsapp || 0}</td>
+                                            <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>{row.map || 0}</td>
+                                            <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>{row.web || 0}</td>
+                                            <td style={{ padding: '0.75rem 1rem', textAlign: 'center', fontWeight: 'bold', color: 'var(--primary)' }}>{row.total || 0}</td>
+                                        </tr>
+                                    ))}
+                                    {sortedStatsTableData.length === 0 && (
+                                        <tr>
+                                            <td colSpan={6} style={{ textAlign: 'center', padding: '2rem', opacity: 0.6 }}>No hay datos de actividad para este periodo.</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </>

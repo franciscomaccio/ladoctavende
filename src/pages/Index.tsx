@@ -4,13 +4,18 @@ import { Helmet } from 'react-helmet-async';
 import { supabase } from '../lib/supabase';
 import { recordSiteVisit } from '../lib/analytics';
 import { Home, Tag, ShoppingBag, PlusCircle, Info } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
 const Index: React.FC = () => {
     const navigate = useNavigate();
 
+    const { loading, isAdmin } = useAuth();
+
     useEffect(() => {
-        recordSiteVisit('/');
-    }, []);
+        if (!loading && !isAdmin) {
+            recordSiteVisit('/');
+        }
+    }, [loading, isAdmin]);
 
     return (
         <div style={{
