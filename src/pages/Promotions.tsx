@@ -154,7 +154,7 @@ export default function Promotions() {
 
             if (error) throw error;
             // Only show promos from active businesses and shuffle them
-            const promos = data?.filter(p => p.businesses.active) || [];
+            const promos = data?.filter(p => p.businesses?.active) || [];
             setPromotions(promos.sort(() => Math.random() - 0.5));
         } catch (error) {
             console.error('Error fetching promotions:', error);

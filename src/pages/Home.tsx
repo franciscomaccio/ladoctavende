@@ -103,7 +103,7 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
             // Let's stick to what was there but maybe filter by type if needed?
             // "en la sección de promos, a lo que ya está, agregar el filtro por rubros como está en negocios."
             // For now, let's just make fetchBusinesses filter by type.
-            const promos = data?.filter(p => p.businesses.active) || [];
+            const promos = data?.filter(p => p.businesses?.active) || [];
             setPromotions(promos.sort(() => Math.random() - 0.5));
         } catch (error) {
             console.error('Error fetching promotions:', error);

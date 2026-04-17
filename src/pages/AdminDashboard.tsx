@@ -527,14 +527,16 @@ export default function AdminDashboard() {
                 chartData,
                 categoryActivity: categoryActivity || [],
                 businessActivity: businessActivity || [],
-                businessTableData: (business_activity || [])
+                businessTableData: (businessActivity || [])
                     .reduce((acc: any[], ba: any) => {
-                        let existing = acc.find(item => item.id === ba.id);
+                        const bId = ba.business_id || ba.id;
+                        let existing = acc.find(item => item.id === bId);
                         if (!existing) {
                             existing = {
-                                id: ba.id,
+                                id: bId,
                                 name: ba.name,
                                 category: ba.category,
+                                view: 0,
                                 open: 0,
                                 whatsapp: 0,
                                 map: 0,
@@ -544,8 +546,8 @@ export default function AdminDashboard() {
                             acc.push(existing);
                         }
                         const val = Number(ba.count);
-                        if (ba.event_type in existing) {
-                            existing[ba.event_type] = val;
+                        if (ba.event_type && ba.event_type in existing) {
+                            existing[ba.event_type] = (existing[ba.event_type] || 0) + val;
                         }
                         existing.total += val;
                         return acc;

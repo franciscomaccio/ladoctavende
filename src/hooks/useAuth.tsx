@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { setIgnoreTracking } from '../lib/analytics';
@@ -39,18 +39,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     useEffect(() => {
-        supabase.auth.getSession().then(async ({ data: { session } }) => {
-            setSession(session);
-            setUser(session?.user ?? null);
-            if (session?.user) await checkAdmin(session.user.id);
-            setLoading(false);
-        });
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+        // Handle initial session
+        supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
             setUser(session?.user ?? null);
             if (session?.user) {
-                await checkAdmin(session.user.id);
+                checkAdmin(session.user.id);
+            }
+            // We set loading false immediately after getting session
+            // checkAdmin will update isAdmin in background
+            setLoading(false);
+        });
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setSession(session);
+            setUser(session?.user ?? null);
+            if (session?.user) {
+                checkAdmin(session.user.id);
             } else {
                 setIsAdmin(false);
             }
@@ -69,8 +74,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsAdmin(false);
     };
 
+    const value = useMemo(() => ({
+        user,
+        session,
+        isAdmin,
+        loading,
+        signOut
+    }), [user, session, isAdmin, loading]);
+
     return (
-        <AuthContext.Provider value={{ user, session, isAdmin, loading, signOut }}>
+        <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
     );
