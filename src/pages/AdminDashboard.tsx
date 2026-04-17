@@ -527,9 +527,11 @@ export default function AdminDashboard() {
                 chartData,
                 categoryActivity: categoryActivity || [],
                 businessActivity: businessActivity || [],
-                businessTableData: (businessActivity || [])
+                businessTableData: (business_activity || [])
                     .reduce((acc: any[], ba: any) => {
                         const bId = ba.business_id || ba.id;
+                        if (!bId) return acc;
+                        
                         let existing = acc.find(item => item.id === bId);
                         if (!existing) {
                             existing = {
