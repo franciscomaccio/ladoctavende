@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '../lib/supabase';
 import { recordSiteVisit } from '../lib/analytics';
-import { Home, Tag, ShoppingBag, PlusCircle } from 'lucide-react';
+import { Home, Tag, ShoppingBag, PlusCircle, Info } from 'lucide-react';
 
 const Index: React.FC = () => {
     const navigate = useNavigate();
@@ -149,9 +149,9 @@ const Index: React.FC = () => {
                 </button>
 
                 <button
-                    onClick={() => navigate('/dashboard')}
+                    onClick={() => navigate('/info-util')}
                     style={{
-                        background: 'linear-gradient(135deg, #ea1d7b 0%, #be123c 100%)',
+                        background: 'linear-gradient(135deg, #ca8a04 0%, #a16207 100%)',
                         color: 'white',
                         border: 'none',
                         padding: '1.5rem 1rem',
@@ -164,9 +164,35 @@ const Index: React.FC = () => {
                         justifyContent: 'center',
                         gap: '0.5rem',
                         cursor: 'pointer',
-                        boxShadow: '0 8px 15px -3px rgba(234, 29, 123, 0.3)',
+                        boxShadow: '0 8px 15px -3px rgba(202, 138, 4, 0.3)',
                         transition: 'transform 0.2s',
                         aspectRatio: '1 / 1'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                    onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                    <Info size={32} /> <span>Info Util</span>
+                </button>
+
+                <button
+                    onClick={() => navigate('/dashboard')}
+                    style={{
+                        background: 'linear-gradient(135deg, #ea1d7b 0%, #be123c 100%)',
+                        color: 'white',
+                        border: 'none',
+                        padding: '1rem',
+                        borderRadius: '16px',
+                        fontSize: '0.9rem',
+                        fontWeight: '700',
+                        display: 'flex',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.8rem',
+                        cursor: 'pointer',
+                        boxShadow: '0 8px 15px -3px rgba(234, 29, 123, 0.3)',
+                        transition: 'transform 0.2s',
+                        gridColumn: 'span 2'
                     }}
                     onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
                     onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}

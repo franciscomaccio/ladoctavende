@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import Promotions from './pages/Promotions';
 import About from './pages/About';
+import UsefulInfo from './pages/UsefulInfo';
 import { useAuth } from './hooks/useAuth';
 import { ShieldCheck, Home as HomeIcon, Tag, UserCircle, LogOut, Info, PlusCircle, ShoppingBag } from 'lucide-react';
 
@@ -71,6 +72,7 @@ function Navigation() {
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/promos" element={<Promotions />} />
           <Route path="/info" element={<About />} />
+          <Route path="/info-util" element={<UsefulInfo />} />
         </Routes>
       </main>
 
@@ -87,6 +89,10 @@ function Navigation() {
           <Link to="/clasificados" className={`nav-item ${location.pathname === '/clasificados' ? 'active' : ''}`}>
             <ShoppingBag size={24} />
             <span>Clasificados</span>
+          </Link>
+          <Link to="/info-util" className={`nav-item ${location.pathname === '/info-util' ? 'active' : ''}`}>
+            <Info size={24} />
+            <span>Info Util</span>
           </Link>
           <Link to="/dashboard" className={`nav-item ${location.pathname === '/dashboard' ? 'active' : ''}`}>
             <PlusCircle size={24} />
