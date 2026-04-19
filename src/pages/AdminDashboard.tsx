@@ -673,10 +673,12 @@ export default function AdminDashboard() {
             // 5.5. Sum visits by owner_id using RPC data
             const ownerVisits = new Map<string, number>();
             businessActivity.forEach((ba: any) => {
-                const bId = ba.business_id || ba.id;
-                const ownerId = bizToOwner.get(bId);
-                if (ownerId) {
-                    ownerVisits.set(ownerId, (ownerVisits.get(ownerId) || 0) + Number(ba.count));
+                if (ba.event_type === 'view') {
+                    const bId = ba.business_id || ba.id;
+                    const ownerId = bizToOwner.get(bId);
+                    if (ownerId) {
+                        ownerVisits.set(ownerId, (ownerVisits.get(ownerId) || 0) + Number(ba.count));
+                    }
                 }
             });
 
