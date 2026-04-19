@@ -615,9 +615,10 @@ export default function AdminDashboard() {
                 .eq('id', id);
 
             if (error) {
-            alert('Error al actualizar vencimiento: ' + translateError(error.message));
-        } else {
-            fetchBusinesses();
+                alert('Error al eliminar negocio: ' + translateError(error.message));
+            } else {
+                fetchBusinesses();
+            }
         }
     };
 
