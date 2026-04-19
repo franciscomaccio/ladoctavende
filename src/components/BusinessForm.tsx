@@ -342,6 +342,29 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
         }
     };
 
+    const handleManualRequest = async () => {
+        if (!validateForm()) return;
+        setLoading(true);
+        try {
+            const { businessId } = await saveOrCreateBusiness();
+            
+            // Ensure the business is inactive during coordination
+            const { error } = await supabase
+                .from('businesses')
+                .update({ active: false })
+                .eq('id', businessId);
+
+            if (error) throw error;
+
+            alert('¡Datos guardados! Por favor, contactanos por WhatsApp para coordinar el pago y activar tu negocio.');
+            onSave();
+        } catch (error: any) {
+            alert('Error al guardar: ' + translateError(error.message));
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', zIndex: 2000, display: 'flex', justifyContent: 'center', padding: '1rem', overflowY: 'auto' }}>
             {
@@ -751,6 +774,15 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                                                 </a>{' '}
                                                 para coordinar pago y activación.
                                             </p>
+                                            <button
+                                                type="button"
+                                                onClick={handleManualRequest}
+                                                className="btn-primary"
+                                                style={{ width: '100%', background: '#16a34a', padding: '12px', borderRadius: '12px', marginTop: '1rem' }}
+                                                disabled={loading || !formData.name}
+                                            >
+                                                {loading ? 'Guardando...' : 'Guardar y solicitar activación'}
+                                            </button>
                                         </div>
                                     )}
                                 </div>
