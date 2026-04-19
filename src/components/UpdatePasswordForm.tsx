@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Lock, CheckCircle, Save, X, KeyRound, ShieldAlert, Eye, EyeOff } from 'lucide-react';
 import { translateError } from '../utils/translateError';
+import { useAuth } from '../hooks/useAuth';
 
 interface UpdatePasswordFormProps {
     onClose: () => void;
 }
 
 export default function UpdatePasswordForm({ onClose }: UpdatePasswordFormProps) {
+    const { user } = useAuth();
     const [loading, setLoading] = useState(false);
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -29,8 +31,7 @@ export default function UpdatePasswordForm({ onClose }: UpdatePasswordFormProps)
         }
 
         try {
-            // 1. Verificar la contraseña actual obteniendo el email del usuario logueado
-            const { data: { user } } = await supabase.auth.getUser();
+            // 1. Verificar la contraseña actual usando la información de la sesión
             if (!user?.email) throw new Error("No se pudo obtener la información del usuario.");
 
             // Intentamos hacer un login rápido para verificar la contraseña actual

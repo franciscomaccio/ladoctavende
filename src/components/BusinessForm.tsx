@@ -9,6 +9,7 @@ import Cropper from 'react-easy-crop';
 import { getCroppedImg } from '../utils/imageUtils';
 import { translateError } from '../utils/translateError';
 import { isSubscriptionExpired } from '../utils/dateUtils';
+import { useAuth } from '../hooks/useAuth';
 
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
@@ -52,6 +53,7 @@ function LocationPicker({ position, setPosition }: { position: [number | null, n
 }
 
 export default function BusinessForm({ business, onClose, onSave, userId }: BusinessFormProps) {
+    const { user: authUser } = useAuth();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         name: business?.name || '',
@@ -296,9 +298,8 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                 }]);
 
             // Send confirmation email
-            const user = (await supabase.auth.getUser()).data.user;
-            if (user?.email) {
-                await sendConfirmation(user.email, formData.name, expiryDate.toISOString(), formData.type);
+            if (authUser?.email) {
+                await sendConfirmation(authUser.email, formData.name, expiryDate.toISOString(), formData.type);
             }
 
             onSave();
@@ -321,7 +322,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                     businessName: `${formData.name} - Suscripción ${selectedTier === '1m' ? '1 Mes' : selectedTier.replace('m', ' Meses')}`,
                     amount: tierPrices[selectedTier].promo,
                     months: parseInt(selectedTier.replace('m', '')),
-                    email: (await supabase.auth.getUser()).data.user?.email,
+                    email: authUser?.email,
                 }
             });
 
