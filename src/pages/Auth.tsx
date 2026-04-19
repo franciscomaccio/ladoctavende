@@ -18,6 +18,7 @@ export default function Auth() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+    const [showResend, setShowResend] = useState(false);
 
     React.useEffect(() => {
         // Manual check for recovery tokens in the hash (fail-safe for HashRouter)
@@ -100,6 +101,7 @@ export default function Auth() {
                 });
                 if (error) throw error;
                 setMessage({ type: 'success', text: '¡Registro exitoso! Revisa tu correo para confirmar tu cuenta.' });
+                setShowResend(true);
             } else {
                 const { error } = await supabase.auth.signInWithPassword({
                     email,
@@ -108,6 +110,34 @@ export default function Auth() {
                 if (error) throw error;
                 navigate('/dashboard');
             }
+        } catch (error: any) {
+            setMessage({ type: 'error', text: translateError(error.message) });
+            if (error.message === "Email not confirmed") {
+                setShowResend(true);
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleResendEmail = async () => {
+        if (!email) {
+            setMessage({ type: 'error', text: 'Por favor, ingresa tu correo electrónico.' });
+            return;
+        }
+        setLoading(true);
+        setMessage(null);
+        try {
+            const { error } = await supabase.auth.resend({
+                type: 'signup',
+                email: email,
+                options: {
+                    emailRedirectTo: `${window.location.origin}/#/dashboard`,
+                }
+            });
+            if (error) throw error;
+            setMessage({ type: 'success', text: 'Te enviamos un nuevo enlace. Revisa tu correo.' });
+            setShowResend(false);
         } catch (error: any) {
             setMessage({ type: 'error', text: translateError(error.message) });
         } finally {
@@ -216,12 +246,35 @@ export default function Auth() {
                             background: message.type === 'success' ? '#fefce8' : '#fff1f2',
                             color: message.type === 'success' ? '#a16207' : 'var(--error)',
                             display: 'flex',
-                            alignItems: 'center',
+                            flexDirection: 'column',
                             gap: '0.5rem',
-                            fontSize: '0.85rem'
+                            fontSize: '0.85rem',
+                            border: message.type === 'success' ? '1px solid #fef08a' : '1px solid #fecaca'
                         }}>
-                            {message.type === 'success' && <CheckCircle size={16} />}
-                            {message.text}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                {message.type === 'success' && <CheckCircle size={16} />}
+                                {message.text}
+                            </div>
+                            {showResend && (
+                                <button
+                                    type="button"
+                                    onClick={handleResendEmail}
+                                    disabled={loading}
+                                    style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        color: message.type === 'success' ? '#854d0e' : 'var(--primary)',
+                                        textDecoration: 'underline',
+                                        cursor: 'pointer',
+                                        fontSize: '0.8rem',
+                                        width: 'fit-content',
+                                        padding: 0,
+                                        fontWeight: '600'
+                                    }}
+                                >
+                                    {loading ? 'Reenviando...' : '¿No recibiste el correo o se venció? Reenviar enlace'}
+                                </button>
+                            )}
                         </div>
                     )}
 
@@ -241,7 +294,7 @@ export default function Auth() {
                     <p style={{ marginTop: '1.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
                         {isForgotPassword ? (
                             <button
-                                onClick={() => { setIsForgotPassword(false); setMessage(null); }}
+                                onClick={() => { setIsForgotPassword(false); setMessage(null); setShowResend(false); }}
                                 style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontWeight: '600' }}
                             >
                                 Volver a Iniciar Sesión
@@ -250,7 +303,7 @@ export default function Auth() {
                             <>
                                 {isSignUp ? '¿Ya tienes cuenta?' : '¿No tienes cuenta?'}
                                 <button
-                                    onClick={() => { setIsSignUp(!isSignUp); setMessage(null); }}
+                                    onClick={() => { setIsSignUp(!isSignUp); setMessage(null); setShowResend(false); }}
                                     style={{
                                         background: 'none',
                                         border: 'none',
