@@ -21,7 +21,7 @@ let DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-const CATEGORIES = ['Almacén/Súper', 'Casa/Construcción', 'Deportes', 'Educación', 'Estética', 'Gastronomía', 'Inmobiliaria', 'Librería/Regalería', 'Mascotas', 'Moda', 'Otros', 'Salud', 'Servicios', 'Tecnología', 'Vehículos'];
+const CATEGORIES = ['Almacén', 'Casa/Construcción', 'Deportes', 'Educación', 'Estética', 'Gastronomía', 'Inmobiliaria', 'Librería/Regalería', 'Mascotas', 'Moda', 'Otros', 'Salud', 'Servicios', 'Tecnología', 'Vehículos'];
 
 interface BusinessFormProps {
     business?: Business | null;
