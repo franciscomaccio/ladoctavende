@@ -85,6 +85,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
     });
     const [selectedTier, setSelectedTier] = useState<string>('1m');
     const [promoDescription, setPromoDescription] = useState<string>('');
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'mercadopago' | 'manual'>('mercadopago');
 
     const onCropComplete = (_croppedArea: any, croppedAreaPixels: any) => {
         setCroppedAreaPixels(croppedAreaPixels);
@@ -674,15 +675,79 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                                     <CheckCircle size={20} /> {loading ? 'Activando...' : 'Activar Gratis'}
                                 </button>
                             ) : (
-                                <button
-                                    type="button"
-                                    onClick={handlePayment}
-                                    className="btn-primary"
-                                    style={{ width: '100%', background: '#009ee3', padding: '14px', borderRadius: '12px' }}
-                                    disabled={loading || !formData.name}
-                                >
-                                    <CreditCard size={20} /> {business ? 'Renovar con Mercado Pago' : 'Pagar y Activar'}
-                                </button>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', background: '#f1f5f9', padding: '4px', borderRadius: '12px' }}>
+                                        <button
+                                            type="button"
+                                            onClick={() => setSelectedPaymentMethod('mercadopago')}
+                                            style={{
+                                                padding: '8px',
+                                                borderRadius: '8px',
+                                                border: 'none',
+                                                fontSize: '0.8rem',
+                                                fontWeight: '700',
+                                                cursor: 'pointer',
+                                                background: selectedPaymentMethod === 'mercadopago' ? 'white' : 'transparent',
+                                                color: selectedPaymentMethod === 'mercadopago' ? 'var(--primary)' : 'var(--text-muted)',
+                                                boxShadow: selectedPaymentMethod === 'mercadopago' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
+                                                transition: 'all 0.2s'
+                                            }}
+                                        >
+                                            Mercado Pago
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setSelectedPaymentMethod('manual')}
+                                            style={{
+                                                padding: '8px',
+                                                borderRadius: '8px',
+                                                border: 'none',
+                                                fontSize: '0.8rem',
+                                                fontWeight: '700',
+                                                cursor: 'pointer',
+                                                background: selectedPaymentMethod === 'manual' ? 'white' : 'transparent',
+                                                color: selectedPaymentMethod === 'manual' ? '#16a34a' : 'var(--text-muted)',
+                                                boxShadow: selectedPaymentMethod === 'manual' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
+                                                transition: 'all 0.2s'
+                                            }}
+                                        >
+                                            Contado/Transf.
+                                        </button>
+                                    </div>
+
+                                    {selectedPaymentMethod === 'mercadopago' ? (
+                                        <button
+                                            type="button"
+                                            onClick={handlePayment}
+                                            className="btn-primary"
+                                            style={{ width: '100%', background: '#009ee3', padding: '14px', borderRadius: '12px' }}
+                                            disabled={loading || !formData.name}
+                                        >
+                                            <CreditCard size={20} /> {business ? 'Renovar con Mercado Pago' : 'Pagar y Activar'}
+                                        </button>
+                                    ) : (
+                                        <div style={{
+                                            background: '#f0fdf4',
+                                            border: '1px solid #bbf7d0',
+                                            padding: '1rem',
+                                            borderRadius: '12px',
+                                            textAlign: 'center'
+                                        }}>
+                                            <p style={{ fontSize: '0.9rem', color: '#166534', lineHeight: '1.5', margin: 0, fontWeight: '500' }}>
+                                                Para activar el negocio pagando al contado o por transferencia, contáctese por whatsapp al{' '}
+                                                <a
+                                                    href={`https://wa.me/5493512117700?text=${encodeURIComponent(`Hola! Quiero coordinar el pago y activación de mi negocio: ${formData.name}`)}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    style={{ color: '#16a34a', fontWeight: '800', textDecoration: 'underline' }}
+                                                >
+                                                    3512117700
+                                                </a>{' '}
+                                                para coordinar pago y activación.
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
                             )}
                         </div>
                     )}
