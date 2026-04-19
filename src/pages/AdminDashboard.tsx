@@ -1741,26 +1741,33 @@ export default function AdminDashboard() {
                                                             >
                                                                 <Pencil size={16} />
                                                             </button>
-                                                            {business.phone && (
-                                                                <a
-                                                                    href={`https://wa.me/${business.phone.replace(/\D/g, '')}`}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    className="btn-primary"
-                                                                    title="WhatsApp Dueño"
-                                                                    style={{
-                                                                        padding: '8px',
-                                                                        background: 'var(--whatsapp)',
-                                                                        color: 'white',
-                                                                        border: 'none',
-                                                                        display: 'flex',
-                                                                        alignItems: 'center',
-                                                                        justifyContent: 'center'
-                                                                    }}
-                                                                >
+                                                            <div 
+                                                                title={business.phone ? "WhatsApp Dueño" : "Sin WhatsApp"}
+                                                                style={{
+                                                                    padding: '8px',
+                                                                    background: business.phone ? 'var(--whatsapp)' : 'rgba(255,255,255,0.05)',
+                                                                    color: business.phone ? 'white' : 'var(--text-muted)',
+                                                                    border: business.phone ? 'none' : '1px solid var(--border-light)',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center',
+                                                                    borderRadius: '8px',
+                                                                    opacity: business.phone ? 1 : 0.4
+                                                                }}
+                                                            >
+                                                                {business.phone ? (
+                                                                    <a
+                                                                        href={`https://wa.me/${business.phone.replace(/\D/g, '')}`}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        style={{ color: 'inherit', display: 'flex', alignItems: 'center', textDecoration: 'none' }}
+                                                                    >
+                                                                        <MessageCircle size={16} />
+                                                                    </a>
+                                                                ) : (
                                                                     <MessageCircle size={16} />
-                                                                </a>
-                                                            )}
+                                                                )}
+                                                            </div>
                                                             <button
                                                                 onClick={() => setSelectedBusinessForTransfer({ id: business.id, name: business.name })}
                                                                 className="btn-primary"
