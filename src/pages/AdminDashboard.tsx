@@ -977,7 +977,7 @@ export default function AdminDashboard() {
             }}>
                 {[
                     { id: 'businesses', label: 'Negocios', icon: <LayoutDashboard size={18} /> },
-                    { id: 'stats', label: 'Evolución e Ingresos', icon: <TrendingUp size={18} /> },
+                    { id: 'stats', label: 'Estadísticas', icon: <BarChart3 size={18} /> },
                     { id: 'audit', label: 'Auditoría', icon: <Users size={18} /> },
                     { id: 'prices', label: 'Precios', icon: <CreditCard size={18} /> },
                     { id: 'promo', label: 'Pop-up Promo', icon: <Settings size={18} /> },
