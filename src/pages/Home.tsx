@@ -16,7 +16,7 @@ import { useHorizontalScroll } from '../hooks/useHorizontalScroll';
 
 const CATEGORIES = [
     { name: 'Almacén/Súper', icon: '🛒' },
-    { name: 'Belleza', icon: '💄' },
+    { name: 'Estética', icon: '💄' },
     { name: 'Casa/Construcción', icon: '🏠' },
     { name: 'Deportes', icon: '⚽' },
     { name: 'Educación', icon: '📚' },

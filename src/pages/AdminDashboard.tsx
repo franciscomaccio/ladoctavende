@@ -294,7 +294,7 @@ export default function AdminDashboard() {
 
     const CATEGORY_ICONS: Record<string, string> = {
         'Almacén/Súper': '🛒',
-        'Belleza': '💄',
+        'Estética': '💄',
         'Casa/Construcción': '🏠',
         'Deportes': '⚽',
         'Educación': '📚',
