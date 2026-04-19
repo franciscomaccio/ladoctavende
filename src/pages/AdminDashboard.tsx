@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
-import { CheckCircle, XCircle, Settings, LayoutDashboard, Calendar, Users, TrendingUp, BarChart3, PieChart, UserPlus, Trash2, RotateCw, Upload, Scissors, Mail, CreditCard, MessageCircle, Pencil, Eye, EyeOff, Home, ShoppingBag } from 'lucide-react';
+import { CheckCircle, XCircle, Settings, LayoutDashboard, Calendar, Users, TrendingUp, BarChart3, PieChart, UserPlus, Trash2, RotateCw, Upload, Scissors, Mail, CreditCard, MessageCircle, Pencil, Eye, EyeOff, Home, ShoppingBag, Zap } from 'lucide-react';
 import { BusinessStatsModal } from '../components/BusinessStatsModal';
 import { TransferBusinessModal } from '../components/TransferBusinessModal';
 import { RegisteredUsersModal } from '../components/RegisteredUsersModal';
@@ -90,6 +90,9 @@ export default function AdminDashboard() {
     const [selectedBusinessForStats, setSelectedBusinessForStats] = useState<{ id: string, name: string } | null>(null);
     const [selectedBusinessForTransfer, setSelectedBusinessForTransfer] = useState<{ id: string, name: string } | null>(null);
     const [selectedBusinessForEdit, setSelectedBusinessForEdit] = useState<Business | null>(null);
+    const [selectedBusinessForActivation, setSelectedBusinessForActivation] = useState<Business | null>(null);
+    const [activationMonths, setActivationMonths] = useState<number>(1);
+    const [isActivatingManual, setIsActivatingManual] = useState(false);
     const [generalStats, setGeneralStats] = useState({
         totalBusinesses: 0,
         activeBusinesses: 0,
@@ -612,10 +615,66 @@ export default function AdminDashboard() {
                 .eq('id', id);
 
             if (error) {
-                alert('Error al eliminar negocio: ' + translateError(error.message));
-            } else {
-                fetchBusinesses();
+            alert('Error al actualizar vencimiento: ' + translateError(error.message));
+        } else {
+            fetchBusinesses();
+        }
+    };
+
+    const handleFinalizeManualActivation = async () => {
+        if (!selectedBusinessForActivation) return;
+        
+        setIsActivatingManual(true);
+        try {
+            // 1. Calculate new expiry date (from today)
+            const now = new Date();
+            const expiryDate = new Date(now.setMonth(now.getMonth() + activationMonths));
+            const isoExpiry = toEndOfDayISO(expiryDate.toISOString().split('T')[0]);
+
+            // 2. Update Business
+            const { error: updateError } = await supabase
+                .from('businesses')
+                .update({ 
+                    active: true, 
+                    subscription_expires_at: isoExpiry 
+                })
+                .eq('id', selectedBusinessForActivation.id);
+
+            if (updateError) throw updateError;
+
+            // 3. Create Payment Record for stats (estimate price based on current tiers or just log)
+            // We'll use the current promo price for the selected tier if possible, 
+            // but since we ask months manually, we'll try to find the matching tier price.
+            const tierKey = `${activationMonths}m`;
+            const amount = prices[tierKey]?.promo || 0;
+
+            await supabase.from('payments').insert({
+                business_id: selectedBusinessForActivation.id,
+                amount: amount,
+                // created_at is automatic
+            });
+
+            // 4. Send Confirmation Email
+            const userEmail = selectedBusinessForActivation.profiles?.email;
+            if (userEmail) {
+                await supabase.functions.invoke('send-confirmation-email', {
+                    body: {
+                        email: userEmail,
+                        businessName: selectedBusinessForActivation.name,
+                        expiryDate: isoExpiry,
+                        type: selectedBusinessForActivation.type || 'business'
+                    }
+                });
             }
+
+            alert('¡Negocio activado y correo enviado con éxito!');
+            setSelectedBusinessForActivation(null);
+            fetchBusinesses();
+            fetchDashboardData();
+        } catch (error: any) {
+            alert('Error en la activación: ' + translateError(error.message));
+        } finally {
+            setIsActivatingManual(false);
         }
     };
 
@@ -1735,6 +1794,22 @@ export default function AdminDashboard() {
                                                                 {business.active ? <Eye size={18} /> : <EyeOff size={18} />}
                                                             </button>
                                                             <button
+                                                                onClick={() => setSelectedBusinessForActivation(business)}
+                                                                className="btn-primary"
+                                                                title="Activar Manualmente (Pago verificado)"
+                                                                style={{
+                                                                    padding: '8px',
+                                                                    background: 'rgba(251, 191, 36, 0.1)',
+                                                                    color: '#fbbf24',
+                                                                    border: '1px solid rgba(251, 191, 36, 0.3)',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center'
+                                                                }}
+                                                            >
+                                                                <Zap size={16} />
+                                                            </button>
+                                                            <button
                                                                 onClick={() => handleDeleteBusiness(business.id, business.name)}
                                                                 className="btn-primary"
                                                                 title="Eliminar DEFINITIVAMENTE"
@@ -1814,6 +1889,55 @@ export default function AdminDashboard() {
                                 fetchBusinesses();
                             }}
                         />
+                    </div>
+                </div>
+            )}
+
+            {selectedBusinessForActivation && (
+                <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100dvh', background: 'rgba(0,0,0,0.85)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+                    <div className="glass-card" style={{ width: '100%', maxWidth: '400px', padding: '2rem', textAlign: 'center', position: 'relative' }}>
+                        <button 
+                            onClick={() => setSelectedBusinessForActivation(null)}
+                            style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', color: 'var(--text-main)', cursor: 'pointer' }}
+                        >
+                            <XCircle size={24} />
+                        </button>
+                        
+                        <div style={{ background: 'rgba(251, 191, 36, 0.1)', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+                            <Zap size={30} color="#fbbf24" strokeWidth={3} />
+                        </div>
+
+                        <h2 style={{ marginBottom: '0.5rem', color: 'var(--text-main)' }}>Activar Negocio</h2>
+                        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+                            Vas a activar el negocio <strong>{selectedBusinessForActivation.name}</strong> manualmente tras haber verificado el pago.
+                        </p>
+
+                        <div style={{ textAlign: 'left', marginBottom: '1.5rem' }}>
+                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', marginBottom: '0.5rem', opacity: 0.8 }}>Meses de suscripción:</label>
+                            <select 
+                                value={activationMonths}
+                                onChange={(e) => setActivationMonths(Number(e.target.value))}
+                                className="input-field"
+                                style={{ margin: 0, width: '100%' }}
+                            >
+                                <option value={1}>1 Mes</option>
+                                <option value={3}>3 Meses</option>
+                                <option value={6}>6 Meses</option>
+                                <option value={12}>12 Meses</option>
+                            </select>
+                        </div>
+
+                        <button 
+                            onClick={handleFinalizeManualActivation}
+                            className="btn-primary" 
+                            style={{ width: '100%', background: '#fbbf24', color: '#000', fontWeight: '800' }}
+                            disabled={isActivatingManual}
+                        >
+                            {isActivatingManual ? 'Activando...' : 'Confirmar Activación'}
+                        </button>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '1rem' }}>
+                            Esto marcará el negocio como activo y enviará el correo de confirmación al dueño.
+                        </p>
                     </div>
                 </div>
             )}
