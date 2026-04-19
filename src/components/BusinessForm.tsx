@@ -711,7 +711,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                                                 transition: 'all 0.2s'
                                             }}
                                         >
-                                            Contado/Transf.
+                                            Transferencia
                                         </button>
                                     </div>
 
@@ -740,7 +740,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                                                 </div>
                                             </div>
                                             <p style={{ fontSize: '0.85rem', color: '#166534', lineHeight: '1.5', margin: 0, fontWeight: '500' }}>
-                                                Para activar el negocio pagando al contado o por transferencia, contáctese por whatsapp al{' '}
+                                                Para activar el negocio pagando por transferencia, contáctese por whatsapp al{' '}
                                                 <a
                                                     href={`https://wa.me/5493512117700?text=${encodeURIComponent(`Hola! Quiero coordinar el pago y activación de mi negocio: ${formData.name} ($${Math.round(tierPrices[selectedTier].promo * 0.9).toLocaleString()} con 10% OFF)`)}`}
                                                     target="_blank"
