@@ -51,3 +51,22 @@ export async function recordSiteVisit(path: string = '/') {
         console.error('Unexpected error logging site visit:', err);
     }
 }
+
+/**
+ * Records a site entry for a specific registered user
+ */
+export async function recordUserLogin(userId: string) {
+    if (ignoreTracking) return;
+
+    try {
+        const { error } = await supabase
+            .from('user_logins')
+            .insert([{ user_id: userId }]);
+
+        if (error) {
+            console.error('Error logging user entry:', error);
+        }
+    } catch (err) {
+        console.error('Unexpected error logging user entry:', err);
+    }
+}

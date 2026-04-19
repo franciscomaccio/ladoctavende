@@ -10,10 +10,19 @@ import About from './pages/About';
 import UsefulInfo from './pages/UsefulInfo';
 import { useAuth } from './hooks/useAuth';
 import { ShieldCheck, Home as HomeIcon, Tag, UserCircle, LogOut, Info, PlusCircle, ShoppingBag } from 'lucide-react';
+import { useEffect } from 'react';
+import { recordUserLogin } from './lib/analytics';
 
 function Navigation() {
   const { user, isAdmin, signOut } = useAuth();
   const location = useLocation();
+
+  useEffect(() => {
+    if (user && !sessionStorage.getItem('ladocta_user_entry_recorded')) {
+      recordUserLogin(user.id);
+      sessionStorage.setItem('ladocta_user_entry_recorded', 'true');
+    }
+  }, [user]);
 
   const handleSignOut = async () => {
     if (window.confirm('¿Estás seguro que deseas cerrar sesión?')) {

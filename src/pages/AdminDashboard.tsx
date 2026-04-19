@@ -58,6 +58,7 @@ interface UserAuditData {
     lastExpiration: string | null;
     totalIncome: number;
     totalVisits: number;
+    totalLogins: number;
 }
 
 export default function AdminDashboard() {
@@ -648,6 +649,14 @@ export default function AdminDashboard() {
                 .lte('created_at', end.toISOString());
             if (payErr) throw payErr;
 
+            // 3.4. Fetch user logins within range
+            const { data: logins, error: logErr } = await supabase
+                .from('user_logins')
+                .select('user_id')
+                .gte('created_at', start.toISOString())
+                .lte('created_at', end.toISOString());
+            if (logErr) throw logErr;
+
             // 3.5. Fetch aggregated analytics via RPC
             const { data: aggregatedData, error: rpcError } = await supabase.rpc('get_admin_dashboard_stats', {
                 p_from: start.toISOString(),
@@ -682,6 +691,12 @@ export default function AdminDashboard() {
                 }
             });
 
+            // 5.6. Sum logins by user_id
+            const ownerLogins = new Map<string, number>();
+            (logins || []).forEach(log => {
+                ownerLogins.set(log.user_id, (ownerLogins.get(log.user_id) || 0) + 1);
+            });
+
             // 6. Aggregate final data
             const auditResults: UserAuditData[] = (profiles || []).map(p => {
                 const userBiz = (businesses || []).filter(b => b.owner_id === p.id);
@@ -707,7 +722,8 @@ export default function AdminDashboard() {
                     activeBusinesses: activeCount,
                     lastExpiration: lastExp,
                     totalIncome: ownerIncome.get(p.id) || 0,
-                    totalVisits: ownerVisits.get(p.id) || 0
+                    totalVisits: ownerVisits.get(p.id) || 0,
+                    totalLogins: ownerLogins.get(p.id) || 0
                 };
             });
 
@@ -1088,6 +1104,12 @@ export default function AdminDashboard() {
                                                 Visitas {auditSortConfig.key === 'totalVisits' && (auditSortConfig.direction === 'asc' ? '↑' : '↓')}
                                             </th>
                                             <th 
+                                                onClick={() => handleAuditSort('totalLogins')}
+                                                style={{ padding: '1rem', cursor: 'pointer', textAlign: 'center', fontSize: '0.85rem', fontWeight: '700' }}
+                                            >
+                                                Ingresos {auditSortConfig.key === 'totalLogins' && (auditSortConfig.direction === 'asc' ? '↑' : '↓')}
+                                            </th>
+                                            <th 
                                                 onClick={() => handleAuditSort('totalIncome')}
                                                 style={{ padding: '1rem', cursor: 'pointer', textAlign: 'right', fontSize: '0.85rem', fontWeight: '700' }}
                                             >
@@ -1136,6 +1158,11 @@ export default function AdminDashboard() {
                                                 <td style={{ padding: '1rem', textAlign: 'center' }}>
                                                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: '12px', fontSize: '0.85rem' }}>
                                                         <Eye size={12} /> {user.totalVisits.toLocaleString()}
+                                                    </div>
+                                                </td>
+                                                <td style={{ padding: '1rem', textAlign: 'center' }}>
+                                                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', padding: '4px 10px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '600' }}>
+                                                        <LogIn size={12} /> {user.totalLogins.toLocaleString()}
                                                     </div>
                                                 </td>
                                                 <td style={{ padding: '1rem', textAlign: 'right', fontWeight: '700', color: user.totalIncome > 0 ? '#10b981' : 'var(--text-muted)' }}>
