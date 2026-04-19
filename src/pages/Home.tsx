@@ -16,20 +16,20 @@ import { useHorizontalScroll } from '../hooks/useHorizontalScroll';
 
 const CATEGORIES = [
     { name: 'Almacén/Súper', icon: '🛒' },
-    { name: 'Estética', icon: '💄' },
     { name: 'Casa/Construcción', icon: '🏠' },
     { name: 'Deportes', icon: '⚽' },
     { name: 'Educación', icon: '📚' },
+    { name: 'Estética', icon: '💄' },
     { name: 'Gastronomía', icon: '🍔' },
     { name: 'Inmobiliaria', icon: '🏢' },
     { name: 'Librería/Regalería', icon: '🎁' },
     { name: 'Mascotas', icon: '🐾' },
     { name: 'Moda', icon: '👕' },
+    { name: 'Otros', icon: '✨' },
     { name: 'Salud', icon: '🏥' },
     { name: 'Servicios', icon: '🛠️' },
     { name: 'Tecnología', icon: '💻' },
-    { name: 'Vehículos', icon: '🚗' },
-    { name: 'Otros', icon: '✨' }
+    { name: 'Vehículos', icon: '🚗' }
 ];
 
 export default function Home({ type = 'business' }: { type?: 'business' | 'classified' }) {

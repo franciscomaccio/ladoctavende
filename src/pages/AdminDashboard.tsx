@@ -294,20 +294,20 @@ export default function AdminDashboard() {
 
     const CATEGORY_ICONS: Record<string, string> = {
         'Almacén/Súper': '🛒',
-        'Estética': '💄',
         'Casa/Construcción': '🏠',
         'Deportes': '⚽',
         'Educación': '📚',
+        'Estética': '💄',
         'Gastronomía': '🍔',
         'Inmobiliaria': '🏢',
         'Librería/Regalería': '🎁',
         'Mascotas': '🐾',
         'Moda': '👕',
+        'Otros': '✨',
         'Salud': '🏥',
         'Servicios': '🛠️',
         'Tecnología': '💻',
-        'Vehículos': '🚗',
-        'Otros': '✨'
+        'Vehículos': '🚗'
     };
 
     const fetchBusinesses = async () => {
