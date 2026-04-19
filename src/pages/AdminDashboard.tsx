@@ -248,9 +248,14 @@ export default function AdminDashboard() {
             fetchDashboardData();
             fetchEmailData();
             fetchUsefulNotes();
-            fetchAuditData();
         }
     }, [isAdmin, dateRange, statsInteractionFilter]);
+
+    useEffect(() => {
+        if (isAdmin && activeTab === 'audit') {
+            fetchAuditData();
+        }
+    }, [activeTab, dateRange, isAdmin]);
 
     const processedAuditData = useMemo(() => {
         let result = [...userAuditData];
@@ -642,22 +647,36 @@ export default function AdminDashboard() {
                 .lte('created_at', end.toISOString());
             if (payErr) throw payErr;
 
-            // Aggregate
+            // 4. Map business_id to owner_id for O(1) lookups
+            const bizToOwner = new Map<string, string>();
+            (businesses || []).forEach(b => bizToOwner.set(b.id, b.owner_id));
+
+            // 5. Sum payments by owner_id within range
+            const ownerIncome = new Map<string, number>();
+            (payments || []).forEach(pay => {
+                const ownerId = bizToOwner.get(pay.business_id!);
+                if (ownerId) {
+                    ownerIncome.set(ownerId, (ownerIncome.get(ownerId) || 0) + Number(pay.amount));
+                }
+            });
+
+            // 6. Aggregate final data
             const auditResults: UserAuditData[] = (profiles || []).map(p => {
                 const userBiz = (businesses || []).filter(b => b.owner_id === p.id);
                 const activeCount = userBiz.filter(b => b.active).length;
                 
-                // Find last expiration
                 let lastExp = null;
-                const expDates = userBiz.map(b => b.subscription_expires_at).filter(Boolean) as string[];
+                const expDates = userBiz
+                    .map(b => b.subscription_expires_at)
+                    .filter(Boolean) as string[];
+                
                 if (expDates.length > 0) {
-                    lastExp = expDates.sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0];
+                    lastExp = expDates.sort((a, b) => {
+                        const dateA = new Date(a).getTime();
+                        const dateB = new Date(b).getTime();
+                        return dateB - dateA;
+                    })[0];
                 }
-
-                // Sum payments in range
-                const bizIds = userBiz.map(b => b.id);
-                const userPayments = (payments || []).filter(pay => bizIds.includes(pay.business_id!));
-                const totalIncome = userPayments.reduce((acc, current) => acc + Number(current.amount), 0);
 
                 return {
                     id: p.id,
@@ -665,7 +684,7 @@ export default function AdminDashboard() {
                     totalBusinesses: userBiz.length,
                     activeBusinesses: activeCount,
                     lastExpiration: lastExp,
-                    totalIncome: totalIncome
+                    totalIncome: ownerIncome.get(p.id) || 0
                 };
             });
 
