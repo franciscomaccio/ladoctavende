@@ -405,3 +405,20 @@ footer {
     align-items: center;
   }
 }
+
+@keyframes promo-pulse {
+  0% { transform: scale(1); background-color: #fef2f2; }
+  50% { transform: scale(1.05); background-color: #fee2e2; box-shadow: 0 0 15px rgba(153, 27, 27, 0.1); }
+  100% { transform: scale(1); background-color: #fef2f2; }
+}
+
+.btn-promo-dynamic {
+  animation: promo-pulse 2s infinite ease-in-out;
+  transition: all 0.3s ease;
+}
+
+.btn-promo-dynamic:hover {
+  animation: none;
+  transform: scale(1.08);
+  background-color: #fee2e2;
+}

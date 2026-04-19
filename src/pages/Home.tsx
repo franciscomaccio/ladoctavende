@@ -358,8 +358,8 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
                                     {promotions.some(p => p.businesses.id === selectedBusiness.id) && (
                                         <button
                                             onClick={() => navigate('/promos', { state: { businessName: selectedBusiness.name } })}
+                                            className="btn-promo-dynamic"
                                             style={{
-                                                background: '#fef2f2',
                                                 color: '#991b1b',
                                                 border: '1px solid #fecaca',
                                                 borderRadius: '12px',
