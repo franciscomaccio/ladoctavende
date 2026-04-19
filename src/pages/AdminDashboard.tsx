@@ -1077,7 +1077,7 @@ export default function AdminDashboard() {
                                                 </td>
                                                 <td style={{ padding: '1rem', textAlign: 'center' }}>
                                                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: '12px', fontSize: '0.85rem' }}>
-                                                        <ShoppingBag size={12} /> {user.totalBusinesses}
+                                                        <Building2 size={12} /> {user.totalBusinesses}
                                                     </div>
                                                 </td>
                                                 <td style={{ padding: '1rem', textAlign: 'center' }}>
