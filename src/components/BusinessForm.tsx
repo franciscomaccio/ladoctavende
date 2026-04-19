@@ -733,10 +733,16 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                                             borderRadius: '12px',
                                             textAlign: 'center'
                                         }}>
-                                            <p style={{ fontSize: '0.9rem', color: '#166534', lineHeight: '1.5', margin: 0, fontWeight: '500' }}>
+                                            <div style={{ marginBottom: '0.75rem' }}>
+                                                <span style={{ fontSize: '0.8rem', color: '#166534', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Precio con 10% OFF:</span>
+                                                <div style={{ fontSize: '1.5rem', fontWeight: '800', color: '#16a34a' }}>
+                                                    ${Math.round(tierPrices[selectedTier].promo * 0.9).toLocaleString()}
+                                                </div>
+                                            </div>
+                                            <p style={{ fontSize: '0.85rem', color: '#166534', lineHeight: '1.5', margin: 0, fontWeight: '500' }}>
                                                 Para activar el negocio pagando al contado o por transferencia, contáctese por whatsapp al{' '}
                                                 <a
-                                                    href={`https://wa.me/5493512117700?text=${encodeURIComponent(`Hola! Quiero coordinar el pago y activación de mi negocio: ${formData.name}`)}`}
+                                                    href={`https://wa.me/5493512117700?text=${encodeURIComponent(`Hola! Quiero coordinar el pago y activación de mi negocio: ${formData.name} ($${Math.round(tierPrices[selectedTier].promo * 0.9).toLocaleString()} con 10% OFF)`)}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     style={{ color: '#16a34a', fontWeight: '800', textDecoration: 'underline' }}
