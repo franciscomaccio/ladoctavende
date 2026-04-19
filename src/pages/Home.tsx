@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '../lib/supabase';
 import { Search, Tag, MessageCircle, MapPin, X, Globe, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -32,6 +33,7 @@ const CATEGORIES = [
 ];
 
 export default function Home({ type = 'business' }: { type?: 'business' | 'classified' }) {
+    const navigate = useNavigate();
     const { loading: authLoading, isAdmin } = useAuth();
     const scrollRef = useHorizontalScroll();
     const [businesses, setBusinesses] = useState<Business[]>([]);
@@ -348,8 +350,33 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
                             )}
 
                             <div style={{ padding: '1.5rem' }}>
-                                <span style={{ color: 'var(--primary)', fontWeight: '600', fontSize: '0.9rem' }}>{selectedBusiness.category}</span>
-                                <h2 style={{ fontSize: '1.75rem', margin: '0.5rem 0' }}>{selectedBusiness.name}</h2>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
+                                    <div style={{ flex: 1 }}>
+                                        <span style={{ color: 'var(--primary)', fontWeight: '600', fontSize: '0.9rem' }}>{selectedBusiness.category}</span>
+                                        <h2 style={{ fontSize: '1.75rem', margin: '0.25rem 0 0.5rem' }}>{selectedBusiness.name}</h2>
+                                    </div>
+                                    <button
+                                        onClick={() => navigate('/promos', { state: { businessName: selectedBusiness.name } })}
+                                        style={{
+                                            background: '#fef2f2',
+                                            color: '#991b1b',
+                                            border: '1px solid #fecaca',
+                                            borderRadius: '12px',
+                                            padding: '8px 12px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.5rem',
+                                            cursor: 'pointer',
+                                            fontSize: '0.8rem',
+                                            fontWeight: '700',
+                                            whiteSpace: 'nowrap',
+                                            marginTop: '4px'
+                                        }}
+                                    >
+                                        <Tag size={16} />
+                                        Ver Promos
+                                    </button>
+                                </div>
                                 <p style={{ lineHeight: '1.6', color: 'var(--text-muted)', fontSize: '1rem' }}>{selectedBusiness.description}</p>
                             </div>
                         </div>

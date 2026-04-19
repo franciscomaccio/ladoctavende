@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Search, Tag, MessageCircle, MapPin, X, Globe, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Business, Promotion } from '../types/database';
@@ -49,6 +50,18 @@ export default function Promotions() {
     const [selectedDay, setSelectedDay] = useState<number | null>(new Date().getDay());
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [selectedPromotion, setSelectedPromotion] = useState<PromotionWithBusiness | null>(null);
+    const location = useLocation();
+
+    useEffect(() => {
+        const state = location.state as { businessName?: string };
+        if (state?.businessName) {
+            setSearchTerm(state.businessName);
+            setSelectedDay(null); // Set to "Todos"
+            // Clear location state to avoid re-applying on manual refreshes if needed, 
+            // though React Router state persisted in location is usually fine for one-off hit.
+            // But actually, we want it to stay for as long as the user is on this page from that hit.
+        }
+    }, [location.state]);
 
     const [showDayLeft, setShowDayLeft] = useState(false);
     const [showDayRight, setShowDayRight] = useState(false);
