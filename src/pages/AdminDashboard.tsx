@@ -57,6 +57,7 @@ interface UserAuditData {
     activeBusinesses: number;
     lastExpiration: string | null;
     totalIncome: number;
+    totalVisits: number;
 }
 
 export default function AdminDashboard() {
@@ -647,6 +648,14 @@ export default function AdminDashboard() {
                 .lte('created_at', end.toISOString());
             if (payErr) throw payErr;
 
+            // 3.5. Fetch analytics within range
+            const { data: analytics, error: aErr } = await supabase
+                .from('business_analytics')
+                .select('business_id, count')
+                .gte('date', dateRange.start)
+                .lte('date', dateRange.end);
+            if (aErr) throw aErr;
+
             // 4. Map business_id to owner_id for O(1) lookups
             const bizToOwner = new Map<string, string>();
             (businesses || []).forEach(b => bizToOwner.set(b.id, b.owner_id));
@@ -657,6 +666,15 @@ export default function AdminDashboard() {
                 const ownerId = bizToOwner.get(pay.business_id!);
                 if (ownerId) {
                     ownerIncome.set(ownerId, (ownerIncome.get(ownerId) || 0) + Number(pay.amount));
+                }
+            });
+
+            // 5.5. Sum visits by owner_id
+            const ownerVisits = new Map<string, number>();
+            (analytics || []).forEach(an => {
+                const ownerId = bizToOwner.get(an.business_id!);
+                if (ownerId) {
+                    ownerVisits.set(ownerId, (ownerVisits.get(ownerId) || 0) + Number(an.count));
                 }
             });
 
@@ -684,7 +702,8 @@ export default function AdminDashboard() {
                     totalBusinesses: userBiz.length,
                     activeBusinesses: activeCount,
                     lastExpiration: lastExp,
-                    totalIncome: ownerIncome.get(p.id) || 0
+                    totalIncome: ownerIncome.get(p.id) || 0,
+                    totalVisits: ownerVisits.get(p.id) || 0
                 };
             });
 
@@ -1059,6 +1078,12 @@ export default function AdminDashboard() {
                                                 Último Vencimiento {auditSortConfig.key === 'lastExpiration' && (auditSortConfig.direction === 'asc' ? '↑' : '↓')}
                                             </th>
                                             <th 
+                                                onClick={() => handleAuditSort('totalVisits')}
+                                                style={{ padding: '1rem', cursor: 'pointer', textAlign: 'center', fontSize: '0.85rem', fontWeight: '700' }}
+                                            >
+                                                Visitas {auditSortConfig.key === 'totalVisits' && (auditSortConfig.direction === 'asc' ? '↑' : '↓')}
+                                            </th>
+                                            <th 
                                                 onClick={() => handleAuditSort('totalIncome')}
                                                 style={{ padding: '1rem', cursor: 'pointer', textAlign: 'right', fontSize: '0.85rem', fontWeight: '700' }}
                                             >
@@ -1103,6 +1128,11 @@ export default function AdminDashboard() {
                                                     ) : (
                                                         <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Sin vencimiento</span>
                                                     )}
+                                                </td>
+                                                <td style={{ padding: '1rem', textAlign: 'center' }}>
+                                                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: '12px', fontSize: '0.85rem' }}>
+                                                        <Eye size={12} /> {user.totalVisits.toLocaleString()}
+                                                    </div>
                                                 </td>
                                                 <td style={{ padding: '1rem', textAlign: 'right', fontWeight: '700', color: user.totalIncome > 0 ? '#10b981' : 'var(--text-muted)' }}>
                                                     ${user.totalIncome.toLocaleString()}
