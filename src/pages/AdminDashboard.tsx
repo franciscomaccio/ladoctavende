@@ -648,13 +648,14 @@ export default function AdminDashboard() {
                 .lte('created_at', end.toISOString());
             if (payErr) throw payErr;
 
-            // 3.5. Fetch analytics within range
-            const { data: analytics, error: aErr } = await supabase
-                .from('business_analytics')
-                .select('business_id, count')
-                .gte('date', dateRange.start)
-                .lte('date', dateRange.end);
-            if (aErr) throw aErr;
+            // 3.5. Fetch aggregated analytics via RPC
+            const { data: aggregatedData, error: rpcError } = await supabase.rpc('get_admin_dashboard_stats', {
+                p_from: start.toISOString(),
+                p_to: end.toISOString()
+            });
+            if (rpcError) throw rpcError;
+
+            const businessActivity = aggregatedData?.business_activity || [];
 
             // 4. Map business_id to owner_id for O(1) lookups
             const bizToOwner = new Map<string, string>();
@@ -669,12 +670,13 @@ export default function AdminDashboard() {
                 }
             });
 
-            // 5.5. Sum visits by owner_id
+            // 5.5. Sum visits by owner_id using RPC data
             const ownerVisits = new Map<string, number>();
-            (analytics || []).forEach(an => {
-                const ownerId = bizToOwner.get(an.business_id!);
+            businessActivity.forEach((ba: any) => {
+                const bId = ba.business_id || ba.id;
+                const ownerId = bizToOwner.get(bId);
                 if (ownerId) {
-                    ownerVisits.set(ownerId, (ownerVisits.get(ownerId) || 0) + Number(an.count));
+                    ownerVisits.set(ownerId, (ownerVisits.get(ownerId) || 0) + Number(ba.count));
                 }
             });
 
