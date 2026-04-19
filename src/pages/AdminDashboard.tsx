@@ -50,6 +50,15 @@ interface UsefulNote {
     created_at: string;
 }
 
+interface UserAuditData {
+    id: string;
+    email: string;
+    totalBusinesses: number;
+    activeBusinesses: number;
+    lastExpiration: string | null;
+    totalIncome: number;
+}
+
 export default function AdminDashboard() {
     const { isAdmin } = useAuth();
     const [businesses, setBusinesses] = useState<Business[]>([]);
@@ -130,6 +139,12 @@ export default function AdminDashboard() {
     const [filterCategory, setFilterCategory] = useState('all');
     const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' | null }>({ key: '', direction: null });
     const [statsTableSortConfig, setStatsTableSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' | null }>({ key: 'open', direction: 'desc' });
+
+    // User Audit State
+    const [userAuditData, setUserAuditData] = useState<UserAuditData[]>([]);
+    const [auditLoading, setAuditLoading] = useState(false);
+    const [auditSearchTerm, setAuditSearchTerm] = useState('');
+    const [auditSortConfig, setAuditSortConfig] = useState<{ key: keyof UserAuditData, direction: 'asc' | 'desc' | null }>({ key: 'totalIncome', direction: 'desc' });
 
     const uniqueCategories = useMemo(() => {
         const cats = new Set<string>();
@@ -233,8 +248,46 @@ export default function AdminDashboard() {
             fetchDashboardData();
             fetchEmailData();
             fetchUsefulNotes();
+            fetchAuditData();
         }
     }, [isAdmin, dateRange, statsInteractionFilter]);
+
+    const processedAuditData = useMemo(() => {
+        let result = [...userAuditData];
+
+        if (auditSearchTerm) {
+            const term = auditSearchTerm.toLowerCase();
+            result = result.filter(u => u.email.toLowerCase().includes(term));
+        }
+
+        if (auditSortConfig.key && auditSortConfig.direction) {
+            result.sort((a, b) => {
+                const aValue = a[auditSortConfig.key!];
+                const bValue = b[auditSortConfig.key!];
+
+                if (aValue === null) return 1;
+                if (bValue === null) return -1;
+
+                if (typeof aValue === 'string') {
+                    const res = aValue.localeCompare(bValue as string);
+                    return auditSortConfig.direction === 'asc' ? res : -res;
+                }
+                
+                const res = (aValue as number) - (bValue as number);
+                return auditSortConfig.direction === 'asc' ? res : -res;
+            });
+        }
+
+        return result;
+    }, [userAuditData, auditSearchTerm, auditSortConfig]);
+
+    const handleAuditSort = (key: keyof UserAuditData) => {
+        let direction: 'asc' | 'desc' | null = 'desc';
+        if (auditSortConfig.key === key && auditSortConfig.direction === 'desc') direction = 'asc';
+        else if (auditSortConfig.key === key && auditSortConfig.direction === 'asc') direction = null;
+
+        setAuditSortConfig({ key, direction });
+    };
 
     const fetchUsefulNotes = async () => {
         setLoadingNotes(true);
@@ -561,6 +614,70 @@ export default function AdminDashboard() {
         }
     };
 
+    const fetchAuditData = async () => {
+        setAuditLoading(true);
+        try {
+            // Fetch profiles
+            const { data: profiles, error: pErr } = await supabase
+                .from('profiles')
+                .select('id, email');
+            if (pErr) throw pErr;
+
+            // Fetch businesses
+            const { data: businesses, error: bErr } = await supabase
+                .from('businesses')
+                .select('owner_id, id, active, subscription_expires_at');
+            if (bErr) throw bErr;
+
+            // Fetch payments within range
+            const start = new Date(dateRange.start);
+            start.setHours(0, 0, 0, 0);
+            const end = new Date(dateRange.end);
+            end.setHours(23, 59, 59, 999);
+
+            const { data: payments, error: payErr } = await supabase
+                .from('payments')
+                .select('business_id, amount, created_at')
+                .gte('created_at', start.toISOString())
+                .lte('created_at', end.toISOString());
+            if (payErr) throw payErr;
+
+            // Aggregate
+            const auditResults: UserAuditData[] = (profiles || []).map(p => {
+                const userBiz = (businesses || []).filter(b => b.owner_id === p.id);
+                const activeCount = userBiz.filter(b => b.active).length;
+                
+                // Find last expiration
+                let lastExp = null;
+                const expDates = userBiz.map(b => b.subscription_expires_at).filter(Boolean) as string[];
+                if (expDates.length > 0) {
+                    lastExp = expDates.sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0];
+                }
+
+                // Sum payments in range
+                const bizIds = userBiz.map(b => b.id);
+                const userPayments = (payments || []).filter(pay => bizIds.includes(pay.business_id!));
+                const totalIncome = userPayments.reduce((acc, current) => acc + Number(current.amount), 0);
+
+                return {
+                    id: p.id,
+                    email: p.email || 'N/A',
+                    totalBusinesses: userBiz.length,
+                    activeBusinesses: activeCount,
+                    lastExpiration: lastExp,
+                    totalIncome: totalIncome
+                };
+            });
+
+            setUserAuditData(auditResults);
+        } catch (error: any) {
+            console.error('Error fetching audit data:', error);
+            alert('Error al cargar datos de auditoría: ' + translateError(error.message));
+        } finally {
+            setAuditLoading(false);
+        }
+    };
+
     const toggleActive = async (id: string, currentStatus: boolean) => {
         const { error } = await supabase
             .from('businesses')
@@ -803,6 +920,7 @@ export default function AdminDashboard() {
                 {[
                     { id: 'businesses', label: 'Negocios', icon: <LayoutDashboard size={18} /> },
                     { id: 'stats', label: 'Evolución e Ingresos', icon: <TrendingUp size={18} /> },
+                    { id: 'audit', label: 'Auditoría', icon: <Users size={18} /> },
                     { id: 'prices', label: 'Precios', icon: <CreditCard size={18} /> },
                     { id: 'promo', label: 'Pop-up Promo', icon: <Settings size={18} /> },
                     { id: 'emails', label: 'Gestión Emails', icon: <Mail size={18} /> },
@@ -832,6 +950,158 @@ export default function AdminDashboard() {
                     </button>
                 ))}
             </div>
+
+            {/* Tab: Audit */}
+            {activeTab === 'audit' && (
+                <>
+                    <div className="date-filter-container">
+                        <div className="date-filter-item">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <Calendar size={16} />
+                                <span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Desde:</span>
+                            </div>
+                            <input
+                                type="date"
+                                value={dateRange.start}
+                                onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                                style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', fontSize: '0.85rem', outline: 'none', cursor: 'pointer' }}
+                            />
+                        </div>
+                        <div className="date-filter-item">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Hasta:</span>
+                            </div>
+                            <input
+                                type="date"
+                                value={dateRange.end}
+                                onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                                style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', fontSize: '0.85rem', outline: 'none', cursor: 'pointer' }}
+                            />
+                        </div>
+                        <button
+                            onClick={() => fetchAuditData()}
+                            className="btn-primary"
+                            title="Actualizar Auditoría"
+                            style={{
+                                height: '38px',
+                                padding: '0 1rem',
+                                background: 'rgba(255,255,255,0.05)',
+                                color: 'var(--text-main)',
+                                border: '1px solid var(--border-light)',
+                                margin: 0,
+                                marginLeft: '0.5rem'
+                            }}
+                        >
+                            <RotateCw size={18} />
+                        </button>
+                    </div>
+
+                    <div style={{ position: 'relative', marginBottom: '1.5rem' }}>
+                        <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                        <input
+                            className="input-field"
+                            style={{ paddingLeft: '40px', margin: 0 }}
+                            placeholder="Buscar por email..."
+                            value={auditSearchTerm}
+                            onChange={(e) => setAuditSearchTerm(e.target.value)}
+                        />
+                    </div>
+
+                    {auditLoading ? (
+                        <p>Cargando auditoría de usuarios...</p>
+                    ) : (
+                        <div className="glass-card" style={{ padding: '1rem' }}>
+                            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', width: '100%' }}>
+                                <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '900px' }}>
+                                    <thead style={{ borderBottom: '1px solid var(--glass-border)' }}>
+                                        <tr style={{ textAlign: 'left' }}>
+                                            <th 
+                                                onClick={() => handleAuditSort('email')}
+                                                style={{ padding: '1rem', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '700' }}
+                                            >
+                                                Email {auditSortConfig.key === 'email' && (auditSortConfig.direction === 'asc' ? '↑' : '↓')}
+                                            </th>
+                                            <th 
+                                                onClick={() => handleAuditSort('totalBusinesses')}
+                                                style={{ padding: '1rem', cursor: 'pointer', textAlign: 'center', fontSize: '0.85rem', fontWeight: '700' }}
+                                            >
+                                                Negocios {auditSortConfig.key === 'totalBusinesses' && (auditSortConfig.direction === 'asc' ? '↑' : '↓')}
+                                            </th>
+                                            <th 
+                                                onClick={() => handleAuditSort('activeBusinesses')}
+                                                style={{ padding: '1rem', cursor: 'pointer', textAlign: 'center', fontSize: '0.85rem', fontWeight: '700' }}
+                                            >
+                                                Activos {auditSortConfig.key === 'activeBusinesses' && (auditSortConfig.direction === 'asc' ? '↑' : '↓')}
+                                            </th>
+                                            <th 
+                                                onClick={() => handleAuditSort('lastExpiration')}
+                                                style={{ padding: '1rem', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '700' }}
+                                            >
+                                                Último Vencimiento {auditSortConfig.key === 'lastExpiration' && (auditSortConfig.direction === 'asc' ? '↑' : '↓')}
+                                            </th>
+                                            <th 
+                                                onClick={() => handleAuditSort('totalIncome')}
+                                                style={{ padding: '1rem', cursor: 'pointer', textAlign: 'right', fontSize: '0.85rem', fontWeight: '700' }}
+                                            >
+                                                Ingresos {auditSortConfig.key === 'totalIncome' && (auditSortConfig.direction === 'asc' ? '↑' : '↓')}
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {processedAuditData.map((user) => (
+                                            <tr key={user.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                                <td style={{ padding: '1rem' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                        <Mail size={14} color="var(--primary)" />
+                                                        <span style={{ fontSize: '0.9rem' }}>{user.email}</span>
+                                                    </div>
+                                                </td>
+                                                <td style={{ padding: '1rem', textAlign: 'center' }}>
+                                                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: '12px', fontSize: '0.85rem' }}>
+                                                        <ShoppingBag size={12} /> {user.totalBusinesses}
+                                                    </div>
+                                                </td>
+                                                <td style={{ padding: '1rem', textAlign: 'center' }}>
+                                                    <span style={{
+                                                        padding: '4px 10px',
+                                                        borderRadius: '12px',
+                                                        fontSize: '0.85rem',
+                                                        background: user.activeBusinesses > 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(107, 114, 128, 0.1)',
+                                                        color: user.activeBusinesses > 0 ? '#10b981' : '#6b7280',
+                                                        fontWeight: '600'
+                                                    }}>
+                                                        {user.activeBusinesses}
+                                                    </span>
+                                                </td>
+                                                <td style={{ padding: '1rem' }}>
+                                                    {user.lastExpiration ? (
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: isSubscriptionExpired(user.lastExpiration) ? '#ef4444' : '#10b981' }}>
+                                                            <Calendar size={14} />
+                                                            <span style={{ fontSize: '0.85rem' }}>
+                                                                {new Date(user.lastExpiration).toLocaleDateString()}
+                                                            </span>
+                                                        </div>
+                                                    ) : (
+                                                        <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Sin vencimiento</span>
+                                                    )}
+                                                </td>
+                                                <td style={{ padding: '1rem', textAlign: 'right', fontWeight: '700', color: user.totalIncome > 0 ? '#10b981' : 'var(--text-muted)' }}>
+                                                    ${user.totalIncome.toLocaleString()}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {processedAuditData.length === 0 && (
+                                            <tr>
+                                                <td colSpan={5} style={{ textAlign: 'center', padding: '2rem', opacity: 0.6 }}>No se encontraron registros.</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+                </>
+            )}
 
             {/* Tab: Useful Info */}
             {activeTab === 'useful_info' && (
