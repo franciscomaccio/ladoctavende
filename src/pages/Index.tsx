@@ -26,7 +26,7 @@ const Index: React.FC = () => {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'flex-start',
-            padding: '3rem 1rem 1rem 1rem',
+            padding: '1rem 1rem 1rem 1rem',
             position: 'relative',
             overflow: 'hidden'
         }}>
@@ -44,7 +44,7 @@ const Index: React.FC = () => {
                     alt="La Docta Vende"
                     style={{
                         width: '100%',
-                        maxWidth: '220px',
+                        maxWidth: '190px',
                         height: 'auto',
                         filter: 'drop-shadow(0 0 20px rgba(234, 179, 8, 0.3))'
                     }}
@@ -69,7 +69,7 @@ const Index: React.FC = () => {
             <div className="animate-slide-up" style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(2, 1fr)',
-                gap: '0.8rem',
+                gap: '0.6rem',
                 width: '100%',
                 maxWidth: '300px',
                 animationDelay: '0.6s',
@@ -81,7 +81,7 @@ const Index: React.FC = () => {
                         background: 'linear-gradient(135deg, #009b3a 0%, #007b2e 100%)',
                         color: 'white',
                         border: 'none',
-                        padding: '1.5rem 1rem',
+                        padding: '1.2rem 1rem',
                         borderRadius: '16px',
                         fontSize: '0.9rem',
                         fontWeight: '700',
@@ -107,7 +107,7 @@ const Index: React.FC = () => {
                         background: 'linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%)',
                         color: 'white',
                         border: 'none',
-                        padding: '1.5rem 1rem',
+                        padding: '1.2rem 1rem',
                         borderRadius: '16px',
                         fontSize: '0.9rem',
                         fontWeight: '700',
@@ -133,7 +133,7 @@ const Index: React.FC = () => {
                         background: 'linear-gradient(135deg, #1e3a8a 0%, #172554 100%)',
                         color: 'white',
                         border: 'none',
-                        padding: '1.5rem 1rem',
+                        padding: '1.2rem 1rem',
                         borderRadius: '16px',
                         fontSize: '0.9rem',
                         fontWeight: '700',
@@ -159,7 +159,7 @@ const Index: React.FC = () => {
                         background: 'linear-gradient(135deg, #ca8a04 0%, #a16207 100%)',
                         color: 'white',
                         border: 'none',
-                        padding: '1.5rem 1rem',
+                        padding: '1.2rem 1rem',
                         borderRadius: '16px',
                         fontSize: '0.9rem',
                         fontWeight: '700',
