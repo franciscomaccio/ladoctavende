@@ -26,7 +26,7 @@ const Index: React.FC = () => {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'flex-start',
-            padding: '1rem 1rem 1rem 1rem',
+            padding: '0.5rem 1rem 1rem 1rem',
             position: 'relative',
             overflow: 'hidden'
         }}>
@@ -38,13 +38,13 @@ const Index: React.FC = () => {
             <div className="landing-glow" style={{ top: '20%', left: '50%', transform: 'translate(-50%, -50%)' }} />
 
             {/* Logo with entry animation */}
-            <div className="animate-fade-in" style={{ marginBottom: '0.3rem', textAlign: 'center' }}>
+            <div className="animate-fade-in" style={{ marginBottom: '0.1rem', textAlign: 'center' }}>
                 <img
                     src="landing-logo.png"
                     alt="La Docta Vende"
                     style={{
                         width: '100%',
-                        maxWidth: '190px',
+                        maxWidth: '170px',
                         height: 'auto',
                         filter: 'drop-shadow(0 0 20px rgba(234, 179, 8, 0.3))'
                     }}
@@ -52,7 +52,7 @@ const Index: React.FC = () => {
             </div>
 
             {/* Slogan */}
-            <div className="animate-slide-up" style={{ textAlign: 'center', marginBottom: '0.8rem', animationDelay: '0.3s', opacity: 0 }}>
+            <div className="animate-slide-up" style={{ textAlign: 'center', marginBottom: '0.5rem', animationDelay: '0.3s', opacity: 0 }}>
                 <h1 style={{
                     fontSize: '0.95rem',
                     fontWeight: '500',
