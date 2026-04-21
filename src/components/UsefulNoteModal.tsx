@@ -91,6 +91,10 @@ export default function UsefulNoteModal({ note, onClose, onSave }: UsefulNoteMod
             const noteData = {
                 ...formData,
                 image_url: finalImageUrl,
+                // Ensure WhatsApp URL is properly formatted if it's just a number
+                whatsapp_url: formData.whatsapp_url && /^\d+$/.test(formData.whatsapp_url) 
+                    ? `wa.me/${formData.whatsapp_url}` 
+                    : formData.whatsapp_url
             };
 
             if (note?.id) {

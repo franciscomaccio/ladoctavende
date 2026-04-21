@@ -45,7 +45,14 @@ export default function UsefulInfo() {
     const openLink = (e: React.MouseEvent, url: string) => {
         e.stopPropagation();
         if (url) {
-            const absoluteUrl = url.startsWith('http') ? url : `https://${url}`;
+            let absoluteUrl = url.startsWith('http') ? url : `https://${url}`;
+            
+            // Check if the URL is just a phone number (numeric and long enough)
+            const isNumeric = /^\d+$/.test(url);
+            if (isNumeric && url.length >= 8) {
+                absoluteUrl = `https://wa.me/${url}`;
+            }
+            
             window.open(absoluteUrl, '_blank');
         }
     };
