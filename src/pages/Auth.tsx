@@ -100,7 +100,7 @@ export default function Auth() {
                     },
                 });
                 if (error) throw error;
-                setMessage({ type: 'success', text: '¡Registro exitoso! Revisa tu correo para confirmar tu cuenta.' });
+                setMessage({ type: 'success', text: '¡Registro exitoso! Revisa tu correo para confirmar tu cuenta. Si no lo encuentras, revisa en spam o correo no deseado (remitente: notificaciones@ladoctavende.com.ar).' });
                 setShowResend(true);
             } else {
                 const { error } = await supabase.auth.signInWithPassword({
@@ -136,7 +136,7 @@ export default function Auth() {
                 }
             });
             if (error) throw error;
-            setMessage({ type: 'success', text: 'Te enviamos un nuevo enlace. Revisa tu correo.' });
+            setMessage({ type: 'success', text: 'Te enviamos un nuevo enlace. Revisa tu correo. Si no lo encuentras, revisa en spam o correo no deseado (remitente: notificaciones@ladoctavende.com.ar).' });
             setShowResend(false);
         } catch (error: any) {
             setMessage({ type: 'error', text: translateError(error.message) });
