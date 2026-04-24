@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '../lib/supabase';
 import { Search, Tag, MessageCircle, MapPin, X, Globe, ChevronLeft, ChevronRight } from 'lucide-react';
+import { linkify } from '../utils/textUtils';
 import type { Business, Promotion } from '../types/database';
 import { recordBusinessEvent } from '../lib/analytics';
 import BusinessMap from '../components/BusinessMap';
@@ -379,7 +380,16 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
                                         </button>
                                     )}
                                 </div>
-                                <p style={{ lineHeight: '1.6', color: 'var(--text-muted)', fontSize: '1rem' }}>{selectedBusiness.description}</p>
+                                <p style={{ 
+                                    lineHeight: '1.6', 
+                                    color: 'var(--text-muted)', 
+                                    fontSize: '1rem',
+                                    whiteSpace: 'pre-wrap',
+                                    overflowWrap: 'break-word',
+                                    wordBreak: 'break-word'
+                                }}>
+                                    {linkify(selectedBusiness.description)}
+                                </p>
                             </div>
                         </div>
 

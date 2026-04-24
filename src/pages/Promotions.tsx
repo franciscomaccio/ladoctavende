@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Search, Tag, MessageCircle, MapPin, X, Globe, ChevronLeft, ChevronRight } from 'lucide-react';
+import { linkify } from '../utils/textUtils';
 import type { Business, Promotion } from '../types/database';
 import { recordBusinessEvent } from '../lib/analytics';
 import { useAuth } from '../hooks/useAuth';
@@ -380,7 +381,16 @@ export default function Promotions() {
                             <div style={{ padding: '1.5rem' }}>
                                 <span style={{ color: 'var(--primary)', fontWeight: '700', fontSize: '0.9rem' }}>{selectedPromotion.businesses.name}</span>
                                 <h2 style={{ fontSize: '1.75rem', margin: '0.5rem 0', fontWeight: '800' }}>{selectedPromotion.title}</h2>
-                                <p style={{ lineHeight: '1.6', color: 'var(--text-muted)', fontSize: '1rem' }}>{selectedPromotion.description}</p>
+                                <p style={{ 
+                                    lineHeight: '1.6', 
+                                    color: 'var(--text-muted)', 
+                                    fontSize: '1rem',
+                                    whiteSpace: 'pre-wrap',
+                                    overflowWrap: 'break-word',
+                                    wordBreak: 'break-word'
+                                }}>
+                                    {linkify(selectedPromotion.description)}
+                                </p>
                             </div>
                         </div>
 

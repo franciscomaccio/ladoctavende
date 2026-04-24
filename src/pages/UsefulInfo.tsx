@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '../lib/supabase';
 import { MessageCircle, MapPin, X, Globe, Info } from 'lucide-react';
+import { linkify } from '../utils/textUtils';
 
 interface UsefulNote {
     id: string;
@@ -159,8 +160,15 @@ export default function UsefulInfo() {
                                     </span>
                                 )}
                                 <h2 style={{ fontSize: '1.75rem', margin: '0.5rem 0' }}>{selectedNote.title}</h2>
-                                <p style={{ lineHeight: '1.6', color: 'var(--text-muted)', fontSize: '1rem', whiteSpace: 'pre-wrap' }}>
-                                    {selectedNote.content}
+                                <p style={{ 
+                                    lineHeight: '1.6', 
+                                    color: 'var(--text-muted)', 
+                                    fontSize: '1rem', 
+                                    whiteSpace: 'pre-wrap',
+                                    overflowWrap: 'break-word',
+                                    wordBreak: 'break-word'
+                                }}>
+                                    {linkify(selectedNote.content)}
                                 </p>
                             </div>
                         </div>
