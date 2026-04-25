@@ -31,6 +31,7 @@ export type Promotion = {
     description: string | null;
     days_of_week: number[];
     image_url: string | null;
+    valid_until: string | null;
     created_at: string;
     updated_at: string;
 };

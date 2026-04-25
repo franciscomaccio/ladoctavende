@@ -288,7 +288,14 @@ export default function Dashboard() {
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                             {business.promotions.map(promo => (
                                                 <div key={promo.id} style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-                                                    <span style={{ fontSize: '0.85rem', fontWeight: '600', flex: 1, minWidth: '120px' }}>{promo.title}</span>
+                                                    <span style={{ fontSize: '0.85rem', fontWeight: '600', flex: 1, minWidth: '120px' }}>
+                                                        {promo.title}
+                                                        {promo.valid_until && isSubscriptionExpired(promo.valid_until) && (
+                                                            <span style={{ color: 'var(--error)', fontSize: '0.7rem', marginLeft: '8px', fontWeight: '800', border: '1px solid var(--error)', padding: '2px 4px', borderRadius: '4px' }}>
+                                                                VENCIDA
+                                                            </span>
+                                                        )}
+                                                    </span>
                                                     <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                                                         <button
                                                             onClick={() => { setEditingPromotion(promo); setActiveBusinessId(business.id); setIsPromoFormOpen(true); }}

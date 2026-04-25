@@ -167,8 +167,16 @@ export default function Promotions() {
                 .returns<PromotionWithBusiness[]>();
 
             if (error) throw error;
-            // Only show promos from active businesses and shuffle them
-            const promos = data?.filter(p => p.businesses?.active) || [];
+            // Only show promos from active businesses and those that haven't expired
+            const now = new Date();
+            now.setHours(0, 0, 0, 0);
+
+            const promos = data?.filter(p => {
+                const isActive = p.businesses?.active;
+                const isNotExpired = !p.valid_until || new Date(p.valid_until) >= now;
+                return isActive && isNotExpired;
+            }) || [];
+
             setPromotions(promos.sort(() => Math.random() - 0.5));
         } catch (error) {
             console.error('Error fetching promotions:', error);

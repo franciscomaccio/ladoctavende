@@ -30,6 +30,7 @@ export default function PromotionForm({ businessId, promotion, onClose, onSave }
         description: promotion?.description || '',
         days_of_week: promotion?.days_of_week || [],
         image_url: promotion?.image_url || '',
+        valid_until: promotion?.valid_until ? promotion.valid_until.split('T')[0] : '',
     });
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imageSrc, setImageSrc] = useState<string | null>(null);
@@ -101,9 +102,12 @@ export default function PromotionForm({ businessId, promotion, onClose, onSave }
             }
 
             const promoData = {
-                ...formData,
+                title: formData.title,
+                description: formData.description,
+                days_of_week: formData.days_of_week,
                 image_url: finalImageUrl,
                 business_id: businessId,
+                valid_until: formData.valid_until ? formData.valid_until : null,
             };
 
             if (promotion) {
@@ -184,6 +188,21 @@ export default function PromotionForm({ businessId, promotion, onClose, onSave }
                                 </button>
                             ))}
                         </div>
+                    </div>
+                    
+                    <div>
+                        <label style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: '600' }}>Válida hasta (Opcional)</label>
+                        <input
+                            type="date"
+                            className="input-field"
+                            value={formData.valid_until}
+                            onChange={e => setFormData({ ...formData, valid_until: e.target.value })}
+                            min={new Date().toISOString().split('T')[0]}
+                            placeholder="Fecha de fin"
+                        />
+                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                            La promo se ocultará automáticamente pasada esta fecha.
+                        </p>
                     </div>
 
                     <div>
