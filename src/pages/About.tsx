@@ -45,11 +45,6 @@ const About: React.FC = () => {
                         <p style={{ opacity: 0.7, fontSize: '0.95rem' }}>Accedé a métricas de visualizaciones y clicks para entender el impacto de tu presencia en la plataforma.</p>
                     </div>
 
-                    <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '20px' }}>
-                        <div style={{ color: '#f59e0b', marginBottom: '1rem' }}><Award size={32} /></div>
-                        <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Posicionamiento</h3>
-                        <p style={{ opacity: 0.7, fontSize: '0.95rem' }}>Mejoramos tu presencia digital, haciendo que tu negocio luzca profesional y confiable.</p>
-                    </div>
                 </div>
 
                 {/* Our Mission */}
@@ -149,7 +144,7 @@ const About: React.FC = () => {
                     </div>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: '1.5' }}>
                         © 2026 La Docta Vende. Córdoba, Argentina. <br />
-                        <span style={{ opacity: 0.8 }}>Tu éxito es nuestro objetivo.</span>
+                        <span style={{ opacity: 0.8 }}>Creamos comunidad</span>
                     </p>
                 </div>
 
