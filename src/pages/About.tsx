@@ -1,6 +1,6 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Target, TrendingUp, MessageCircle, Mail, Search, Award, Instagram } from 'lucide-react';
+import { Target, TrendingUp, MessageCircle, Mail, Search, Award, Instagram, ShieldAlert } from 'lucide-react';
 
 const About: React.FC = () => {
     return (
@@ -60,6 +60,21 @@ const About: React.FC = () => {
                     <p style={{ fontSize: '1.3rem', fontWeight: '500', lineHeight: '1.6', maxWidth: '600px', margin: '0 auto' }}>
                         "Buscamos ayudar a los vecinos para que descubran y se conecten con los negocios de su barrio de forma simple."
                     </p>
+                </div>
+
+                {/* Disclaimer */}
+                <div className="glass-card" style={{ padding: '2rem', borderRadius: '20px', marginBottom: '3rem', fontSize: '0.9rem', lineHeight: '1.6', color: 'var(--text-muted)' }}>
+                    <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <ShieldAlert size={20} style={{ color: '#f59e0b' }} /> Aviso de responsabilidad
+                    </h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                        <p>La Docta Vende es una plataforma digital destinada exclusivamente a la publicación, búsqueda y visualización de negocios, servicios, emprendimientos y clasificados, facilitando el contacto directo entre usuarios y potenciales clientes.</p>
+                        <p>La Docta Vende no es propietaria, administradora ni responsable de los productos o servicios ofrecidos por los usuarios, ni garantiza la veracidad, calidad, disponibilidad o legalidad de las publicaciones realizadas.</p>
+                        <p>Asimismo, La Docta Vende no actúa como intermediario en las transacciones, acuerdos o relaciones que puedan generarse entre las partes. Toda interacción, negociación o contratación se realiza directamente entre los usuarios bajo su exclusiva responsabilidad.</p>
+                        <p>Cada usuario es el único responsable del contenido que publica y de las operaciones que lleve adelante con terceros.</p>
+                        <p>La Docta Vende no solicitará en ningún caso contraseñas, claves de acceso ni información confidencial de cuentas personales o servicios externos. Ante cualquier solicitud de este tipo, se recomienda desestimar y reportar la situación.</p>
+                        <p>La Docta Vende no se responsabiliza por daños, perjuicios o inconvenientes que pudieran surgir a partir del uso de la plataforma o de las interacciones entre usuarios.</p>
+                    </div>
                 </div>
 
 
