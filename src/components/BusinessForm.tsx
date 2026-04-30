@@ -86,6 +86,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
     const [selectedTier, setSelectedTier] = useState<string>('1m');
     const [promoDescription, setPromoDescription] = useState<string>('');
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'mercadopago' | 'manual'>('mercadopago');
+    const [isEligibleForFreeMonth, setIsEligibleForFreeMonth] = useState(false);
 
     const onCropComplete = (_croppedArea: any, croppedAreaPixels: any) => {
         setCroppedAreaPixels(croppedAreaPixels);
@@ -117,7 +118,13 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
         const fetchPrices = async () => {
             const { data } = await supabase.from('config').select('key, value');
             if (data) {
-                const newPrices = { ...tierPrices };
+                const newPrices: Record<string, { original: number, promo: number, active: boolean }> = {
+                    '1m': { original: 0, promo: 0, active: false },
+                    '3m': { original: 0, promo: 0, active: false },
+                    '6m': { original: 0, promo: 0, active: false },
+                    '12m': { original: 0, promo: 0, active: false },
+                };
+                
                 ['1m', '3m', '6m', '12m'].forEach(tier => {
                     const p = data.find(c => c.key === `subscription_price_${tier}`)?.value;
                     const o = data.find(c => c.key === `original_price_${tier}`)?.value;
@@ -126,19 +133,52 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                     if (o !== undefined) newPrices[tier].original = Number(o);
                     if (a !== undefined) newPrices[tier].active = a === 'true';
                 });
+
+                const d = data.find(c => c.key === 'promo_description')?.value;
+                if (d) setPromoDescription(d);
+
+                const freeMonthEnabled = data.find(c => c.key === 'first_month_free_enabled')?.value === 'true';
+                
+                if (freeMonthEnabled) {
+                    const { data: userBusinesses } = await supabase
+                        .from('businesses')
+                        .select('id')
+                        .eq('owner_id', userId);
+                    
+                    const businessIds = userBusinesses?.map(b => b.id) || [];
+                    
+                    if (businessIds.length === 0 || (businessIds.length === 1 && business?.id === businessIds[0])) {
+                        if (businessIds.length === 1) {
+                            const { data: freePayments } = await supabase
+                                .from('payments')
+                                .select('id')
+                                .eq('business_id', businessIds[0])
+                                .eq('payment_id', 'free')
+                                .limit(1);
+                            
+                            if (!freePayments || freePayments.length === 0) {
+                                setIsEligibleForFreeMonth(true);
+                                newPrices['1m'].promo = 0;
+                                newPrices['1m'].active = true;
+                            }
+                        } else {
+                            setIsEligibleForFreeMonth(true);
+                            newPrices['1m'].promo = 0;
+                            newPrices['1m'].active = true;
+                        }
+                    }
+                }
+
                 setTierPrices(newPrices);
 
                 const activeTiers = ['1m', '3m', '6m', '12m'].filter(t => newPrices[t].active);
                 if (activeTiers.length > 0 && !activeTiers.includes(selectedTier)) {
                     setSelectedTier(activeTiers[0]);
                 }
-
-                const d = data.find(c => c.key === 'promo_description')?.value;
-                if (d) setPromoDescription(d);
             }
         };
         fetchPrices();
-    }, []);
+    }, [userId, business]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -686,6 +726,12 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                                     </p>
                                 )}
                             </div>
+
+                            {isEligibleForFreeMonth && selectedTier === '1m' && (
+                                <div style={{ background: '#dcfce7', color: '#166534', padding: '0.75rem', borderRadius: '10px', fontSize: '0.9rem', fontWeight: '700', marginBottom: '1.5rem', border: '1px solid #bbf7d0', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                                    🎉 ¡Tenés tu primer mes totalmente gratis!
+                                </div>
+                            )}
 
                             {tierPrices[selectedTier].promo === 0 ? (
                                 <button

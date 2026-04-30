@@ -74,7 +74,8 @@ export default function AdminDashboard() {
     const [promoDescription, setPromoDescription] = useState<string>('');
     const [promoPopupEnabled, setPromoPopupEnabled] = useState(false);
     const [promoPopupText, setPromoPopupText] = useState('');
-    const [promoPopupImageUrl, setPromoPopupImageUrl] = useState('');
+    const [promoPopupImageUrl, setPromoPopupImageUrl] = useState<string>('');
+    const [firstMonthFreeEnabled, setFirstMonthFreeEnabled] = useState(false);
     const [promoImageFile, setPromoImageFile] = useState<File | null>(null);
     const [promoImageSrc, setPromoImageSrc] = useState<string | null>(null);
     const [promoCrop, setPromoCrop] = useState({ x: 0, y: 0 });
@@ -410,6 +411,9 @@ export default function AdminDashboard() {
             setPromoPopupEnabled(promoEnabled === 'true');
             if (promoText !== undefined) setPromoPopupText(promoText);
             if (promoUrl !== undefined) setPromoPopupImageUrl(promoUrl);
+
+            const firstMonthFree = data.find((c: any) => c.key === 'first_month_free_enabled')?.value;
+            setFirstMonthFreeEnabled(firstMonthFree === 'true');
 
             // Fetch Email Configs
             const signupEb = data.find((c: any) => c.key === 'email_signup_enabled')?.value;
@@ -903,7 +907,8 @@ export default function AdminDashboard() {
                 { key: 'promo_description', value: promoDescription },
                 { key: 'promo_popup_enabled', value: promoPopupEnabled.toString() },
                 { key: 'promo_popup_text', value: promoPopupText },
-                { key: 'promo_popup_image_url', value: finalImageUrl }
+                { key: 'promo_popup_image_url', value: finalImageUrl },
+                { key: 'first_month_free_enabled', value: firstMonthFreeEnabled.toString() }
             ];
 
             ['1m', '3m', '6m', '12m'].forEach(tier => {
@@ -1765,6 +1770,19 @@ export default function AdminDashboard() {
             {/* Tab: Prices */}
             {activeTab === 'prices' && (
                 <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', maxWidth: '1000px', margin: '0 auto 2rem' }}>
+                    
+                    <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '12px' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
+                            <input
+                                type="checkbox"
+                                checked={firstMonthFreeEnabled}
+                                onChange={(e) => setFirstMonthFreeEnabled(e.target.checked)}
+                                style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+                            />
+                            <span style={{ fontWeight: '700' }}>Habilitar primer mes gratis para el primer negocio por usuario</span>
+                        </label>
+                    </div>
+
                     <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem' }}>Suscripciones</h3>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
