@@ -140,31 +140,46 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                 const freeMonthEnabled = data.find(c => c.key === 'first_month_free_enabled')?.value === 'true';
                 
                 if (freeMonthEnabled) {
-                    const { data: userBusinesses } = await supabase
-                        .from('businesses')
-                        .select('id')
-                        .eq('owner_id', userId);
-                    
-                    const businessIds = userBusinesses?.map(b => b.id) || [];
-                    
-                    if (businessIds.length === 0 || (businessIds.length === 1 && business?.id === businessIds[0])) {
-                        if (businessIds.length === 1) {
-                            const { data: freePayments } = await supabase
-                                .from('payments')
+                    const { data: userProfile } = await supabase
+                        .from('profiles')
+                        .select('created_at')
+                        .eq('id', userId)
+                        .single();
+
+                    if (userProfile) {
+                        const createdAtDate = new Date(userProfile.created_at);
+                        const currentDate = new Date();
+                        const timeDifference = currentDate.getTime() - createdAtDate.getTime();
+                        const daysDifference = timeDifference / (1000 * 3600 * 24);
+
+                        if (daysDifference <= 30) {
+                            const { data: userBusinesses } = await supabase
+                                .from('businesses')
                                 .select('id')
-                                .eq('business_id', businessIds[0])
-                                .eq('payment_id', 'free')
-                                .limit(1);
+                                .eq('owner_id', userId);
                             
-                            if (!freePayments || freePayments.length === 0) {
-                                setIsEligibleForFreeMonth(true);
-                                newPrices['1m'].promo = 0;
-                                newPrices['1m'].active = true;
+                            const businessIds = userBusinesses?.map(b => b.id) || [];
+                            
+                            if (businessIds.length === 0 || (businessIds.length === 1 && business?.id === businessIds[0])) {
+                                if (businessIds.length === 1) {
+                                    const { data: freePayments } = await supabase
+                                        .from('payments')
+                                        .select('id')
+                                        .eq('business_id', businessIds[0])
+                                        .eq('payment_id', 'free')
+                                        .limit(1);
+                                    
+                                    if (!freePayments || freePayments.length === 0) {
+                                        setIsEligibleForFreeMonth(true);
+                                        newPrices['1m'].promo = 0;
+                                        newPrices['1m'].active = true;
+                                    }
+                                } else {
+                                    setIsEligibleForFreeMonth(true);
+                                    newPrices['1m'].promo = 0;
+                                    newPrices['1m'].active = true;
+                                }
                             }
-                        } else {
-                            setIsEligibleForFreeMonth(true);
-                            newPrices['1m'].promo = 0;
-                            newPrices['1m'].active = true;
                         }
                     }
                 }
