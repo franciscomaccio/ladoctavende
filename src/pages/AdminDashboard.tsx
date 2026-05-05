@@ -199,7 +199,7 @@ export default function AdminDashboard() {
         }
 
         return result;
-    }, [businesses, filterOwner, filterStatus, filterCategory, sortConfig]);
+    }, [businesses, filterOwner, filterName, filterStatus, filterCategory, sortConfig]);
 
     const sortedStatsTableData = useMemo(() => {
         // Merge with all businesses to include zeros as requested
