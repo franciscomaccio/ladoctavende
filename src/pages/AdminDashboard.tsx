@@ -138,6 +138,7 @@ export default function AdminDashboard() {
     });
 
     const [filterOwner, setFilterOwner] = useState('');
+    const [filterName, setFilterName] = useState('');
     const [filterStatus, setFilterStatus] = useState('all');
     const [filterCategory, setFilterCategory] = useState('all');
     const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' | null }>({ key: '', direction: null });
@@ -168,6 +169,10 @@ export default function AdminDashboard() {
         if (filterOwner) {
             const term = filterOwner.toLowerCase();
             result = result.filter(b => b.profiles?.email?.toLowerCase().includes(term));
+        }
+        if (filterName) {
+            const term = filterName.toLowerCase();
+            result = result.filter(b => b.name?.toLowerCase().includes(term));
         }
         if (filterStatus !== 'all') {
             const isActive = filterStatus === 'active';
@@ -788,6 +793,16 @@ export default function AdminDashboard() {
 
     const handleDeleteBusiness = async (id: string, name: string) => {
         if (window.confirm(`¿Estás seguro de que deseas eliminar DEFINITIVAMENTE el negocio "${name}"?\nEsta acción no se puede deshacer y borrará permanentemente sus estadísticas y registros de pago.`)) {
+            // Eliminar dependencias primero para evitar error de foreign key
+            const { data: promos } = await supabase.from('promotions').select('id').eq('business_id', id);
+            if (promos && promos.length > 0) {
+                const promoIds = promos.map(p => p.id);
+                await supabase.from('business_analytics').delete().in('promotion_id', promoIds);
+            }
+            await supabase.from('promotions').delete().eq('business_id', id);
+            await supabase.from('payments').delete().eq('business_id', id);
+            await supabase.from('business_analytics').delete().eq('business_id', id);
+
             const { error } = await supabase
                 .from('businesses')
                 .delete()
@@ -1969,20 +1984,28 @@ export default function AdminDashboard() {
                         <p>Cargando negocios...</p>
                     ) : (
                         <div className="glass-card" style={{ padding: '1rem' }}>
-                            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr auto', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
+                                <input
+                                    type="text"
+                                    placeholder="Buscar por negocio..."
+                                    value={filterName}
+                                    onChange={(e) => setFilterName(e.target.value)}
+                                    className="input-field"
+                                    style={{ margin: 0, padding: '8px 12px', fontSize: '0.9rem' }}
+                                />
                                 <input
                                     type="text"
                                     placeholder="Buscar por dueño..."
                                     value={filterOwner}
                                     onChange={(e) => setFilterOwner(e.target.value)}
                                     className="input-field"
-                                    style={{ margin: 0, minWidth: '200px', flex: 1 }}
+                                    style={{ margin: 0, padding: '8px 12px', fontSize: '0.9rem' }}
                                 />
                                 <select
                                     value={filterCategory}
                                     onChange={(e) => setFilterCategory(e.target.value)}
                                     className="input-field"
-                                    style={{ margin: 0, minWidth: '200px', flex: 1 }}
+                                    style={{ margin: 0, padding: '8px 12px', fontSize: '0.9rem' }}
                                 >
                                     <option value="all">Todas las Categorías</option>
                                     {uniqueCategories.map(c => (
