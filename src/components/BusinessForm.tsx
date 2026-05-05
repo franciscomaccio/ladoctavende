@@ -87,6 +87,7 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
     const [promoDescription, setPromoDescription] = useState<string>('');
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'mercadopago' | 'manual'>('mercadopago');
     const [isEligibleForFreeMonth, setIsEligibleForFreeMonth] = useState(false);
+    const [freeMonthExpiryDate, setFreeMonthExpiryDate] = useState<Date | null>(null);
 
     const onCropComplete = (_croppedArea: any, croppedAreaPixels: any) => {
         setCroppedAreaPixels(croppedAreaPixels);
@@ -153,6 +154,9 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                         const daysDifference = timeDifference / (1000 * 3600 * 24);
 
                         if (daysDifference <= 30) {
+                            const expiry = new Date(createdAtDate);
+                            expiry.setDate(expiry.getDate() + 30);
+
                             const { data: userBusinesses } = await supabase
                                 .from('businesses')
                                 .select('id')
@@ -171,11 +175,13 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                                     
                                     if (!freePayments || freePayments.length === 0) {
                                         setIsEligibleForFreeMonth(true);
+                                        setFreeMonthExpiryDate(expiry);
                                         newPrices['1m'].promo = 0;
                                         newPrices['1m'].active = true;
                                     }
                                 } else {
                                     setIsEligibleForFreeMonth(true);
+                                    setFreeMonthExpiryDate(expiry);
                                     newPrices['1m'].promo = 0;
                                     newPrices['1m'].active = true;
                                 }
@@ -329,8 +335,13 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
             const { businessId } = await saveOrCreateBusiness();
 
             const months = parseInt(selectedTier.replace('m', ''));
-            const expiryDate = new Date();
-            expiryDate.setMonth(expiryDate.getMonth() + months);
+            let expiryDate = new Date();
+            
+            if (isEligibleForFreeMonth && freeMonthExpiryDate && selectedTier === '1m') {
+                expiryDate = freeMonthExpiryDate;
+            } else {
+                expiryDate.setMonth(expiryDate.getMonth() + months);
+            }
 
             const { error } = await supabase
                 .from('businesses')
@@ -743,8 +754,15 @@ export default function BusinessForm({ business, onClose, onSave, userId }: Busi
                             </div>
 
                             {isEligibleForFreeMonth && selectedTier === '1m' && (
-                                <div style={{ background: '#dcfce7', color: '#166534', padding: '0.75rem', borderRadius: '10px', fontSize: '0.9rem', fontWeight: '700', marginBottom: '1.5rem', border: '1px solid #bbf7d0', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                                    🎉 ¡Tenés tu primer mes totalmente gratis!
+                                <div style={{ background: '#dcfce7', color: '#166534', padding: '0.75rem', borderRadius: '10px', fontSize: '0.9rem', fontWeight: '700', marginBottom: '1.5rem', border: '1px solid #bbf7d0', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.25rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        🎉 ¡Tenés tu primer mes totalmente gratis!
+                                    </div>
+                                    {freeMonthExpiryDate && (
+                                        <div style={{ fontSize: '0.75rem', fontWeight: '600', opacity: 0.85, marginTop: '0.25rem' }}>
+                                            Estará publicado sin cargo hasta el {freeMonthExpiryDate.toLocaleDateString('es-AR')}
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
