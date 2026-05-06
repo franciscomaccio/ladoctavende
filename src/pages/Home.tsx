@@ -63,12 +63,14 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
     const [isMapView, setIsMapView] = useState(false);
     const [sortByProximity, setSortByProximity] = useState(false);
     const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>(null);
+    const [isLocating, setIsLocating] = useState(false);
 
     const handleSortByProximityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const isChecked = e.target.checked;
         if (isChecked) {
             if (!userLocation) {
                 if ("geolocation" in navigator) {
+                    setIsLocating(true);
                     navigator.geolocation.getCurrentPosition(
                         (position) => {
                             setUserLocation({
@@ -76,11 +78,18 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
                                 lng: position.coords.longitude
                             });
                             setSortByProximity(true);
+                            setIsLocating(false);
                         },
                         (error) => {
                             console.error("Error getting location", error);
-                            alert("No pudimos obtener tu ubicación. Por favor, revisá los permisos de tu navegador o dispositivo.");
+                            alert("No pudimos obtener tu ubicación rápidamente. Por favor, revisá los permisos de tu navegador o dispositivo.");
                             setSortByProximity(false);
+                            setIsLocating(false);
+                        },
+                        {
+                            enableHighAccuracy: false, // Much faster, relies on WiFi/IP usually
+                            timeout: 10000, // Wait max 10 seconds
+                            maximumAge: 600000 // Cache for 10 minutes
                         }
                     );
                 } else {
@@ -286,14 +295,15 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
             
             {/* Sort by proximity */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', paddingLeft: '4px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: isLocating ? 'wait' : 'pointer', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                     <input 
                         type="checkbox" 
                         checked={sortByProximity}
                         onChange={handleSortByProximityChange}
-                        style={{ width: '16px', height: '16px', accentColor: 'var(--primary)' }}
+                        disabled={isLocating}
+                        style={{ width: '16px', height: '16px', accentColor: 'var(--primary)', opacity: isLocating ? 0.5 : 1 }}
                     />
-                    <MapPin size={16} /> Ordenar por cercanía
+                    <MapPin size={16} /> {isLocating ? 'Obteniendo ubicación...' : 'Ordenar por cercanía'}
                 </label>
             </div>
 
