@@ -1984,14 +1984,14 @@ export default function AdminDashboard() {
                         <p>Cargando negocios...</p>
                     ) : (
                         <div className="glass-card" style={{ padding: '1rem' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr auto', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
+                            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
                                 <input
                                     type="text"
                                     placeholder="Buscar por negocio..."
                                     value={filterName}
                                     onChange={(e) => setFilterName(e.target.value)}
                                     className="input-field"
-                                    style={{ margin: 0, padding: '8px 12px', fontSize: '0.9rem' }}
+                                    style={{ margin: 0, padding: '8px 12px', fontSize: '0.9rem', minWidth: '150px', flex: 1 }}
                                 />
                                 <input
                                     type="text"
@@ -1999,13 +1999,13 @@ export default function AdminDashboard() {
                                     value={filterOwner}
                                     onChange={(e) => setFilterOwner(e.target.value)}
                                     className="input-field"
-                                    style={{ margin: 0, padding: '8px 12px', fontSize: '0.9rem' }}
+                                    style={{ margin: 0, padding: '8px 12px', fontSize: '0.9rem', minWidth: '150px', flex: 1 }}
                                 />
                                 <select
                                     value={filterCategory}
                                     onChange={(e) => setFilterCategory(e.target.value)}
                                     className="input-field"
-                                    style={{ margin: 0, padding: '8px 12px', fontSize: '0.9rem' }}
+                                    style={{ margin: 0, padding: '8px 12px', fontSize: '0.9rem', minWidth: '150px', flex: 1 }}
                                 >
                                     <option value="all">Todas las Categorías</option>
                                     {uniqueCategories.map(c => (
@@ -2016,7 +2016,7 @@ export default function AdminDashboard() {
                                     value={filterStatus}
                                     onChange={(e) => setFilterStatus(e.target.value)}
                                     className="input-field"
-                                    style={{ margin: 0, minWidth: '200px', flex: 1 }}
+                                    style={{ margin: 0, padding: '8px 12px', fontSize: '0.9rem', minWidth: '150px', flex: 1 }}
                                 >
                                     <option value="all">Todos los Estados</option>
                                     <option value="active">Activos</option>
