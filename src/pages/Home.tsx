@@ -8,12 +8,24 @@ import type { Business, Promotion } from '../types/database';
 import { recordBusinessEvent } from '../lib/analytics';
 import BusinessMap from '../components/BusinessMap';
 import { useAuth } from '../hooks/useAuth';
+import { useHorizontalScroll } from '../hooks/useHorizontalScroll';
 
-interface PromotionWithBusiness extends Promotion {
-    businesses: Business;
+function deg2rad(deg: number) {
+    return deg * (Math.PI / 180);
 }
 
-import { useHorizontalScroll } from '../hooks/useHorizontalScroll';
+function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
+    const R = 6371; // Radius of the earth in km
+    const dLat = deg2rad(lat2 - lat1);
+    const dLon = deg2rad(lon2 - lon1);
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const d = R * c; // Distance in km
+    return d;
+}
 
 const CATEGORIES = [
     { name: 'Almacén', icon: '🛒' },
@@ -49,6 +61,39 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
     const [showLeftArrow, setShowLeftArrow] = useState(false);
     const [showRightArrow, setShowRightArrow] = useState(false);
     const [isMapView, setIsMapView] = useState(false);
+    const [sortByProximity, setSortByProximity] = useState(false);
+    const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>(null);
+
+    const handleSortByProximityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const isChecked = e.target.checked;
+        if (isChecked) {
+            if (!userLocation) {
+                if ("geolocation" in navigator) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            setUserLocation({
+                                lat: position.coords.latitude,
+                                lng: position.coords.longitude
+                            });
+                            setSortByProximity(true);
+                        },
+                        (error) => {
+                            console.error("Error getting location", error);
+                            alert("No pudimos obtener tu ubicación. Por favor, revisá los permisos de tu navegador o dispositivo.");
+                            setSortByProximity(false);
+                        }
+                    );
+                } else {
+                    alert("Geolocalización no soportada por este navegador.");
+                    setSortByProximity(false);
+                }
+            } else {
+                setSortByProximity(true);
+            }
+        } else {
+            setSortByProximity(false);
+        }
+    };
 
     const updateArrowsVisibility = () => {
         const el = scrollRef.current;
@@ -89,7 +134,7 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
 
     useEffect(() => {
         filterContent();
-    }, [searchTerm, selectedCategory, selectedDay, businesses, promotions, viewMode, type]);
+    }, [searchTerm, selectedCategory, selectedDay, businesses, promotions, viewMode, type, sortByProximity, userLocation]);
 
     async function fetchPromotions() {
         try {
@@ -141,7 +186,7 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
 
     function filterContent() {
         if (viewMode === 'businesses') {
-            let filtered = businesses;
+            let filtered = [...businesses];
             if (searchTerm) {
                 const lowerSearch = searchTerm.toLowerCase();
                 filtered = filtered.filter(b =>
@@ -151,6 +196,15 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
             }
             if (selectedCategory) {
                 filtered = filtered.filter(b => b.category?.split(',').map(s => s.trim()).includes(selectedCategory));
+            }
+            if (sortByProximity && userLocation) {
+                filtered.sort((a, b) => {
+                    if (!a.location_lat || !a.location_lng) return 1;
+                    if (!b.location_lat || !b.location_lng) return -1;
+                    const distA = getDistance(userLocation.lat, userLocation.lng, a.location_lat, a.location_lng);
+                    const distB = getDistance(userLocation.lat, userLocation.lng, b.location_lat, b.location_lng);
+                    return distA - distB;
+                });
             }
             setFilteredBusinesses(filtered);
         }
@@ -190,7 +244,7 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
                 <meta name="description" content={type === 'business' ? 'Explorá los mejores comercios y servicios de Córdoba en un solo lugar.' : 'Encontrá avisos clasificados y productos en Córdoba, Argentina.'} />
             </Helmet>
             {/* Search Bar */}
-            <div style={{ position: 'relative', margin: '1rem 0 1.5rem', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            <div style={{ position: 'relative', margin: '1rem 0 0.5rem', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
                 <div style={{ position: 'relative', flex: 1 }}>
                     <Search size={20} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                     <input
@@ -228,6 +282,19 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
                         </span>
                     </button>
                 )}
+            </div>
+            
+            {/* Sort by proximity */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', paddingLeft: '4px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                    <input 
+                        type="checkbox" 
+                        checked={sortByProximity}
+                        onChange={handleSortByProximityChange}
+                        style={{ width: '16px', height: '16px', accentColor: 'var(--primary)' }}
+                    />
+                    <MapPin size={16} /> Ordenar por cercanía
+                </label>
             </div>
 
             {/* Categories */}
@@ -298,7 +365,14 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
                                         </div>
                                     )}
                                     <div className="business-info" style={{ padding: '12px', justifyContent: 'flex-start' }}>
-                                        <h3 style={{ fontSize: '1.1rem', marginBottom: '2px', color: 'white' }}>{business.name}</h3>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                            <h3 style={{ fontSize: '1.1rem', marginBottom: '2px', color: 'white' }}>{business.name}</h3>
+                                            {userLocation && business.location_lat && business.location_lng && (
+                                                <span style={{ fontSize: '0.75rem', color: '#9ca3af', background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px', whiteSpace: 'nowrap' }}>
+                                                    {getDistance(userLocation.lat, userLocation.lng, business.location_lat, business.location_lng).toFixed(1)} km
+                                                </span>
+                                            )}
+                                        </div>
                                         <span style={{ fontSize: '0.85rem', color: '#9ca3af', marginBottom: '4px' }}>{business.category}</span>
                                         {business.description && (
                                             <p style={{
