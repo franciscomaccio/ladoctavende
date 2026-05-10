@@ -103,6 +103,7 @@ export default function AdminDashboard() {
     const [selectedBusinessForTransfer, setSelectedBusinessForTransfer] = useState<{ id: string, name: string } | null>(null);
     const [selectedBusinessForEdit, setSelectedBusinessForEdit] = useState<Business | null>(null);
     const [selectedBusinessForActivation, setSelectedBusinessForActivation] = useState<Business | null>(null);
+    const [sendingReminderId, setSendingReminderId] = useState<string | null>(null);
     const [activationMonths, setActivationMonths] = useState<number>(1);
     const [isActivatingManual, setIsActivatingManual] = useState(false);
     const [generalStats, setGeneralStats] = useState({
@@ -813,6 +814,35 @@ export default function AdminDashboard() {
             } else {
                 fetchBusinesses();
             }
+        }
+    };
+
+    const handleSendReminder = async (business: Business) => {
+        if (!business.profiles?.email) {
+            alert('El dueño del negocio no tiene un email registrado.');
+            return;
+        }
+        if (!confirm(`¿Enviar recordatorio de vencimiento a ${business.profiles.email}?`)) {
+            return;
+        }
+        
+        setSendingReminderId(business.id);
+        try {
+            const { error } = await supabase.functions.invoke('send-manual-expiration-email', {
+                body: {
+                    email: business.profiles.email,
+                    businessName: business.name,
+                    expiryDate: business.subscription_expires_at
+                }
+            });
+            
+            if (error) throw error;
+            alert('¡Recordatorio de vencimiento enviado con éxito!');
+        } catch (err: any) {
+            console.error('Error sending reminder:', err);
+            alert('Error al enviar el recordatorio: ' + translateError(err.message));
+        } finally {
+            setSendingReminderId(null);
         }
     };
 
@@ -2176,6 +2206,26 @@ export default function AdminDashboard() {
                                                             >
                                                                 <UserPlus size={16} />
                                                             </button>
+                                                            {isExpired && (
+                                                                <button
+                                                                    onClick={() => handleSendReminder(business)}
+                                                                    disabled={sendingReminderId === business.id}
+                                                                    className="btn-primary"
+                                                                    title="Enviar Recordatorio de Vencimiento"
+                                                                    style={{
+                                                                        padding: '8px',
+                                                                        background: 'rgba(59, 130, 246, 0.1)',
+                                                                        color: '#3b82f6',
+                                                                        border: '1px solid rgba(59, 130, 246, 0.3)',
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        justifyContent: 'center',
+                                                                        opacity: sendingReminderId === business.id ? 0.5 : 1
+                                                                    }}
+                                                                >
+                                                                    <Mail size={16} />
+                                                                </button>
+                                                            )}
                                                             <button
                                                                 onClick={() => toggleActive(business.id, business.active)}
                                                                 className="btn-primary"
