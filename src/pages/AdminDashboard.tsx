@@ -1372,19 +1372,22 @@ export default function AdminDashboard() {
                             { id: 'recovery', label: 'Recuperar Clave', key: 'recovery' },
                             { id: 'payment_confirmation', label: 'Confirmación Pago', key: 'payment' },
                             { id: 'expiry_reminder', label: 'Aviso Vencimiento', key: 'expiry' },
-                            { id: 'deactivation_notice', label: 'Aviso Desactivación', key: 'deactivation' }
+                            { id: 'deactivation_notice', label: 'Aviso Desactivación', key: 'deactivation' },
+                            { id: 'manual_expiration_reminder', label: 'Recordatorio Manual', key: 'manual_reminder' }
                         ].map((type) => (
                             <div key={type.id} style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '12px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                                     <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>{type.label}</span>
-                                    <input
-                                        type="checkbox"
-                                        checked={(emailConfigs as any)[type.key]}
-                                        onChange={(e) => setEmailConfigs(prev => ({ ...prev, [type.key]: e.target.checked }))}
-                                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                                    />
+                                    {type.key !== 'manual_reminder' && (
+                                        <input
+                                            type="checkbox"
+                                            checked={(emailConfigs as any)[type.key]}
+                                            onChange={(e) => setEmailConfigs(prev => ({ ...prev, [type.key]: e.target.checked }))}
+                                            style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                                        />
+                                    )}
                                 </div>
-                                <div style={{ fontSize: '1.25rem', fontWeight: '700', color: (emailConfigs as any)[type.key] ? 'var(--text-main)' : 'var(--text-muted)' }}>
+                                <div style={{ fontSize: '1.25rem', fontWeight: '700', color: (type.key === 'manual_reminder' || (emailConfigs as any)[type.key]) ? 'var(--text-main)' : 'var(--text-muted)' }}>
                                     {emailStats[type.id] || 0} <span style={{ fontSize: '0.7rem', fontWeight: '400', opacity: 0.6 }}>hoy</span>
                                 </div>
                             </div>
