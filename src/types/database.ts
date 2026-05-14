@@ -22,6 +22,8 @@ export type Business = {
     created_at: string;
     updated_at: string;
     type: 'business' | 'classified';
+    manual_reminder_sent_at?: string | null;
+    manual_reminder_count?: number;
 };
 
 export type Promotion = {

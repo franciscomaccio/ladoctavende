@@ -16,9 +16,9 @@ Deno.serve(async (req) => {
     }
 
     try {
-        const { email, businessName, expiryDate } = await req.json();
+        const { email, businessName, expiryDate, businessId } = await req.json();
 
-        if (!email || !businessName || !expiryDate) {
+        if (!email || !businessName || !expiryDate || !businessId) {
             throw new Error("Missing required parameters");
         }
 
@@ -75,6 +75,16 @@ Deno.serve(async (req) => {
             status: res.ok ? 'success' : 'error',
             error_message: res.ok ? null : JSON.stringify(resData)
         });
+
+        if (res.ok) {
+            const { data: business } = await supabase.from('businesses').select('manual_reminder_count').eq('id', businessId).single();
+            const currentCount = business?.manual_reminder_count || 0;
+            
+            await supabase.from('businesses').update({
+                manual_reminder_sent_at: new Date().toISOString(),
+                manual_reminder_count: currentCount + 1
+            }).eq('id', businessId);
+        }
 
         return new Response(JSON.stringify(resData), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },

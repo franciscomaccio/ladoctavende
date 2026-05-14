@@ -383,7 +383,7 @@ export default function AdminDashboard() {
     const fetchBusinesses = async () => {
         const { data } = await supabase
             .from('businesses')
-            .select('id, name, active, subscription_expires_at, category, phone, owner_id, description, image_url, website_url, location_lat, location_lng, type, profiles(email)')
+            .select('id, name, active, subscription_expires_at, category, phone, owner_id, description, image_url, website_url, location_lat, location_lng, type, manual_reminder_sent_at, manual_reminder_count, profiles(email)')
             .order('created_at', { ascending: false })
             .order('id', { ascending: false });
         if (data) setBusinesses(data as unknown as Business[]);
@@ -832,12 +832,14 @@ export default function AdminDashboard() {
                 body: {
                     email: business.profiles.email,
                     businessName: business.name,
-                    expiryDate: business.subscription_expires_at
+                    expiryDate: business.subscription_expires_at,
+                    businessId: business.id
                 }
             });
             
             if (error) throw error;
             alert('¡Recordatorio de vencimiento enviado con éxito!');
+            fetchBusinesses();
         } catch (err: any) {
             console.error('Error sending reminder:', err);
             alert('Error al enviar el recordatorio: ' + translateError(err.message));
@@ -2206,26 +2208,25 @@ export default function AdminDashboard() {
                                                             >
                                                                 <UserPlus size={16} />
                                                             </button>
-                                                            {isExpired && (
-                                                                <button
-                                                                    onClick={() => handleSendReminder(business)}
-                                                                    disabled={sendingReminderId === business.id}
-                                                                    className="btn-primary"
-                                                                    title="Enviar Recordatorio de Vencimiento"
-                                                                    style={{
-                                                                        padding: '8px',
-                                                                        background: 'rgba(59, 130, 246, 0.1)',
-                                                                        color: '#3b82f6',
-                                                                        border: '1px solid rgba(59, 130, 246, 0.3)',
-                                                                        display: 'flex',
-                                                                        alignItems: 'center',
-                                                                        justifyContent: 'center',
-                                                                        opacity: sendingReminderId === business.id ? 0.5 : 1
-                                                                    }}
-                                                                >
-                                                                    <Mail size={16} />
-                                                                </button>
-                                                            )}
+                                                            <button
+                                                                onClick={() => handleSendReminder(business)}
+                                                                disabled={!isExpired || sendingReminderId === business.id}
+                                                                className="btn-primary"
+                                                                title={!isExpired ? "El negocio aún no está vencido" : `Enviar Recordatorio de Vencimiento.\nEnvíos manuales: ${business.manual_reminder_count || 0}\nÚltimo: ${business.manual_reminder_sent_at ? new Date(business.manual_reminder_sent_at).toLocaleDateString('es-AR') : 'Nunca'}`}
+                                                                style={{
+                                                                    padding: '8px',
+                                                                    background: isExpired ? 'rgba(59, 130, 246, 0.1)' : 'rgba(255,255,255,0.05)',
+                                                                    color: isExpired ? '#3b82f6' : 'var(--text-muted)',
+                                                                    border: isExpired ? '1px solid rgba(59, 130, 246, 0.3)' : '1px solid var(--border-light)',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center',
+                                                                    opacity: (!isExpired || sendingReminderId === business.id) ? 0.4 : 1,
+                                                                    cursor: !isExpired ? 'not-allowed' : 'pointer'
+                                                                }}
+                                                            >
+                                                                <Mail size={16} />
+                                                            </button>
                                                             <button
                                                                 onClick={() => toggleActive(business.id, business.active)}
                                                                 className="btn-primary"
