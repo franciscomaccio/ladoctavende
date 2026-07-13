@@ -234,7 +234,7 @@ export default function Home({ type = 'business' }: { type?: 'business' | 'class
         e.stopPropagation();
         recordBusinessEvent(businessId, 'whatsapp');
         const cleanPhone = phone.replace(/\D/g, '');
-        const message = encodeURIComponent("Hola te escribo desde La Docta Vende");
+        const message = encodeURIComponent("Hola, te escribo desde ladoctavende.com.ar");
         window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
     };
 
